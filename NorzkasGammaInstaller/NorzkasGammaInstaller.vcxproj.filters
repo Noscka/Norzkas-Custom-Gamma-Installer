@@ -23,5 +23,14 @@
     <ClInclude Include="EXTERNAL\httplib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="EXTERNAL\json.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\AccountToken.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\Global.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

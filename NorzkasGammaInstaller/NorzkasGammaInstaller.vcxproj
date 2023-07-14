@@ -171,6 +171,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EXTERNAL\httplib.h" />
+    <ClInclude Include="EXTERNAL\json.hpp" />
+    <ClInclude Include="Headers\AccountToken.hpp" />
+    <ClInclude Include="Headers\Global.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
