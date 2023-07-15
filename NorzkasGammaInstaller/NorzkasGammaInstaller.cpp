@@ -11,6 +11,7 @@
 
 #include "Headers/Global.hpp"
 #include "Headers/AccountToken.hpp"
+#include "Headers/ModMakerParsing.hpp"
 
 void InitializeClient(httplib::Client* client)
 {
@@ -49,6 +50,11 @@ int main()
 {
 	NosLib::Console::InitializeModifiers::EnableUnicode();
 	NosLib::Console::InitializeModifiers::EnableANSI();
+
+	ModPackMaker::ModpackMakerFile_Parse();
+
+	wprintf(L"Press any button to continue"); _getch();
+	return 0;
 
 	AccountToken::GetAccountToken();
 
