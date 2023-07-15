@@ -58,8 +58,11 @@ int main()
 		ModPackMaker::PrintModInfo(*mod);
 	}
 
+
 	wprintf(L"Press any button to continue"); _getch();
 	return 0;
+
+	/* LATER SETUP */
 
 	AccountToken::GetAccountToken();
 
