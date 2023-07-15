@@ -71,32 +71,36 @@ namespace ModPackMaker
 		return ModInfo(wordArray[0], pathArray, wordArray[2], wordArray[3], wordArray[4], wordArray[5]);
 	}
 
-	void ModpackMakerFile_Parse()
+	void PrintModInfo(ModInfo& modInfo)
 	{
-		std::wifstream modMakerFile("modpack_maker_list.txt", std::ios::binary);
+		std::wstring TypeString;
 
-		std::wstring line;
-		while (std::getline(modMakerFile, line))
+		switch (modInfo.ModType)
 		{
-			ModInfo currentModInfo = ParseLine(line);
+		case ModInfo::Type::Seperator:
+			TypeString = L"Seperator";
+			break;
+		case ModInfo::Type::Standard:
+			TypeString = L"Standard";
+			break;
+		default:
+			TypeString = L"None";
+			break;
+		}
 
-			switch (currentModInfo.ModType)
+		std::wstring pathList;
+		for (int i = 0; i <= modInfo.InsidePaths.GetLastArrayIndex(); i++)
+		{
+			pathList += modInfo.InsidePaths[i];
+			if (i != modInfo.InsidePaths.GetLastArrayIndex())
 			{
-			case ModInfo::Type::Seperator:
-				wprintf((currentModInfo.OutName + L"\n").c_str());
-				break;
-			case ModInfo::Type::Standard:std::wstring pathList;
-				for (int i = 0; i <= currentModInfo.InsidePaths.GetLastArrayIndex(); i++)
-				{
-					pathList += currentModInfo.InsidePaths[i];
-					if (i != currentModInfo.InsidePaths.GetLastArrayIndex())
-					{
-						pathList += L" | ";
-					}
-				}
+				pathList += L" | ";
+			}
+		}
 
-				wprintf(std::format(
-					L"===================================================\n\
+		wprintf(std::format(
+			L"===================================================\n\
+Type:\t{}\n\n\
 Download Link:\t|{}\n\
 Number:\t{}\n\
 Inside Path:\t|{}\n\
@@ -104,9 +108,19 @@ Creator Name:\t|{}\n\
 Out Name:\t|{}\n\
 Original Link:\t|{}\n\
 Left Over:\t|{}\n\
-===================================================\n", currentModInfo.Link, currentModInfo.ModIndex, pathList, currentModInfo.CreatorName, currentModInfo.OutName, currentModInfo.OriginalLink, currentModInfo.LeftOver).c_str());
-				break;
-			}
+===================================================\n", TypeString, modInfo.Link, modInfo.ModIndex, pathList, modInfo.CreatorName, modInfo.OutName, modInfo.OriginalLink, modInfo.LeftOver).c_str());
+	}
+
+	void ModpackMakerFile_Parse()
+	{
+		std::wifstream modMakerFile("modpack_maker_list.txt", std::ios::binary);
+
+		std::wstring line;
+		while (std::getline(modMakerFile, line))
+		{
+			ModInfo modInfo = ParseLine(line);
+
+			PrintModInfo(modInfo);
 		}
 	}
 }
