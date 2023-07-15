@@ -49,7 +49,7 @@ namespace ModPackMaker
 		}
 	};
 
-	ModInfo ParseLine(std::wstring& line)
+	ModInfo* ParseLine(std::wstring& line)
 	{
 		NosLib::DynamicArray<std::wstring> wordArray(6, 2);
 
@@ -62,13 +62,13 @@ namespace ModPackMaker
 
 		if (wordArray.GetLastArrayIndex() == 0)
 		{
-			return ModInfo(wordArray[0]);
+			return new ModInfo(wordArray[0]);
 		}
 
 		NosLib::DynamicArray<std::wstring> pathArray(5, 5);
 		NosLib::String::Split<wchar_t>(&pathArray, wordArray[1], L':');
 
-		return ModInfo(wordArray[0], pathArray, wordArray[2], wordArray[3], wordArray[4], wordArray[5]);
+		return new ModInfo(wordArray[0], pathArray, wordArray[2], wordArray[3], wordArray[4], wordArray[5]);
 	}
 
 	void PrintModInfo(ModInfo& modInfo)
@@ -111,16 +111,18 @@ Left Over:\t|{}\n\
 ===================================================\n", TypeString, modInfo.Link, modInfo.ModIndex, pathList, modInfo.CreatorName, modInfo.OutName, modInfo.OriginalLink, modInfo.LeftOver).c_str());
 	}
 
-	void ModpackMakerFile_Parse()
+	NosLib::DynamicArray<ModInfo*> ModpackMakerFile_Parse()
 	{
+		NosLib::DynamicArray<ModInfo*> outputArray;
+
 		std::wifstream modMakerFile("modpack_maker_list.txt", std::ios::binary);
 
 		std::wstring line;
 		while (std::getline(modMakerFile, line))
 		{
-			ModInfo modInfo = ParseLine(line);
-
-			PrintModInfo(modInfo);
+			outputArray.Append(ParseLine(line));
 		}
+
+		return outputArray;
 	}
 }

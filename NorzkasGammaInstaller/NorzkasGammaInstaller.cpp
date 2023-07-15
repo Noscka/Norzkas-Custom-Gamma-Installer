@@ -51,7 +51,12 @@ int main()
 	NosLib::Console::InitializeModifiers::EnableUnicode();
 	NosLib::Console::InitializeModifiers::EnableANSI();
 
-	ModPackMaker::ModpackMakerFile_Parse();
+	NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoArray = ModPackMaker::ModpackMakerFile_Parse();
+
+	for (ModPackMaker::ModInfo* mod : modInfoArray)
+	{
+		ModPackMaker::PrintModInfo(*mod);
+	}
 
 	wprintf(L"Press any button to continue"); _getch();
 	return 0;
