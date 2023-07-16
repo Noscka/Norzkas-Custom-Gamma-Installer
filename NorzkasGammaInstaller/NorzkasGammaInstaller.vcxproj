@@ -22,7 +22,6 @@
     <ClInclude Include="EXTERNAL\httplib.h" />
     <ClInclude Include="EXTERNAL\json.hpp" />
     <ClInclude Include="Headers\AccountToken.hpp" />
-    <ClInclude Include="Headers\Directories.h" />
     <ClInclude Include="Headers\HTMLParsing.h" />
     <ClInclude Include="Headers\HTTPLogging.hpp" />
     <ClInclude Include="Headers\HTTPOperations.hpp" />

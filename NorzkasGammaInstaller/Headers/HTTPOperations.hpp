@@ -3,6 +3,8 @@
 #include "EXTERNAL\httplib.h"
 #include <string>
 
+#include "Headers\ModMakerParsing.hpp"
+
 std::string GetFileExtensionFromHeader(const std::string& type)
 {
 	if (type.find("application/zip") != std::string::npos)
@@ -17,17 +19,20 @@ std::string GetFileExtensionFromHeader(const std::string& type)
 	{
 		return ".rar";
 	}
+
+	return ".ERROR";
 }
 
-httplib::Result GetAndSaveFile(httplib::Client* client, const std::string& filepath, const std::string& filename)
+void GetAndSaveFile(httplib::Client* client, ModPackMaker::ModInfo* mod, const std::string& filepath)
 {
 	std::ofstream DownloadFile;
 
 	httplib::Result res = client->Get(filepath,
 		[&](const httplib::Response& response)
 		{
+			mod->FileExtension = GetFileExtensionFromHeader(response.headers.find("Content-Type")->second);
 			/* before start download, get "Content-Type" header tag to see the extensions, then open with the name+extension */
-			DownloadFile.open((filename + GetFileExtensionFromHeader(response.headers.find("Content-Type")->second)), std::ios::binary | std::ios::trunc);
+			DownloadFile.open(mod->GetFullFileName(true), std::ios::binary | std::ios::trunc);
 			return true; // return 'false' if you want to cancel the request.
 		},
 		[&](const char* data, size_t data_length)
@@ -44,9 +49,7 @@ httplib::Result GetAndSaveFile(httplib::Client* client, const std::string& filep
 				return true;
 			}
 
-			wprintf(L"%lld / %lld bytes => %d%% complete\n",
-				len, total,
-				(int)(len * 100 / total));
+			wprintf(L"%lld / %lld bytes => %d%% complete\n", len, total, (int)(len * 100 / total));
 			return true; // return 'false' if you want to cancel the request.
 		});
 
@@ -54,7 +57,7 @@ httplib::Result GetAndSaveFile(httplib::Client* client, const std::string& filep
 
 	DownloadFile.close();
 
-	return res;
+	return;
 }
 
 enum class HostType
@@ -88,14 +91,14 @@ void ModDBDownload(httplib::Client* downloadClient, ModPackMaker::ModInfo* mod)
 	}
 
 	downloadClient->set_follow_location(true);
-	downloadClient->set_logger(&LoggingFunction);
+	//downloadClient->set_logger(&LoggingFunction);
 
-	httplib::Result res = GetAndSaveFile(downloadClient, LinkOutput.Link, NosLib::String::ConvertString<char, wchar_t>(mod->GetFullFileName()));
+	GetAndSaveFile(downloadClient, mod, LinkOutput.Link);
 }
 
 void GithubDownload(httplib::Client* downloadClient, ModPackMaker::ModInfo* mod)
 {
 	downloadClient->set_follow_location(true);
-	downloadClient->set_logger(&LoggingFunction);
-	GetAndSaveFile(downloadClient, mod->Link.Path, NosLib::String::ConvertString<char, wchar_t>(mod->OutName));
+	//downloadClient->set_logger(&LoggingFunction);
+	GetAndSaveFile(downloadClient, mod, mod->Link.Path);
 }

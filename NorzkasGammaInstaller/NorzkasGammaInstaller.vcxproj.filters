@@ -41,9 +41,6 @@
     <ClInclude Include="Headers\HTMLParsing.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\Directories.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Headers\HTTPOperations.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

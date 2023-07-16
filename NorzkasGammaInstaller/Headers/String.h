@@ -5,11 +5,11 @@
 /* TODO: ADD TO NOSLIB */
 namespace CustomStrings
 {
-	std::wstring trim(const std::wstring& str, const std::wstring& whitespace = L" \t")
+	std::string trim(const std::string& str, const std::string& whitespace = " \t")
 	{
 		const auto strBegin = str.find_first_not_of(whitespace);
 		if (strBegin == std::wstring::npos)
-			return L""; // no content
+			return ""; // no content
 
 		const auto strEnd = str.find_last_not_of(whitespace);
 		const auto strRange = strEnd - strBegin + 1;
@@ -17,7 +17,7 @@ namespace CustomStrings
 		return str.substr(strBegin, strRange);
 	}
 
-	std::wstring reduce(const std::wstring& str, const std::wstring& fill = L" ", const std::wstring& whitespace = L" \t")
+	std::string reduce(const std::string& str, const std::string& fill = " ", const std::string& whitespace = " \t")
 	{
 		// trim first
 		auto result = trim(str, whitespace);

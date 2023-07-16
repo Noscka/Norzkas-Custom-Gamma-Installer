@@ -20,10 +20,10 @@
 #include "Headers\AccountToken.hpp"
 #include "Headers\ModMakerParsing.hpp"
 #include "Headers\HTMLParsing.h"
-#include "Headers\Directories.h"
 #include "Headers\HTTPOperations.hpp"
 
-const std::wstring outputDirectory = L"mods\\";
+const std::wstring ModDirectory = L"mods\\";
+const std::wstring ExtractedDirectory = L".\\Extracted\\";
 
 void StandardModProcess(ModPackMaker::ModInfo* mod)
 {
@@ -47,11 +47,27 @@ void StandardModProcess(ModPackMaker::ModInfo* mod)
 		wprintf(L"Unknown host type\ncontinuing to next\n");
 		return;
 	}
+
+	std::wstring extractedOutDirectory = ExtractedDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false));
+
+	wprintf((extractedOutDirectory + L"\n").c_str());
+
+	std::filesystem::create_directories(extractedOutDirectory);
+
+	bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll"));
+	try
+	{
+		extractor.extract(mod->GetFullFileName(true), NosLib::String::ToString(extractedOutDirectory));
+	}
+	catch (const std::exception& ex)
+	{
+		std::cerr << ex.what() << std::endl;
+	}
 }
 
 void SeperatorModProcess(ModPackMaker::ModInfo* mod)
 {
-	createDirectoryRecursively(outputDirectory + mod->GetFullFileName());
+	std::filesystem::create_directories(ModDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false)));
 }
 
 int main()
@@ -61,10 +77,8 @@ int main()
 	NosLib::Console::InitializeModifiers::BeatifyConsole<wchar_t>(L"Norzka's Gamma Installer");
 	NosLib::Console::InitializeModifiers::InitializeEventHandler();
 
-	NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoArray = ModPackMaker::ModpackMakerFile_Parse(L"modpack_maker_list.txt");
+	NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoArray = ModPackMaker::ModpackMakerFile_Parse("modpack_maker_list.txt");
 
-	wprintf(L"Press any button to continue"); _getch();
-	return 0;
 
 	for (ModPackMaker::ModInfo* mod : modInfoArray)
 	{
@@ -100,7 +114,7 @@ int main()
 		{"Cookie", std::format("accountToken={}", AccountToken::AccountToken)},
 		{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
 
-	GetAndSaveFile(&downloader, "/download/86137f5a-201e-41ff-86b7-47fa42ba2d11/GAMMA%20RC3.7z", "GAMMA RC3.7z");
+	//GetAndSaveFile(&downloader, "/download/86137f5a-201e-41ff-86b7-47fa42ba2d11/GAMMA%20RC3.7z", "GAMMA RC3.7z");
 
 	wprintf(L"Press any button to continue"); _getch();
     return 0;
