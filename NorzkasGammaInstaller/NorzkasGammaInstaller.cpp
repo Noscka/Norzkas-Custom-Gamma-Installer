@@ -12,6 +12,7 @@
 #include "Headers/Global.hpp"
 #include "Headers/AccountToken.hpp"
 #include "Headers/ModMakerParsing.hpp"
+#include "Headers\HTMLParsing.h"
 
 void InitializeClient(httplib::Client* client)
 {
@@ -46,18 +47,77 @@ void GetAndSaveFile(httplib::Client* client, const std::string& filepath, const 
 	DownloadFile.close();
 }
 
+struct HostPath
+{
+	std::string Host;
+	std::string Path;
+
+	HostPath(const std::wstring& host, const std::wstring& path)
+	{
+		Host = NosLib::String::ConvertString<char, wchar_t>(host);
+		Path = NosLib::String::ConvertString<char, wchar_t>(path);
+	}
+
+	HostPath(const std::string& host, const std::string& path)
+	{
+		Host = host;
+		Path = path;
+	}
+};
+
+HostPath GetHostPath(const std::wstring& link)
+{
+	int slashCount = 0;
+
+	HostPath output("None", "None");
+
+	for (int i = 0; i < link.length(); i++)
+	{
+		if (slashCount == 3)
+		{
+			output = HostPath(link.substr(0, i-1), link.substr(i-1));
+			break;
+		}
+
+		if (link[i] == L'/')
+		{
+			slashCount++;
+		}
+	}
+	
+	return output;
+}
+
 int main()
 {
 	NosLib::Console::InitializeModifiers::EnableUnicode();
 	NosLib::Console::InitializeModifiers::EnableANSI();
 
-	NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoArray = ModPackMaker::ModpackMakerFile_Parse();
+	ModDBParsing::HTMLParseReturn LinkOutput = ModDBParsing::ParseHtmlForLink(L"Main Menu Theme - Deathcard Cabin.html");
 
-	for (ModPackMaker::ModInfo* mod : modInfoArray)
-	{
-		ModPackMaker::PrintModInfo(*mod);
-	}
+	wprintf((LinkOutput.Link + L"\n").c_str());
 
+	wprintf(L"Press any button to continue"); _getch();
+	return 0;
+
+	NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoArray = ModPackMaker::ModpackMakerFile_Parse(L"modpack_maker_list.txt");
+	
+	HostPath output = GetHostPath(modInfoArray[1]->Link);
+
+	httplib::Client modDB(output.Host);
+
+	modDB.set_follow_location(true);
+	modDB.set_logger(&LoggingFunction);
+	modDB.set_keep_alive(true);
+	modDB.set_default_headers({{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
+
+	GetAndSaveFile(&modDB, output.Path, NosLib::String::ConvertString<char, wchar_t>(modInfoArray[1]->OutName));
+
+
+	//for (ModPackMaker::ModInfo* mod : modInfoArray)
+	//{
+	//	wprintf(ModPackMaker::StringModInfo(*mod).c_str());
+	//}
 
 	wprintf(L"Press any button to continue"); _getch();
 	return 0;

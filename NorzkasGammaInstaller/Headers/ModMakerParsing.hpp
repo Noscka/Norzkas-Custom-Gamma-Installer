@@ -98,7 +98,7 @@ namespace ModPackMaker
 		return new ModInfo(wordArray[0], pathArray, wordArray[2], wordArray[3], wordArray[4], wordArray[5]);
 	}
 
-	void PrintModInfo(ModInfo& modInfo)
+	std::wstring StringModInfo(ModInfo& modInfo)
 	{
 		std::wstring TypeString;
 
@@ -125,7 +125,7 @@ namespace ModPackMaker
 			}
 		}
 
-		wprintf(std::format(
+		return std::format(
 			L"===================================================\n\
 Type:\t{}\n\n\
 Download Link:\t|{}\n\
@@ -135,16 +135,21 @@ Creator Name:\t|{}\n\
 Out Name:\t|{}\n\
 Original Link:\t|{}\n\
 Left Over:\t|{}\n\
-===================================================\n", TypeString, modInfo.Link, modInfo.ModIndex, pathList, modInfo.CreatorName, modInfo.OutName, modInfo.OriginalLink, modInfo.LeftOver).c_str());
+===================================================\n", TypeString, modInfo.Link, modInfo.ModIndex, pathList, modInfo.CreatorName, modInfo.OutName, modInfo.OriginalLink, modInfo.LeftOver);
 	}
 
-	NosLib::DynamicArray<ModInfo*> ModpackMakerFile_Parse()
+	/// <summary>
+	/// takes in a filename for a modpackMaker and parses it fully
+	/// </summary>
+	/// <param name="modpackMakerFileName">- path/name of modpack Maker</param>
+	/// <returns>a DynamicArray of ModInfo pointers (ModInfo*)</returns>
+	NosLib::DynamicArray<ModInfo*> ModpackMakerFile_Parse(const std::wstring& modpackMakerFileName)
 	{
 		/* create output array */
 		NosLib::DynamicArray<ModInfo*> outputArray;
 
 		/* open binary file stream of modpack maker list */
-		std::wifstream modMakerFile("modpack_maker_list.txt", std::ios::binary);
+		std::wifstream modMakerFile(modpackMakerFileName, std::ios::binary);
 
 		/* got through all lines in the file. each line is a new mod */
 		std::wstring line;
