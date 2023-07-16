@@ -50,14 +50,14 @@ namespace ModDBParsing
 	/// </summary>
 	/// <param name="fileName">- file path/name</param>
 	/// <returns>a link if found</returns>
-	HTMLParseReturn ParseHtmlForLink(const std::wstring& fileName)
+	HTMLParseReturn ParseHtmlForLink(const std::wstring& html)
 	{
 		HTMLParseReturn output{L"No Link Found", false};
 
-		std::wifstream modMakerFile(fileName, std::ios::binary);
+		std::wistringstream htmlStream(html);
 
 		std::wstring line;
-		while (std::getline(modMakerFile, line))
+		while (std::getline(htmlStream, line))
 		{
 			HTMLParseReturn parseResult = ParseHtmlLine(line);
 

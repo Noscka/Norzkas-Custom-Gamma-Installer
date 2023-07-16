@@ -93,26 +93,26 @@ int main()
 	NosLib::Console::InitializeModifiers::EnableUnicode();
 	NosLib::Console::InitializeModifiers::EnableANSI();
 
-	ModDBParsing::HTMLParseReturn LinkOutput = ModDBParsing::ParseHtmlForLink(L"Main Menu Theme - Deathcard Cabin.html");
-
-	wprintf((LinkOutput.Link + L"\n").c_str());
-
-	wprintf(L"Press any button to continue"); _getch();
-	return 0;
-
 	NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoArray = ModPackMaker::ModpackMakerFile_Parse(L"modpack_maker_list.txt");
 	
 	HostPath output = GetHostPath(modInfoArray[1]->Link);
 
 	httplib::Client modDB(output.Host);
 
-	modDB.set_follow_location(true);
-	modDB.set_logger(&LoggingFunction);
+	modDB.set_follow_location(false);
 	modDB.set_keep_alive(true);
 	modDB.set_default_headers({{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
 
-	GetAndSaveFile(&modDB, output.Path, NosLib::String::ConvertString<char, wchar_t>(modInfoArray[1]->OutName));
+	httplib::Result res = modDB.Get(output.Path);
 
+	ModDBParsing::HTMLParseReturn LinkOutput = ModDBParsing::ParseHtmlForLink(NosLib::String::ConvertString<wchar_t, char>(res->body));
+
+	wprintf((LinkOutput.Link + L"\n").c_str());
+
+	modDB.set_follow_location(true);
+	modDB.set_logger(&LoggingFunction);
+
+	GetAndSaveFile(&modDB, NosLib::String::ConvertString<char, wchar_t>(LinkOutput.Link), NosLib::String::ConvertString<char, wchar_t>(modInfoArray[1]->OutName));
 
 	//for (ModPackMaker::ModInfo* mod : modInfoArray)
 	//{
