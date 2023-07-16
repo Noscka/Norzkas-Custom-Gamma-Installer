@@ -5,6 +5,49 @@
 
 namespace ModPackMaker
 {
+	struct HostPath
+	{
+		std::string Host;
+		std::string Path;
+
+		HostPath() {}
+
+		HostPath(const std::wstring& host, const std::wstring& path)
+		{
+			Host = NosLib::String::ConvertString<char, wchar_t>(host);
+			Path = NosLib::String::ConvertString<char, wchar_t>(path);
+		}
+
+		HostPath(const std::string& host, const std::string& path)
+		{
+			Host = host;
+			Path = path;
+		}
+	};
+
+	HostPath GetHostPath(const std::wstring& link)
+	{
+		int slashCount = 0;
+
+		HostPath output;
+
+		for (int i = 0; i < link.length(); i++)
+		{
+			if (slashCount == 3)
+			{
+				output = HostPath(link.substr(0, i - 1), link.substr(i - 1));
+				break;
+			}
+
+			if (link[i] == L'/')
+			{
+				slashCount++;
+			}
+		}
+
+		return output;
+	}
+
 	struct ModInfo
 	{
 		/// <summary>
@@ -20,7 +63,7 @@ namespace ModPackMaker
 
 		Type ModType; /* the mod type */
 		int ModIndex; /* the mod index, that will be used in the folder name */
-		std::wstring Link; /* the download link, will be used to download */
+		HostPath Link; /* the download link, will be used to download */
 		NosLib::DynamicArray<std::wstring> InsidePaths; /* an array of the inner paths (incase there is many) */
 		std::wstring CreatorName; /* the creator name (used in folder name) */
 		std::wstring OutName; /* the main folder name (use in folder name) */
@@ -55,7 +98,7 @@ namespace ModPackMaker
 			ModIndex = CurrentModIndex;
 			CurrentModIndex++;
 
-			Link = link;
+			Link = GetHostPath(link);
 			InsidePaths << insidePaths;
 			CreatorName = creatorName;
 			OutName = outName;
@@ -135,7 +178,7 @@ Creator Name:\t|{}\n\
 Out Name:\t|{}\n\
 Original Link:\t|{}\n\
 Left Over:\t|{}\n\
-===================================================\n", TypeString, modInfo.Link, modInfo.ModIndex, pathList, modInfo.CreatorName, modInfo.OutName, modInfo.OriginalLink, modInfo.LeftOver);
+===================================================\n", TypeString, NosLib::String::ConvertString<wchar_t, char>(modInfo.Link.Host + modInfo.Link.Path), modInfo.ModIndex, pathList, modInfo.CreatorName, modInfo.OutName, modInfo.OriginalLink, modInfo.LeftOver);
 	}
 
 	/// <summary>
