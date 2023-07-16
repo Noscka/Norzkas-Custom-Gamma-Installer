@@ -18,6 +18,20 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="EXTERNAL\httplib.h" />
+    <ClInclude Include="EXTERNAL\json.hpp" />
+    <ClInclude Include="Headers\AccountToken.hpp" />
+    <ClInclude Include="Headers\Directories.h" />
+    <ClInclude Include="Headers\HTMLParsing.h" />
+    <ClInclude Include="Headers\HTTPLogging.hpp" />
+    <ClInclude Include="Headers\HTTPOperations.hpp" />
+    <ClInclude Include="Headers\ModMakerParsing.hpp" />
+    <ClInclude Include="Headers\String.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="NorzkasGammaInstaller.cpp" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
@@ -94,14 +108,14 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>D:\Libraries\NosLib\NosLib\;D:\Libraries\Boost;D:\Libraries\OpenSSL\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Libraries\NosLib\NosLib\;D:\Libraries\Boost;D:\Libraries\OpenSSL\include;D:\Libraries\bit7z\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Libraries\NosLib\Build\NosLib\$(Platform)\$(Configuration)\;D:\Libraries\Boost\stage\lib;D:\Libraries\OpenSSL\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libcrypto.lib;libssl.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Libraries\NosLib\Build\NosLib\$(Platform)\$(Configuration)\;D:\Libraries\Boost\stage\lib;D:\Libraries\OpenSSL\lib;D:\Libraries\bit7z\lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcrypto.lib;libssl.lib;bit7z.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -114,7 +128,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>D:\Libraries\NosLib\NosLib\;D:\Libraries\Boost;D:\Libraries\OpenSSL\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Libraries\NosLib\NosLib\;D:\Libraries\Boost;D:\Libraries\OpenSSL\include;D:\Libraries\bit7z\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -122,8 +136,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Libraries\NosLib\Build\NosLib\$(Platform)\$(Configuration)\;D:\Libraries\Boost\stage\lib;D:\Libraries\OpenSSL\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libcrypto.lib;libssl.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Libraries\NosLib\Build\NosLib\$(Platform)\$(Configuration)\;D:\Libraries\Boost\stage\lib;D:\Libraries\OpenSSL\lib;D:\Libraries\bit7z\lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcrypto.lib;libssl.lib;bit7z.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -134,14 +148,14 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>D:\Libraries\NosLib\NosLib\;D:\Libraries\Boost;D:\Libraries\OpenSSL\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Libraries\NosLib\NosLib\;D:\Libraries\Boost;D:\Libraries\OpenSSL\include;D:\Libraries\bit7z\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Libraries\NosLib\Build\NosLib\$(Platform)\$(Configuration)\;D:\Libraries\Boost\stage\lib;D:\Libraries\OpenSSL\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libcrypto.lib;libssl.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Libraries\NosLib\Build\NosLib\$(Platform)\$(Configuration)\;D:\Libraries\Boost\stage\lib;D:\Libraries\OpenSSL\lib;D:\Libraries\bit7z\lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcrypto.lib;libssl.lib;bit7z.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -154,7 +168,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>D:\Libraries\NosLib\NosLib\;D:\Libraries\Boost;D:\Libraries\OpenSSL\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Libraries\NosLib\NosLib\;D:\Libraries\Boost;D:\Libraries\OpenSSL\include;D:\Libraries\bit7z\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -162,22 +176,10 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Libraries\NosLib\Build\NosLib\$(Platform)\$(Configuration)\;D:\Libraries\Boost\stage\lib;D:\Libraries\OpenSSL\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>libcrypto.lib;libssl.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>D:\Libraries\NosLib\Build\NosLib\$(Platform)\$(Configuration)\;D:\Libraries\Boost\stage\lib;D:\Libraries\OpenSSL\lib;D:\Libraries\bit7z\lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libcrypto.lib;libssl.lib;bit7z.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="NorzkasGammaInstaller.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="EXTERNAL\httplib.h" />
-    <ClInclude Include="EXTERNAL\json.hpp" />
-    <ClInclude Include="Headers\AccountToken.hpp" />
-    <ClInclude Include="Headers\Global.hpp" />
-    <ClInclude Include="Headers\HTMLParsing.h" />
-    <ClInclude Include="Headers\ModMakerParsing.hpp" />
-    <ClInclude Include="Headers\String.h" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

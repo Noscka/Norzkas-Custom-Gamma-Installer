@@ -1,2 +1,11 @@
 https://github.com/yhirose/cpp-httplib
 https://github.com/nlohmann/json/releases/tag/v3.11.2
+
+https://github.com/rikyoz/bit7z
+Built with commands:
+```
+cd <bit7z folder>
+mkdir build && cd build
+cmake ../ -DCMAKE_BUILD_TYPE=Release -DBIT7Z_AUTO_FORMAT=ON -DBIT7Z_REGEX_MATCHING=ON -DBIT7Z_STATIC_RUNTIME=ON
+cmake --build . -j --config Release
+```

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <NosLib/DynamicArray.hpp>
+#include <format>
 #include "String.h"
 
 namespace ModPackMaker
@@ -106,6 +107,21 @@ namespace ModPackMaker
 			LeftOver = leftOver;
 			ModType = Type::Standard;
 		}
+
+		std::wstring GetFullFileName()
+		{
+			switch (ModType)
+			{
+			case Type::Seperator:
+				return std::format(L"{}- {}_seperator", ModIndex, OutName);
+
+			case Type::Standard:
+				return std::format(L"{}- {} {}", ModIndex, OutName, CreatorName);
+
+			default:
+				return L"Unknown Mod Type";
+			}
+		}
 	};
 
 	/// <summary>
@@ -189,7 +205,7 @@ Left Over:\t|{}\n\
 	NosLib::DynamicArray<ModInfo*> ModpackMakerFile_Parse(const std::wstring& modpackMakerFileName)
 	{
 		/* create output array */
-		NosLib::DynamicArray<ModInfo*> outputArray;
+		NosLib::DynamicArray<ModInfo*> outputArray(20, 10, false);
 
 		/* open binary file stream of modpack maker list */
 		std::wifstream modMakerFile(modpackMakerFileName, std::ios::binary);

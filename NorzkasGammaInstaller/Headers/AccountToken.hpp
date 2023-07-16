@@ -10,7 +10,7 @@
 #include <fstream>
 #include <format>
 
-#include "Headers/Global.hpp"
+#include "Headers/HTTPLogging.hpp"
 
 namespace AccountToken
 {
