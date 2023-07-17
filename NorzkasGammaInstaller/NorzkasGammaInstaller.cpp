@@ -28,12 +28,15 @@ const std::wstring ExtractedDirectory = L"Extracted\\";
 
 void StandardModProcess(ModPackMaker::ModInfo* mod, const bit7z::BitFileExtractor& extractor)
 {
+	/* create client for the host */
 	httplib::Client downloadClient(mod->Link.Host);
 
+	/* set properties */
 	downloadClient.set_follow_location(false);
 	downloadClient.set_keep_alive(false);
 	downloadClient.set_default_headers({{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
 
+	/* Decide the host type, there are different download steps for different websites */
 	switch (DetermineHostType(mod->Link.Host))
 	{
 	case HostType::ModDB:
@@ -49,29 +52,44 @@ void StandardModProcess(ModPackMaker::ModInfo* mod, const bit7z::BitFileExtracto
 		return;
 	}
 
+	/* create path to extract into */
 	std::wstring extractedOutDirectory = ExtractedDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false));
 
-	wprintf((extractedOutDirectory + L"\n").c_str());
-
+	/* create directories in order to prevent any errors */
 	std::filesystem::create_directories(extractedOutDirectory);
 
+	/* extract into said directory */
 	extractor.extract(mod->GetFullFileName(true), NosLib::String::ToString(extractedOutDirectory));
 
+	/* for every "inner" path, go through and find the needed files */
 	for (std::string path : mod->InsidePaths)
 	{
-		try
-		{
-			if (std::filesystem::exists((extractedOutDirectory + NosLib::String::ToWstring(path) + L"fomod\\")))
-			{
-				std::filesystem::copy((extractedOutDirectory + NosLib::String::ToWstring(path) + L"fomod\\"), (ModDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false)) + L"\\fomod\\"), std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
-			}
-			std::filesystem::copy((extractedOutDirectory + NosLib::String::ToWstring(path) + L"gamedata\\"), (ModDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false)) + L"\\gamedata\\"), std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
-		}
-		catch (const std::exception& ex)
-		{
-			std::cerr << ex.what() << std::endl;
-		}
+		/* root inner path, everything revolves around this */
+		std::wstring rootFrom = (extractedOutDirectory + NosLib::String::ToWstring(path));
+		std::wstring rootTo = (ModDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false)) + L"\\");
+
+		/* sub directories to be read from, some mods contain extra content in the root directory */
+		std::wstring gamedata = L"gamedata\\";
+		std::wstring fomod = L"fomod\\";
+
+		/* create directories to prevent errors */
+		std::filesystem::create_directories(rootTo + gamedata);
+
+		/* copy all files from root (any readme/extra info files) */
+		std::filesystem::copy(rootFrom, rootTo, std::filesystem::copy_options::overwrite_existing);
+
+		/* copy everything inside gamedata subdirectory */
+		std::filesystem::copy(rootFrom + gamedata, rootTo + gamedata, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
 		
+		/* if DOESN'T exist, go to next path (this is to remove 1 layer of nesting */
+		if (!std::filesystem::exists(rootFrom + fomod))
+		{
+			continue;
+		}
+
+		/* repeat the previous step but this time with "fomod" sub directory */
+		std::filesystem::create_directories(rootTo + fomod);
+		std::filesystem::copy(rootFrom + fomod, rootTo + fomod, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
 	}
 }
 
