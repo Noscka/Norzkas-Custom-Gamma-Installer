@@ -108,14 +108,35 @@ void StandardModProcess(ModPackMaker::ModInfo* mod, const bit7z::BitFileExtracto
 			std::cerr << logMessage << std::endl;
 
 			ModPackMaker::ModInfo::modFailedList.Append(mod); /* add this mod to "failed" list */
+
+			/* create "failed mod list" file if there was any failed/unfinished mods */
+			std::ofstream failedMostListOutput(L"failed mod list.txt", std::ios::binary | std::ios::app);
+
+			std::string pathList;
+			for (int i = 0; i <= mod->InsidePaths.GetLastArrayIndex(); i++)
+			{
+				pathList += mod->InsidePaths[i];
+				if (i != mod->InsidePaths.GetLastArrayIndex())
+				{
+					pathList += ":";
+				}
+			}
+
+			std::string line = std::format("{}\t{}\t{}\t{}\t{}\t{}\t----\t{}", mod->Link.Host + mod->Link.Path, pathList, mod->CreatorName, mod->OutName, mod->OriginalLink, mod->LeftOver, mod->GetFullFileName(true));
+
+			failedMostListOutput.write(line.c_str(), line.size());
+
+			failedMostListOutput.close();
 		}
 	}
 }
 
-void SeperatorModProcess(ModPackMaker::ModInfo* mod)
+void SeparatorModProcess(ModPackMaker::ModInfo* mod)
 {
 	std::filesystem::create_directories(ModDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false)));
 }
+
+/* /Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip */
 
 int main()
 {
@@ -124,50 +145,34 @@ int main()
 	NosLib::Console::InitializeModifiers::BeatifyConsole<wchar_t>(L"Norzka's Gamma Installer");
 	NosLib::Console::InitializeModifiers::InitializeEventHandler();
 
+	/* parse modpack maker file, put it into global static array */
 	ModPackMaker::ModpackMakerFile_Parse("modpack_maker_list.txt");
 
+	/* create extractor object */
 	bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll"));
 
+	/* create directory for downloaded files */
 	std::filesystem::create_directories(DownloadedDirectory);
 
+	/* go through all mods in global static array */
 	for (ModPackMaker::ModInfo* mod : ModPackMaker::ModInfo::modInfoList)
 	{
+		/* do different things depending on the mod type */
 		switch (mod->ModType)
 		{
 		case ModPackMaker::ModInfo::Type::Seperator:
-			SeperatorModProcess(mod);
+			SeparatorModProcess(mod); /* if separator, just create folder with special name */
 			break;
 
 		case ModPackMaker::ModInfo::Type::Standard:
-			StandardModProcess(mod, extractor);
+			StandardModProcess(mod, extractor); /* if mod, then download, extract and the construct (copy all the inner paths to end file) the mod */
 			break;
 
-		default:
-			wprintf(L"Unknown Mod Type\ncontinuing to next\n");
+		default: /* default meaning it is some other type which hasn't been defined yet */
+			wprintf(L"Mod type not yet define\ncontinuing to next\n");
 			continue;
 		}
 	}
-
-	std::ofstream failedMostListOutput(L"failed mod list.txt", std::ios::binary | std::ios::trunc);
-
-	for (ModPackMaker::ModInfo* mod : ModPackMaker::ModInfo::modFailedList)
-	{
-		std::string pathList;
-		for (int i = 0; i <= mod->InsidePaths.GetLastArrayIndex(); i++)
-		{
-			pathList += mod->InsidePaths[i];
-			if (i != mod->InsidePaths.GetLastArrayIndex())
-			{
-				pathList += ":";
-			}
-		}
-
-		std::string line = std::format("{}\t{}\t{}\t{}\t{}\t{}\t----\t{}", mod->Link.Host+mod->Link.Path, pathList, mod->CreatorName, mod->OutName, mod->OriginalLink, mod->LeftOver, mod->GetFullFileName(true));
-
-		failedMostListOutput.write(line.c_str(), line.size());
-	}
-
-	failedMostListOutput.close();
 
 	wprintf(L"Press any button to continue"); _getch();
 	return 0;
