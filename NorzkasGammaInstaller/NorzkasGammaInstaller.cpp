@@ -213,7 +213,7 @@ void CustomModProcess(ModPackMaker::ModInfo* mod)
 				}
 			}
 
-			std::string line = std::format("{}\t{}\t{}\t{}\t{}\t{}\t----\t{}", mod->Link.Host + mod->Link.Path, pathList, mod->CreatorName, mod->OutName, mod->OriginalLink, mod->LeftOver, mod->GetFullFileName(true));
+			std::string line = std::format("{}\t{}\t{}\t{}\t{}\t{}\t----\t{}\n", mod->Link.Host + mod->Link.Path, pathList, mod->CreatorName, mod->OutName, mod->OriginalLink, mod->LeftOver, mod->GetFullFileName(true));
 
 			failedMostListOutput.write(line.c_str(), line.size());
 
