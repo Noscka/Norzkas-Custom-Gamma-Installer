@@ -1,5 +1,6 @@
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #define BIT7Z_AUTO_FORMAT
+#define BIT7Z_REGEX_MATCHING
 
 #include "EXTERNAL\httplib.h"
 #include "EXTERNAL\json.hpp"
@@ -23,7 +24,7 @@
 #include "Headers\HTTPOperations.hpp"
 
 const std::wstring ModDirectory = L"mods\\";
-const std::wstring ExtractedDirectory = L".\\Extracted\\";
+const std::wstring ExtractedDirectory = L"Extracted\\";
 
 void StandardModProcess(ModPackMaker::ModInfo* mod)
 {
@@ -32,6 +33,8 @@ void StandardModProcess(ModPackMaker::ModInfo* mod)
 	downloadClient.set_follow_location(false);
 	downloadClient.set_keep_alive(false);
 	downloadClient.set_default_headers({{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
+
+	goto TempSkip;
 
 	switch (DetermineHostType(mod->Link.Host))
 	{
@@ -48,9 +51,11 @@ void StandardModProcess(ModPackMaker::ModInfo* mod)
 		return;
 	}
 
+TempSkip:
+
 	std::wstring extractedOutDirectory = ExtractedDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false));
 
-	wprintf((extractedOutDirectory + L"\n").c_str());
+	/*wprintf((extractedOutDirectory + L"\n").c_str());
 
 	std::filesystem::create_directories(extractedOutDirectory);
 
@@ -62,6 +67,26 @@ void StandardModProcess(ModPackMaker::ModInfo* mod)
 	catch (const std::exception& ex)
 	{
 		std::cerr << ex.what() << std::endl;
+	}*/
+
+	/* DO EXTRACTION HERE */
+	//wprintf(L"Pretend finished extractions\n");
+
+	for (std::string path : mod->InsidePaths)
+	{
+		std::wstring from = extractedOutDirectory + NosLib::String::ToWstring(path);
+		std::wstring to = ModDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false)) + L"\\";
+
+		//wprintf(std::format(L"from:\t{}\nto:\t{}\n", from, to).c_str());
+
+		try
+		{
+			std::filesystem::copy(from, to, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+		}
+		catch (const std::exception& ex)
+		{
+			std::cerr << ex.what() << std::endl;
+		}
 	}
 }
 
