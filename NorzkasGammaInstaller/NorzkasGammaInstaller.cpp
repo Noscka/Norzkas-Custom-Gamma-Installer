@@ -34,8 +34,6 @@ void StandardModProcess(ModPackMaker::ModInfo* mod)
 	downloadClient.set_keep_alive(false);
 	downloadClient.set_default_headers({{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
 
-	goto TempSkip;
-
 	switch (DetermineHostType(mod->Link.Host))
 	{
 	case HostType::ModDB:
@@ -51,11 +49,9 @@ void StandardModProcess(ModPackMaker::ModInfo* mod)
 		return;
 	}
 
-TempSkip:
-
 	std::wstring extractedOutDirectory = ExtractedDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false));
 
-	/*wprintf((extractedOutDirectory + L"\n").c_str());
+	wprintf((extractedOutDirectory + L"\n").c_str());
 
 	std::filesystem::create_directories(extractedOutDirectory);
 
@@ -67,21 +63,13 @@ TempSkip:
 	catch (const std::exception& ex)
 	{
 		std::cerr << ex.what() << std::endl;
-	}*/
-
-	/* DO EXTRACTION HERE */
-	//wprintf(L"Pretend finished extractions\n");
+	}
 
 	for (std::string path : mod->InsidePaths)
 	{
-		std::wstring from = extractedOutDirectory + NosLib::String::ToWstring(path);
-		std::wstring to = ModDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false)) + L"\\";
-
-		//wprintf(std::format(L"from:\t{}\nto:\t{}\n", from, to).c_str());
-
 		try
 		{
-			std::filesystem::copy(from, to, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+			std::filesystem::copy((extractedOutDirectory + NosLib::String::ToWstring(path)), (ModDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false))), std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
 		}
 		catch (const std::exception& ex)
 		{
