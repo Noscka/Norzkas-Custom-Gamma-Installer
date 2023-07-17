@@ -61,6 +61,7 @@ namespace ModPackMaker
 		{
 			Seperator, /* separators, which don't contain any mods but help with organization */
 			Standard, /* normal mod, so the struct will contain all the necessary data */
+			Custom, /* custom/manually created "mod" object */
 		};
 
 		static inline int CurrentModIndex = 1;			/* a global counter, the normal GAMMA installer numbers all the mods depending on where they are in the install file. keep a global track */
@@ -76,6 +77,7 @@ namespace ModPackMaker
 		std::string LeftOver;							/* any left over data */
 
 		std::string FileExtension;						/* extension of the downloaded file (Gets set at download time) */
+		std::string OutPath;							/* This is Custom modtype only, it defines were to copy the files to */
 
 		/// <summary>
 		/// Seperator constructor, only has a name and index
@@ -113,6 +115,15 @@ namespace ModPackMaker
 			ModType = Type::Standard;
 		}
 
+		ModInfo(const std::string& link, NosLib::DynamicArray<std::string>& insidePaths, const std::string& outPath, const std::string& outName)
+		{
+			Link = GetHostPath(link);
+			InsidePaths << insidePaths;
+			OutName = outName;
+			OutPath = outPath;
+			ModType = Type::Custom;
+		}
+
 		std::string GetFullFileName(const bool& withExtension)
 		{
 			switch (ModType)
@@ -127,6 +138,14 @@ namespace ModPackMaker
 				}
 				/* ELSE */
 				return std::format("{}- {} {}", ModIndex, OutName, CreatorName);
+
+			case Type::Custom:
+				if (withExtension)
+				{
+					return std::format("{}{}", OutName, FileExtension);
+				}
+				/* ELSE */
+				return std::format("{}", OutName);
 
 			default:
 				return "Unknown Mod Type";

@@ -136,7 +136,91 @@ void SeparatorModProcess(ModPackMaker::ModInfo* mod)
 	std::filesystem::create_directories(ModDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false)));
 }
 
-/* /Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip */
+void CustomModProcess(ModPackMaker::ModInfo* mod)
+{
+	/* create client for the host */
+	httplib::Client downloadClient(mod->Link.Host);
+
+	/* set properties */
+	downloadClient.set_follow_location(false);
+	downloadClient.set_keep_alive(false);
+	downloadClient.set_default_headers({{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
+
+	/* Decide the host type, there are different download steps for different websites */
+	switch (DetermineHostType(mod->Link.Host))
+	{
+	case HostType::ModDB:
+		ModDBDownload(&downloadClient, mod, NosLib::String::ToString(DownloadedDirectory));
+		break;
+
+	case HostType::Github:
+		GithubDownload(&downloadClient, mod, NosLib::String::ToString(DownloadedDirectory));
+		break;
+
+	default:
+		wprintf(L"Unknown host type\ncontinuing to next\n");
+		return;
+	}
+
+	/* create path to extract into */
+	std::wstring extractedOutDirectory = ExtractedDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false));
+
+	/* create directories in order to prevent any errors */
+	std::filesystem::create_directories(extractedOutDirectory);
+
+	/* extract into said directory */
+	bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll")); /* Need a custom object, for some reason it crashes otherwise */
+	extractor.extract(NosLib::String::ToString(DownloadedDirectory) + mod->GetFullFileName(true), NosLib::String::ToString(extractedOutDirectory));
+
+	/* for every "inner" path, go through and find the needed files */
+	for (std::string path : mod->InsidePaths)
+	{
+		/* root inner path, everything revolves around this */
+		std::wstring rootFrom = (extractedOutDirectory + NosLib::String::ToWstring(path));
+		std::wstring rootTo = NosLib::String::ToWstring(mod->OutPath);
+
+		/* create directories to prevent errors */
+		std::filesystem::create_directories(rootTo);
+
+		try
+		{
+			/* copy all files from root (any readme/extra info files) */
+			std::filesystem::copy(rootFrom, rootTo, std::filesystem::copy_options::overwrite_existing);
+
+			copyIfExists(rootFrom, rootTo);
+		}
+		catch (const std::exception& ex)
+		{
+			std::ofstream outLog("log.txt", std::ios::binary | std::ios::app);
+			std::string logMessage = std::format("error in file \"{}\" at line \"{}\" with mod \"{}\" -> {}\n", __FILE__, __LINE__, mod->GetFullFileName(true), ex.what());
+			outLog.write(logMessage.c_str(), logMessage.size());
+			outLog.close();
+
+			std::cerr << logMessage << std::endl;
+
+			ModPackMaker::ModInfo::modFailedList.Append(mod); /* add this mod to "failed" list */
+
+			/* create "failed mod list" file if there was any failed/unfinished mods */
+			std::ofstream failedMostListOutput(L"failed mod list.txt", std::ios::binary | std::ios::app);
+
+			std::string pathList;
+			for (int i = 0; i <= mod->InsidePaths.GetLastArrayIndex(); i++)
+			{
+				pathList += mod->InsidePaths[i];
+				if (i != mod->InsidePaths.GetLastArrayIndex())
+				{
+					pathList += ":";
+				}
+			}
+
+			std::string line = std::format("{}\t{}\t{}\t{}\t{}\t{}\t----\t{}", mod->Link.Host + mod->Link.Path, pathList, mod->CreatorName, mod->OutName, mod->OriginalLink, mod->LeftOver, mod->GetFullFileName(true));
+
+			failedMostListOutput.write(line.c_str(), line.size());
+
+			failedMostListOutput.close();
+		}
+	}
+}
 
 int main()
 {
@@ -144,6 +228,7 @@ int main()
 	NosLib::Console::InitializeModifiers::EnableANSI();
 	NosLib::Console::InitializeModifiers::BeatifyConsole<wchar_t>(L"Norzka's Gamma Installer");
 	NosLib::Console::InitializeModifiers::InitializeEventHandler();
+
 
 	/* parse modpack maker file, put it into global static array */
 	ModPackMaker::ModpackMakerFile_Parse("modpack_maker_list.txt");
@@ -153,6 +238,7 @@ int main()
 
 	/* create directory for downloaded files */
 	std::filesystem::create_directories(DownloadedDirectory);
+	std::filesystem::create_directories(ModDirectory);
 
 	/* go through all mods in global static array */
 	for (ModPackMaker::ModInfo* mod : ModPackMaker::ModInfo::modInfoList)
@@ -173,6 +259,13 @@ int main()
 			continue;
 		}
 	}
+
+	NosLib::DynamicArray<std::string> innerDefinitionPaths;
+	innerDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons");
+
+	ModPackMaker::ModInfo definitionFile(std::string("https://github.com") + "/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip", innerDefinitionPaths, NosLib::String::ToString(ModDirectory), "G.A.M.M.A. modpack definition");
+
+	CustomModProcess(&definitionFile);
 
 	wprintf(L"Press any button to continue"); _getch();
 	return 0;
