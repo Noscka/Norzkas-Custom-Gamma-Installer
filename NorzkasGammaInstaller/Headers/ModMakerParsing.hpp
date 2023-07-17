@@ -118,7 +118,7 @@ namespace ModPackMaker
 			switch (ModType)
 			{
 			case Type::Seperator:
-				return std::format("{}- {}_seperator", ModIndex, OutName);
+				return std::format("{}- {}_separator", ModIndex, OutName);
 
 			case Type::Standard:
 				if (withExtension)

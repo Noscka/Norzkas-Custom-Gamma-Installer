@@ -148,7 +148,6 @@ int main()
 		}
 	}
 
-
 	std::ofstream failedMostListOutput(L"failed mod list.txt", std::ios::binary | std::ios::trunc);
 
 	for (ModPackMaker::ModInfo* mod : ModPackMaker::ModInfo::modFailedList)
