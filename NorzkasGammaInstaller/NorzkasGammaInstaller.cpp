@@ -26,7 +26,7 @@
 const std::wstring ModDirectory = L"mods\\";
 const std::wstring ExtractedDirectory = L"Extracted\\";
 
-void StandardModProcess(ModPackMaker::ModInfo* mod)
+void StandardModProcess(ModPackMaker::ModInfo* mod, const bit7z::BitFileExtractor& extractor)
 {
 	httplib::Client downloadClient(mod->Link.Host);
 
@@ -55,26 +55,23 @@ void StandardModProcess(ModPackMaker::ModInfo* mod)
 
 	std::filesystem::create_directories(extractedOutDirectory);
 
-	bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll"));
-	try
-	{
-		extractor.extract(mod->GetFullFileName(true), NosLib::String::ToString(extractedOutDirectory));
-	}
-	catch (const std::exception& ex)
-	{
-		std::cerr << ex.what() << std::endl;
-	}
+	extractor.extract(mod->GetFullFileName(true), NosLib::String::ToString(extractedOutDirectory));
 
 	for (std::string path : mod->InsidePaths)
 	{
 		try
 		{
-			std::filesystem::copy((extractedOutDirectory + NosLib::String::ToWstring(path)), (ModDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false))), std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+			if (std::filesystem::exists((extractedOutDirectory + NosLib::String::ToWstring(path) + L"fomod\\")))
+			{
+				std::filesystem::copy((extractedOutDirectory + NosLib::String::ToWstring(path) + L"fomod\\"), (ModDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false)) + L"\\fomod\\"), std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+			}
+			std::filesystem::copy((extractedOutDirectory + NosLib::String::ToWstring(path) + L"gamedata\\"), (ModDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false)) + L"\\gamedata\\"), std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
 		}
 		catch (const std::exception& ex)
 		{
 			std::cerr << ex.what() << std::endl;
 		}
+		
 	}
 }
 
@@ -92,6 +89,7 @@ int main()
 
 	NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoArray = ModPackMaker::ModpackMakerFile_Parse("modpack_maker_list.txt");
 
+	bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll"));
 
 	for (ModPackMaker::ModInfo* mod : modInfoArray)
 	{
@@ -102,7 +100,7 @@ int main()
 			break;
 
 		case ModPackMaker::ModInfo::Type::Standard:
-			StandardModProcess(mod);
+			StandardModProcess(mod, extractor);
 			break;
 
 		default:
