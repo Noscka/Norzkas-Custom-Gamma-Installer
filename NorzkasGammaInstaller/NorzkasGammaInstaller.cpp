@@ -24,7 +24,7 @@
 #include "Headers\HTTPOperations.hpp"
 
 const std::wstring ModDirectory = L"mods\\";
-const std::wstring ExtractedDirectory = L"Extracted\\";
+const std::wstring ExtractedDirectory = L"extracted\\";
 const std::wstring DownloadedDirectory = L"downloads\\";
 
  /* Sub directories that are inside each mod folder */
@@ -37,24 +37,10 @@ void copyIfExists(const std::wstring& from, const std::wstring& to)
 	{
 		return;
 	}
-
-	try
-	{
-		/* repeat the previous step but this time with "fomod" sub directory */
-		std::filesystem::create_directories(to);
-		std::filesystem::copy(from, to, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
-	}
-	catch (const std::exception& ex)
-	{
-		std::ofstream outLog("log.txt", std::ios::binary | std::ios::app);
-		std::string logMessage = std::format("error in file \"{}\" at line {} -> {}\n", __FILE__, __LINE__, ex.what());
-		outLog.write(logMessage.c_str(), logMessage.size());
-		outLog.close();
-
-		std::cerr << logMessage << std::endl;
-
-		throw ex;
-	}
+	
+	/* repeat the previous step but this time with "fomod" sub directory */
+	std::filesystem::create_directories(to);
+	std::filesystem::copy(from, to, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
 }
 
 void StandardModProcess(ModPackMaker::ModInfo* mod, const bit7z::BitFileExtractor& extractor)
@@ -115,7 +101,7 @@ void StandardModProcess(ModPackMaker::ModInfo* mod, const bit7z::BitFileExtracto
 		catch (const std::exception& ex)
 		{
 			std::ofstream outLog("log.txt", std::ios::binary | std::ios::app);
-			std::string logMessage = std::format("error in file \"{}\" at line {} -> {}\n",__FILE__, __LINE__, ex.what());
+			std::string logMessage = std::format("error in file \"{}\" at line \"{}\" with mod \"{}\" -> {}\n",__FILE__, __LINE__,mod->GetFullFileName(true), ex.what());
 			outLog.write(logMessage.c_str(), logMessage.size());
 			outLog.close();
 

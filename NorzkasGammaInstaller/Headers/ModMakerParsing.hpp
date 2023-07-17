@@ -51,8 +51,8 @@ namespace ModPackMaker
 
 	struct ModInfo
 	{
-		static NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoList;	/* A list of all mods */
-		static NosLib::DynamicArray<ModPackMaker::ModInfo*> modFailedList;	/* a list of all failed mods (so even errors) */
+		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoList;		/* A list of all mods */
+		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modFailedList;	/* a list of all failed mods (so even errors) */
 
 		/// <summary>
 		/// describes what type of "mod" it is
