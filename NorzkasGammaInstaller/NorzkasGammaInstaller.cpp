@@ -25,6 +25,37 @@
 
 const std::wstring ModDirectory = L"mods\\";
 const std::wstring ExtractedDirectory = L"Extracted\\";
+const std::wstring DownloadedDirectory = L"downloads\\";
+
+ /* Sub directories that are inside each mod folder */
+const std::wstring subdirectories[] = {L"gamedata\\", L"fomod\\", L"db\\", L"tools\\", L"appdata\\"};
+
+void copyIfExists(const std::wstring& from, const std::wstring& to)
+{
+	/* if DOESN'T exist, go to next path (this is to remove 1 layer of nesting */
+	if (!std::filesystem::exists(from))
+	{
+		return;
+	}
+
+	try
+	{
+		/* repeat the previous step but this time with "fomod" sub directory */
+		std::filesystem::create_directories(to);
+		std::filesystem::copy(from, to, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+	}
+	catch (const std::exception& ex)
+	{
+		std::ofstream outLog("log.txt", std::ios::binary | std::ios::app);
+		std::string logMessage = std::format("error in file \"{}\" at line {} -> {}\n", __FILE__, __LINE__, ex.what());
+		outLog.write(logMessage.c_str(), logMessage.size());
+		outLog.close();
+
+		std::cerr << logMessage << std::endl;
+
+		throw ex;
+	}
+}
 
 void StandardModProcess(ModPackMaker::ModInfo* mod, const bit7z::BitFileExtractor& extractor)
 {
@@ -40,11 +71,11 @@ void StandardModProcess(ModPackMaker::ModInfo* mod, const bit7z::BitFileExtracto
 	switch (DetermineHostType(mod->Link.Host))
 	{
 	case HostType::ModDB:
-		ModDBDownload(&downloadClient, mod);
+		ModDBDownload(&downloadClient, mod, NosLib::String::ToString(DownloadedDirectory));
 		break;
 
 	case HostType::Github:
-		GithubDownload(&downloadClient, mod);
+		GithubDownload(&downloadClient, mod, NosLib::String::ToString(DownloadedDirectory));
 		break;
 
 	default:
@@ -59,7 +90,7 @@ void StandardModProcess(ModPackMaker::ModInfo* mod, const bit7z::BitFileExtracto
 	std::filesystem::create_directories(extractedOutDirectory);
 
 	/* extract into said directory */
-	extractor.extract(mod->GetFullFileName(true), NosLib::String::ToString(extractedOutDirectory));
+	extractor.extract(NosLib::String::ToString(DownloadedDirectory)+ mod->GetFullFileName(true), NosLib::String::ToString(extractedOutDirectory));
 
 	/* for every "inner" path, go through and find the needed files */
 	for (std::string path : mod->InsidePaths)
@@ -68,28 +99,30 @@ void StandardModProcess(ModPackMaker::ModInfo* mod, const bit7z::BitFileExtracto
 		std::wstring rootFrom = (extractedOutDirectory + NosLib::String::ToWstring(path));
 		std::wstring rootTo = (ModDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false)) + L"\\");
 
-		/* sub directories to be read from, some mods contain extra content in the root directory */
-		std::wstring gamedata = L"gamedata\\";
-		std::wstring fomod = L"fomod\\";
-
 		/* create directories to prevent errors */
-		std::filesystem::create_directories(rootTo + gamedata);
+		std::filesystem::create_directories(rootTo);
 
-		/* copy all files from root (any readme/extra info files) */
-		std::filesystem::copy(rootFrom, rootTo, std::filesystem::copy_options::overwrite_existing);
-
-		/* copy everything inside gamedata subdirectory */
-		std::filesystem::copy(rootFrom + gamedata, rootTo + gamedata, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
-		
-		/* if DOESN'T exist, go to next path (this is to remove 1 layer of nesting */
-		if (!std::filesystem::exists(rootFrom + fomod))
+		try
 		{
-			continue;
-		}
+			/* copy all files from root (any readme/extra info files) */
+			std::filesystem::copy(rootFrom, rootTo, std::filesystem::copy_options::overwrite_existing);
 
-		/* repeat the previous step but this time with "fomod" sub directory */
-		std::filesystem::create_directories(rootTo + fomod);
-		std::filesystem::copy(rootFrom + fomod, rootTo + fomod, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
+			for (std::wstring subdirectory : subdirectories)
+			{
+				copyIfExists(rootFrom + subdirectory, rootTo + subdirectory);
+			}
+		}
+		catch (const std::exception& ex)
+		{
+			std::ofstream outLog("log.txt", std::ios::binary | std::ios::app);
+			std::string logMessage = std::format("error in file \"{}\" at line {} -> {}\n",__FILE__, __LINE__, ex.what());
+			outLog.write(logMessage.c_str(), logMessage.size());
+			outLog.close();
+
+			std::cerr << logMessage << std::endl;
+
+			ModPackMaker::ModInfo::modFailedList.Append(mod); /* add this mod to "failed" list */
+		}
 	}
 }
 
@@ -105,11 +138,13 @@ int main()
 	NosLib::Console::InitializeModifiers::BeatifyConsole<wchar_t>(L"Norzka's Gamma Installer");
 	NosLib::Console::InitializeModifiers::InitializeEventHandler();
 
-	NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoArray = ModPackMaker::ModpackMakerFile_Parse("modpack_maker_list.txt");
+	ModPackMaker::ModpackMakerFile_Parse("modpack_maker_list.txt");
 
 	bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll"));
 
-	for (ModPackMaker::ModInfo* mod : modInfoArray)
+	std::filesystem::create_directories(DownloadedDirectory);
+
+	for (ModPackMaker::ModInfo* mod : ModPackMaker::ModInfo::modInfoList)
 	{
 		switch (mod->ModType)
 		{
@@ -126,6 +161,28 @@ int main()
 			continue;
 		}
 	}
+
+
+	std::ofstream failedMostListOutput(L"failed mod list.txt", std::ios::binary | std::ios::trunc);
+
+	for (ModPackMaker::ModInfo* mod : ModPackMaker::ModInfo::modFailedList)
+	{
+		std::string pathList;
+		for (int i = 0; i <= mod->InsidePaths.GetLastArrayIndex(); i++)
+		{
+			pathList += mod->InsidePaths[i];
+			if (i != mod->InsidePaths.GetLastArrayIndex())
+			{
+				pathList += ":";
+			}
+		}
+
+		std::string line = std::format("{}\t{}\t{}\t{}\t{}\t{}\t----\t{}", mod->Link.Host+mod->Link.Path, pathList, mod->CreatorName, mod->OutName, mod->OriginalLink, mod->LeftOver, mod->GetFullFileName(true));
+
+		failedMostListOutput.write(line.c_str(), line.size());
+	}
+
+	failedMostListOutput.close();
 
 	wprintf(L"Press any button to continue"); _getch();
 	return 0;

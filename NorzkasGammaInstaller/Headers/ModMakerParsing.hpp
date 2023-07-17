@@ -51,6 +51,9 @@ namespace ModPackMaker
 
 	struct ModInfo
 	{
+		static NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoList;	/* A list of all mods */
+		static NosLib::DynamicArray<ModPackMaker::ModInfo*> modFailedList;	/* a list of all failed mods (so even errors) */
+
 		/// <summary>
 		/// describes what type of "mod" it is
 		/// </summary>
@@ -227,11 +230,8 @@ Left Over:\t|{}\n\
 	/// </summary>
 	/// <param name="modpackMakerFileName">- path/name of modpack Maker</param>
 	/// <returns>a DynamicArray of ModInfo pointers (ModInfo*)</returns>
-	NosLib::DynamicArray<ModInfo*> ModpackMakerFile_Parse(const std::string& modpackMakerFileName)
+	NosLib::DynamicArray<ModInfo*>* ModpackMakerFile_Parse(const std::string& modpackMakerFileName)
 	{
-		/* create output array */
-		NosLib::DynamicArray<ModInfo*> outputArray(20, 10, false);
-
 		/* open binary file stream of modpack maker list */
 		std::ifstream modMakerFile(modpackMakerFileName, std::ios::binary);
 
@@ -240,9 +240,9 @@ Left Over:\t|{}\n\
 		while (std::getline(modMakerFile, line))
 		{
 			/* append to array */
-			outputArray.Append(ParseLine(line));
+			ModInfo::modInfoList.Append(ParseLine(line));
 		}
 
-		return outputArray;
+		return &ModInfo::modInfoList;
 	}
 }

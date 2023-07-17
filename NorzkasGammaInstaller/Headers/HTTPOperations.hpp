@@ -23,7 +23,7 @@ std::string GetFileExtensionFromHeader(const std::string& type)
 	return ".ERROR";
 }
 
-void GetAndSaveFile(httplib::Client* client, ModPackMaker::ModInfo* mod, const std::string& filepath)
+void GetAndSaveFile(httplib::Client* client, ModPackMaker::ModInfo* mod, const std::string& filepath, const std::string& pathOffsets = "")
 {
 	std::ofstream DownloadFile;
 
@@ -32,7 +32,7 @@ void GetAndSaveFile(httplib::Client* client, ModPackMaker::ModInfo* mod, const s
 		{
 			mod->FileExtension = GetFileExtensionFromHeader(response.headers.find("Content-Type")->second);
 			/* before start download, get "Content-Type" header tag to see the extensions, then open with the name+extension */
-			DownloadFile.open(mod->GetFullFileName(true), std::ios::binary | std::ios::trunc);
+			DownloadFile.open(pathOffsets + mod->GetFullFileName(true), std::ios::binary | std::ios::trunc);
 			return true; // return 'false' if you want to cancel the request.
 		},
 		[&](const char* data, size_t data_length)
@@ -81,7 +81,7 @@ HostType DetermineHostType(const std::string& hostName)
 	return HostType::Unknown;
 }
 
-void ModDBDownload(httplib::Client* downloadClient, ModPackMaker::ModInfo* mod)
+void ModDBDownload(httplib::Client* downloadClient, ModPackMaker::ModInfo* mod, const std::string& pathOffsets = "")
 {
 	ModDBParsing::HTMLParseReturn LinkOutput = ModDBParsing::ParseHtmlForLink(downloadClient->Get(mod->Link.Path)->body);
 
@@ -93,12 +93,12 @@ void ModDBDownload(httplib::Client* downloadClient, ModPackMaker::ModInfo* mod)
 	downloadClient->set_follow_location(true);
 	//downloadClient->set_logger(&LoggingFunction);
 
-	GetAndSaveFile(downloadClient, mod, LinkOutput.Link);
+	GetAndSaveFile(downloadClient, mod, LinkOutput.Link, pathOffsets);
 }
 
-void GithubDownload(httplib::Client* downloadClient, ModPackMaker::ModInfo* mod)
+void GithubDownload(httplib::Client* downloadClient, ModPackMaker::ModInfo* mod, const std::string& pathOffsets = "")
 {
 	downloadClient->set_follow_location(true);
 	//downloadClient->set_logger(&LoggingFunction);
-	GetAndSaveFile(downloadClient, mod, mod->Link.Path);
+	GetAndSaveFile(downloadClient, mod, mod->Link.Path, pathOffsets);
 }
