@@ -69,17 +69,6 @@ void StandardModProcess(ModPackMaker::ModInfo* mod, const bit7z::BitFileExtracto
 		return;
 	}
 
-	using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
-
-	for (const std::filesystem::directory_entry& dirEntry : recursive_directory_iterator(DownloadedDirectory))
-	{
-		if (dirEntry.path().filename().string().find(mod->GetFullFileName(false)) != std::string::npos)
-		{
-			mod->FileExtension = dirEntry.path().extension().string();
-			break;
-		}
-	}
-
 	/* create path to extract into */
 	std::wstring extractedOutDirectory = ExtractedDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false));
 
@@ -242,17 +231,20 @@ int main()
 	NosLib::Console::InitializeModifiers::BeatifyConsole<wchar_t>(L"Norzka's Gamma Installer");
 	NosLib::Console::InitializeModifiers::InitializeEventHandler();
 
+	
+
+	wprintf(L"Press any button to continue"); _getch();
+	return 0;
+
 	NosLib::DynamicArray<std::string> innerSetupPaths;
 	innerSetupPaths.Append("\\gamma_setup-main\\modpack_addons");
-
 	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/gamma_setup/archive/refs/heads/main.zip", innerSetupPaths, NosLib::String::ToString(ModDirectory), "G.A.M.M.A. setup files"));
 
 	/* parse modpack maker file, put it into global static array */
-	ModPackMaker::ModpackMakerFile_Parse("modpack_maker_list.txt");
+	ModPackMaker::ModInfo::ModpackMakerFile_Parse("modpack_maker_list.txt");
 
 	NosLib::DynamicArray<std::string> innerDefinitionPaths;
 	innerDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons");
-
 	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip", innerDefinitionPaths, NosLib::String::ToString(ModDirectory), "G.A.M.M.A. modpack definition"));
 
 	/* create extractor object */

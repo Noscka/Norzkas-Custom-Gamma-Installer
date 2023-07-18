@@ -124,152 +124,154 @@ namespace ModPackMaker
 			ModType = Type::Custom;
 		}
 
-		std::string GetFullFileName(const bool& withExtension)
+	private:
+		/// <summary>
+		/// Takes in a string and actually parses it, and puts it into an object
+		/// </summary>
+		/// <param name="line">- input line</param>
+		/// <returns>pointer of ModInfo, containing parsed mod info</returns>
+		static ModInfo* ParseLine(std::string& line)
 		{
-			switch (ModType)
+			/* create array, the file uses \t to separate info */
+			NosLib::DynamicArray<std::string> wordArray(6, 2);
+
+			/* split the line into the previous array */
+			NosLib::String::Split<char>(&wordArray, line, '\t');
+
+			/* go through all strings in the array and "reduce" them (take out spaces in front, behind and any duplicate spaces inbetween) */
+			for (int i = 0; i <= wordArray.GetLastArrayIndex(); i++)
 			{
-			case Type::Seperator:
-				return std::format("{}- {}_separator", ModIndex, OutName);
-
-			case Type::Standard:
-				if (withExtension)
-				{
-					return std::format("{}- {} {}{}", ModIndex, OutName, CreatorName, FileExtension);
-				}
-				/* ELSE */
-				return std::format("{}- {} {}", ModIndex, OutName, CreatorName);
-
-			case Type::Custom:
-				if (withExtension)
-				{
-					return std::format("{}{}", OutName, FileExtension);
-				}
-				/* ELSE */
-				return std::format("{}", OutName);
-
-			default:
-				return "Unknown Mod Type";
+				wordArray[i] = CustomStrings::reduce(wordArray[i]);
 			}
+
+			/* if there is only 1 object (so last index is 0), that means its a separator, use a different constructor */
+			if (wordArray.GetLastArrayIndex() == 0)
+			{
+				return new ModInfo(wordArray[0]);
+			}
+
+			/* some mods have multiple inner paths that get combined, separate them into an array for easier processing */
+			NosLib::DynamicArray<std::string> pathArray(5, 5);
+			NosLib::String::Split<char>(&pathArray, wordArray[1], ':');
+
+			bool hasRoot = false;
+
+			/* go through all path strings in the array, and if any are equal to 0, that means it is root */
+			for (int i = 0; i <= pathArray.GetLastArrayIndex(); i++)
+			{
+				if (pathArray[i] == "0" || pathArray[i] == "\\")
+				{
+					pathArray[i] = "\\";
+					hasRoot = true;
+				}
+				else if (pathArray[i][0] != '\\')
+				{
+					pathArray[i].insert(0, "\\");
+				}
+
+				if (pathArray[i].back() != '\\')
+				{
+					pathArray[i].append("\\");
+				}
+			}
+
+			if (!hasRoot)
+			{
+				pathArray.Insert("\\", 0);
+			}
+
+			/* finally, if it has gotten here, it means the current line is a normal mod, pass in all the info to the constructor */
+			return new ModInfo(wordArray[0], pathArray, wordArray[2], wordArray[3], wordArray[4], wordArray[5]);
 		}
+
+		public:
+			/// <summary>
+			/// takes in a filename for a modpackMaker and parses it fully
+			/// </summary>
+			/// <param name="modpackMakerFileName">- path/name of modpack Maker</param>
+			/// <returns>a DynamicArray of ModInfo pointers (ModInfo*)</returns>
+			static NosLib::DynamicArray<ModInfo*>* ModpackMakerFile_Parse(const std::string& modpackMakerFileName)
+			{
+				/* open binary file stream of modpack maker list */
+				std::ifstream modMakerFile(modpackMakerFileName, std::ios::binary);
+
+				/* got through all lines in the file. each line is a new mod */
+				std::string line;
+				while (std::getline(modMakerFile, line))
+				{
+					/* append to array */
+					modInfoList.Append(ParseLine(line));
+				}
+
+				return &modInfoList;
+			}
+
+			std::string GetFullFileName(const bool& withExtension)
+			{
+				switch (ModType)
+				{
+				case Type::Seperator:
+					return std::format("{}- {}_separator", ModIndex, OutName);
+
+				case Type::Standard:
+					if (withExtension)
+					{
+						return std::format("{}- {} {}{}", ModIndex, OutName, CreatorName, FileExtension);
+					}
+					/* ELSE */
+					return std::format("{}- {} {}", ModIndex, OutName, CreatorName);
+
+				case Type::Custom:
+					if (withExtension)
+					{
+						return std::format("{}{}", OutName, FileExtension);
+					}
+					/* ELSE */
+					return std::format("{}", OutName);
+
+				default:
+					return "Unknown Mod Type";
+				}
+			}
+
+			std::string ToString()
+			{
+				std::string TypeString;
+
+				switch (ModType)
+				{
+				case ModInfo::Type::Seperator:
+					TypeString = "Seperator";
+					break;
+				case ModInfo::Type::Standard:
+					TypeString = "Standard";
+					break;
+				default:
+					TypeString = "None";
+					break;
+				}
+
+				std::string pathList;
+				for (int i = 0; i <= InsidePaths.GetLastArrayIndex(); i++)
+				{
+					pathList += InsidePaths[i];
+					if (i != InsidePaths.GetLastArrayIndex())
+					{
+						pathList += " | ";
+					}
+				}
+
+				return std::format(
+					"===================================================\n\
+	Type:\t{}\n\n\
+	Download Link:\t|{}\n\
+	Number:\t{}\n\
+	Inside Path:\t|{}\n\
+	Creator Name:\t|{}\n\
+	Out Name:\t|{}\n\
+	Original Link:\t|{}\n\
+	Left Over:\t|{}\n\
+	===================================================\n", TypeString, (Link.Host + Link.Path), ModIndex, pathList, CreatorName, OutName, OriginalLink, LeftOver);
+			}
 	};
-
-	/// <summary>
-	/// Takes in a string and actually parses it, and puts it into an object
-	/// </summary>
-	/// <param name="line">- input line</param>
-	/// <returns>pointer of ModInfo, containing parsed mod info</returns>
-	ModInfo* ParseLine(std::string& line)
-	{
-		/* create array, the file uses \t to separate info */
-		NosLib::DynamicArray<std::string> wordArray(6, 2);
-
-		/* split the line into the previous array */
-		NosLib::String::Split<char>(&wordArray, line, '\t');
-
-		/* go through all strings in the array and "reduce" them (take out spaces in front, behind and any duplicate spaces inbetween) */
-		for (int i = 0; i <= wordArray.GetLastArrayIndex(); i++)
-		{
-			wordArray[i] = CustomStrings::reduce(wordArray[i]);
-		}
-
-		/* if there is only 1 object (so last index is 0), that means its a separator, use a different constructor */
-		if (wordArray.GetLastArrayIndex() == 0)
-		{
-			return new ModInfo(wordArray[0]);
-		}
-
-		/* some mods have multiple inner paths that get combined, separate them into an array for easier processing */
-		NosLib::DynamicArray<std::string> pathArray(5, 5);
-		NosLib::String::Split<char>(&pathArray, wordArray[1], ':');
-
-		bool hasRoot = false;
-
-		/* go through all path strings in the array, and if any are equal to 0, that means it is root */
-		for (int i = 0; i <= pathArray.GetLastArrayIndex(); i++)
-		{
-			if (pathArray[i] == "0" || pathArray[i] == "\\")
-			{
-				pathArray[i] = "\\";
-				hasRoot = true;
-			}
-			else if (pathArray[i][0] != '\\')
-			{
-				pathArray[i].insert(0, "\\");
-			}
-
-			if (pathArray[i].back() != '\\')
-			{
-				pathArray[i].append("\\");
-			}
-		}
-
-		if (!hasRoot)
-		{
-			pathArray.Insert("\\", 0);
-		}
-
-		/* finally, if it has gotten here, it means the current line is a normal mod, pass in all the info to the constructor */
-		return new ModInfo(wordArray[0], pathArray, wordArray[2], wordArray[3], wordArray[4], wordArray[5]);
-	}
-
-	std::string StringModInfo(ModInfo& modInfo)
-	{
-		std::string TypeString;
-
-		switch (modInfo.ModType)
-		{
-		case ModInfo::Type::Seperator:
-			TypeString = "Seperator";
-			break;
-		case ModInfo::Type::Standard:
-			TypeString = "Standard";
-			break;
-		default:
-			TypeString = "None";
-			break;
-		}
-
-		std::string pathList;
-		for (int i = 0; i <= modInfo.InsidePaths.GetLastArrayIndex(); i++)
-		{
-			pathList += modInfo.InsidePaths[i];
-			if (i != modInfo.InsidePaths.GetLastArrayIndex())
-			{
-				pathList += " | ";
-			}
-		}
-
-		return std::format(
-			"===================================================\n\
-Type:\t{}\n\n\
-Download Link:\t|{}\n\
-Number:\t{}\n\
-Inside Path:\t|{}\n\
-Creator Name:\t|{}\n\
-Out Name:\t|{}\n\
-Original Link:\t|{}\n\
-Left Over:\t|{}\n\
-===================================================\n", TypeString, (modInfo.Link.Host + modInfo.Link.Path), modInfo.ModIndex, pathList, modInfo.CreatorName, modInfo.OutName, modInfo.OriginalLink, modInfo.LeftOver);
-	}
-
-	/// <summary>
-	/// takes in a filename for a modpackMaker and parses it fully
-	/// </summary>
-	/// <param name="modpackMakerFileName">- path/name of modpack Maker</param>
-	/// <returns>a DynamicArray of ModInfo pointers (ModInfo*)</returns>
-	NosLib::DynamicArray<ModInfo*>* ModpackMakerFile_Parse(const std::string& modpackMakerFileName)
-	{
-		/* open binary file stream of modpack maker list */
-		std::ifstream modMakerFile(modpackMakerFileName, std::ios::binary);
-
-		/* got through all lines in the file. each line is a new mod */
-		std::string line;
-		while (std::getline(modMakerFile, line))
-		{
-			/* append to array */
-			ModInfo::modInfoList.Append(ParseLine(line));
-		}
-
-		return &ModInfo::modInfoList;
-	}
 }
