@@ -242,13 +242,13 @@ int main()
 	NosLib::Console::InitializeModifiers::BeatifyConsole<wchar_t>(L"Norzka's Gamma Installer");
 	NosLib::Console::InitializeModifiers::InitializeEventHandler();
 
-	/* parse modpack maker file, put it into global static array */
-	ModPackMaker::ModpackMakerFile_Parse("modpack_maker_list.txt");
-
 	NosLib::DynamicArray<std::string> innerSetupPaths;
 	innerSetupPaths.Append("\\gamma_setup-main\\modpack_addons");
-	 
+
 	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/gamma_setup/archive/refs/heads/main.zip", innerSetupPaths, NosLib::String::ToString(ModDirectory), "G.A.M.M.A. setup files"));
+
+	/* parse modpack maker file, put it into global static array */
+	ModPackMaker::ModpackMakerFile_Parse("modpack_maker_list.txt");
 
 	NosLib::DynamicArray<std::string> innerDefinitionPaths;
 	innerDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons");

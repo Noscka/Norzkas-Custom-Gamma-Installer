@@ -91,14 +91,13 @@ void ModDBDownload(httplib::Client* downloadClient, ModPackMaker::ModInfo* mod, 
 	}
 
 	downloadClient->set_follow_location(true);
-	downloadClient->set_logger(&LoggingFunction);
-
+	//downloadClient->set_logger(&LoggingFunction);
 	GetAndSaveFile(downloadClient, mod, LinkOutput.Link, pathOffsets);
 }
 
 void GithubDownload(httplib::Client* downloadClient, ModPackMaker::ModInfo* mod, const std::string& pathOffsets = "")
 {
 	downloadClient->set_follow_location(true);
-	downloadClient->set_logger(&LoggingFunction);
+	//downloadClient->set_logger(&LoggingFunction);
 	GetAndSaveFile(downloadClient, mod, mod->Link.Path, pathOffsets);
 }
