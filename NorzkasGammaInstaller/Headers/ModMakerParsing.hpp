@@ -182,12 +182,15 @@ namespace ModPackMaker
 		NosLib::DynamicArray<std::string> pathArray(5, 5);
 		NosLib::String::Split<char>(&pathArray, wordArray[1], ':');
 
+		bool hasRoot = false;
+
 		/* go through all path strings in the array, and if any are equal to 0, that means it is root */
 		for (int i = 0; i <= pathArray.GetLastArrayIndex(); i++)
 		{
-			if (pathArray[i] == "0")
+			if (pathArray[i] == "0" || pathArray[i] == "\\")
 			{
 				pathArray[i] = "\\";
+				hasRoot = true;
 			}
 			else if (pathArray[i][0] != '\\')
 			{
@@ -198,6 +201,11 @@ namespace ModPackMaker
 			{
 				pathArray[i].append("\\");
 			}
+		}
+
+		if (!hasRoot)
+		{
+			pathArray.Insert("\\", 0);
 		}
 
 		/* finally, if it has gotten here, it means the current line is a normal mod, pass in all the info to the constructor */

@@ -69,6 +69,17 @@ void StandardModProcess(ModPackMaker::ModInfo* mod, const bit7z::BitFileExtracto
 		return;
 	}
 
+	using recursive_directory_iterator = std::filesystem::recursive_directory_iterator;
+
+	for (const std::filesystem::directory_entry& dirEntry : recursive_directory_iterator(DownloadedDirectory))
+	{
+		if (dirEntry.path().filename().string().find(mod->GetFullFileName(false)) != std::string::npos)
+		{
+			mod->FileExtension = dirEntry.path().extension().string();
+			break;
+		}
+	}
+
 	/* create path to extract into */
 	std::wstring extractedOutDirectory = ExtractedDirectory + NosLib::String::ToWstring(mod->GetFullFileName(false));
 
@@ -76,7 +87,9 @@ void StandardModProcess(ModPackMaker::ModInfo* mod, const bit7z::BitFileExtracto
 	std::filesystem::create_directories(extractedOutDirectory);
 
 	/* extract into said directory */
-	extractor.extract(NosLib::String::ToString(DownloadedDirectory)+ mod->GetFullFileName(true), NosLib::String::ToString(extractedOutDirectory));
+	//bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll")); /* Need a custom object, for some reason it crashes otherwise */
+	extractor.extract(NosLib::String::ToString(DownloadedDirectory) + mod->GetFullFileName(true), NosLib::String::ToString(extractedOutDirectory));
+	wprintf(std::format(L"extracted: {} into: {}\n", NosLib::String::ToWstring(mod->GetFullFileName(true)), extractedOutDirectory).c_str());
 
 	/* for every "inner" path, go through and find the needed files */
 	for (std::string path : mod->InsidePaths)
@@ -122,7 +135,7 @@ void StandardModProcess(ModPackMaker::ModInfo* mod, const bit7z::BitFileExtracto
 				}
 			}
 
-			std::string line = std::format("{}\t{}\t{}\t{}\t{}\t{}\t----\t{}", mod->Link.Host + mod->Link.Path, pathList, mod->CreatorName, mod->OutName, mod->OriginalLink, mod->LeftOver, mod->GetFullFileName(true));
+			std::string line = std::format("{}\t----\t{}\t{}\t{}\t{}\t{}\t{}\n", mod->GetFullFileName(true), mod->Link.Host + mod->Link.Path, pathList, mod->CreatorName, mod->OutName, mod->OriginalLink, mod->LeftOver);
 
 			failedMostListOutput.write(line.c_str(), line.size());
 
@@ -143,7 +156,7 @@ void CustomModProcess(ModPackMaker::ModInfo* mod)
 
 	/* set properties */
 	downloadClient.set_follow_location(false);
-	downloadClient.set_keep_alive(false);
+	downloadClient.set_keep_alive(true);
 	downloadClient.set_default_headers({{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
 
 	/* Decide the host type, there are different download steps for different websites */
@@ -229,9 +242,18 @@ int main()
 	NosLib::Console::InitializeModifiers::BeatifyConsole<wchar_t>(L"Norzka's Gamma Installer");
 	NosLib::Console::InitializeModifiers::InitializeEventHandler();
 
-
 	/* parse modpack maker file, put it into global static array */
 	ModPackMaker::ModpackMakerFile_Parse("modpack_maker_list.txt");
+
+	NosLib::DynamicArray<std::string> innerSetupPaths;
+	innerSetupPaths.Append("\\gamma_setup-main\\modpack_addons");
+	 
+	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/gamma_setup/archive/refs/heads/main.zip", innerSetupPaths, NosLib::String::ToString(ModDirectory), "G.A.M.M.A. setup files"));
+
+	NosLib::DynamicArray<std::string> innerDefinitionPaths;
+	innerDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons");
+
+	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip", innerDefinitionPaths, NosLib::String::ToString(ModDirectory), "G.A.M.M.A. modpack definition"));
 
 	/* create extractor object */
 	bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll"));
@@ -254,18 +276,15 @@ int main()
 			StandardModProcess(mod, extractor); /* if mod, then download, extract and the construct (copy all the inner paths to end file) the mod */
 			break;
 
+		case ModPackMaker::ModInfo::Type::Custom:
+			CustomModProcess(mod); /* if custom, then download, extract and copy the files to the specified directory */
+			break;
+
 		default: /* default meaning it is some other type which hasn't been defined yet */
 			wprintf(L"Mod type not yet define\ncontinuing to next\n");
 			continue;
 		}
 	}
-
-	NosLib::DynamicArray<std::string> innerDefinitionPaths;
-	innerDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons");
-
-	ModPackMaker::ModInfo definitionFile(std::string("https://github.com") + "/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip", innerDefinitionPaths, NosLib::String::ToString(ModDirectory), "G.A.M.M.A. modpack definition");
-
-	CustomModProcess(&definitionFile);
 
 	wprintf(L"Press any button to continue"); _getch();
 	return 0;
