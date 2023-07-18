@@ -173,6 +173,7 @@ void CustomModProcess(ModPackMaker::ModInfo* mod)
 	/* extract into said directory */
 	bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll")); /* Need a custom object, for some reason it crashes otherwise */
 	extractor.extract(NosLib::String::ToString(DownloadedDirectory) + mod->GetFullFileName(true), NosLib::String::ToString(extractedOutDirectory));
+	wprintf(std::format(L"extracted: {} into: {}\n", NosLib::String::ToWstring(mod->GetFullFileName(true)), extractedOutDirectory).c_str());
 
 	/* for every "inner" path, go through and find the needed files */
 	for (std::string path : mod->InsidePaths)
@@ -224,17 +225,18 @@ void CustomModProcess(ModPackMaker::ModInfo* mod)
 	}
 }
 
-int main()
+void InitializeInstaller()
 {
-	NosLib::Console::InitializeModifiers::EnableUnicode();
-	NosLib::Console::InitializeModifiers::EnableANSI();
-	NosLib::Console::InitializeModifiers::BeatifyConsole<wchar_t>(L"Norzka's Gamma Installer");
-	NosLib::Console::InitializeModifiers::InitializeEventHandler();
+	/* create directory for downloaded files */
+	std::filesystem::create_directories(DownloadedDirectory);
+	std::filesystem::create_directories(ModDirectory);
 
-	
+	NosLib::DynamicArray<std::string> innerDefinitionPaths2;
+	innerDefinitionPaths2.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modlist.txt");
+	innerDefinitionPaths2.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modpack_maker_list.txt");
+	ModPackMaker::ModInfo initiazizeMod("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip", innerDefinitionPaths2, ".\\", "G.A.M.M.A. modpack definition");
 
-	wprintf(L"Press any button to continue"); _getch();
-	return 0;
+	CustomModProcess(&initiazizeMod);
 
 	NosLib::DynamicArray<std::string> innerSetupPaths;
 	innerSetupPaths.Append("\\gamma_setup-main\\modpack_addons");
@@ -246,13 +248,19 @@ int main()
 	NosLib::DynamicArray<std::string> innerDefinitionPaths;
 	innerDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons");
 	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip", innerDefinitionPaths, NosLib::String::ToString(ModDirectory), "G.A.M.M.A. modpack definition"));
+}
+
+int main()
+{
+	NosLib::Console::InitializeModifiers::EnableUnicode();
+	NosLib::Console::InitializeModifiers::EnableANSI();
+	NosLib::Console::InitializeModifiers::BeatifyConsole<wchar_t>(L"Norzka's Gamma Installer");
+	NosLib::Console::InitializeModifiers::InitializeEventHandler();
+
+	InitializeInstaller();
 
 	/* create extractor object */
 	bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll"));
-
-	/* create directory for downloaded files */
-	std::filesystem::create_directories(DownloadedDirectory);
-	std::filesystem::create_directories(ModDirectory);
 
 	/* go through all mods in global static array */
 	for (ModPackMaker::ModInfo* mod : ModPackMaker::ModInfo::modInfoList)

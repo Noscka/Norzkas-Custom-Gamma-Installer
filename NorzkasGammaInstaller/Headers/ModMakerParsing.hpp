@@ -49,8 +49,9 @@ namespace ModPackMaker
 		return output;
 	}
 
-	struct ModInfo
+	class ModInfo
 	{
+	public:
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoList;		/* A list of all mods */
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modFailedList;	/* a list of all failed mods (so even errors) */
 
@@ -124,6 +125,85 @@ namespace ModPackMaker
 			ModType = Type::Custom;
 		}
 
+		/// <summary>
+		/// takes in a filename for a modpackMaker and parses it fully
+		/// </summary>
+		/// <param name="modpackMakerFileName">- path/name of modpack Maker</param>
+		/// <returns>a DynamicArray of ModInfo pointers (ModInfo*)</returns>
+		static NosLib::DynamicArray<ModInfo*>* ModpackMakerFile_Parse(const std::string& modpackMakerFileName)
+		{
+			/* open binary file stream of modpack maker list */
+			std::ifstream modMakerFile(modpackMakerFileName, std::ios::binary);
+
+			/* got through all lines in the file. each line is a new mod */
+			std::string line;
+			while (std::getline(modMakerFile, line))
+			{
+				/* append to array */
+				modInfoList.Append(ParseLine(line));
+			}
+
+			return &modInfoList;
+		}
+
+		std::string GetFullFileName(const bool& withExtension)
+		{
+			switch (ModType)
+			{
+			case Type::Seperator:
+				return std::format("{}- {}_separator", ModIndex, OutName);
+
+			case Type::Standard:
+				if (withExtension)
+				{
+					return std::format("{}- {} {}{}", ModIndex, OutName, CreatorName, FileExtension);
+				}
+				/* ELSE */
+				return std::format("{}- {} {}", ModIndex, OutName, CreatorName);
+
+			case Type::Custom:
+				if (withExtension)
+				{
+					return std::format("{}{}", OutName, FileExtension);
+				}
+				/* ELSE */
+				return std::format("{}", OutName);
+
+			default:
+				return "Unknown Mod Type";
+			}
+		}
+
+		std::string ToString()
+		{
+			std::string TypeString;
+
+			switch (ModType)
+			{
+			case ModInfo::Type::Seperator:
+				TypeString = "Seperator";
+				break;
+			case ModInfo::Type::Standard:
+				TypeString = "Standard";
+				break;
+			default:
+				TypeString = "None";
+				break;
+			}
+
+			std::string pathList;
+			for (int i = 0; i <= InsidePaths.GetLastArrayIndex(); i++)
+			{
+				pathList += InsidePaths[i];
+				if (i != InsidePaths.GetLastArrayIndex())
+				{
+					pathList += " | ";
+				}
+			}
+
+			return std::format("===================================================\nType:\t{}\n\nDownload Link:\t|{}\nNumber:\t{}\nInside Path:\t|{}\nCreator Name:\t|{}\nOut Name:\t|{}\nOriginal Link:\t|{}\nLeft Over:\t|{}\n===================================================\n", TypeString, (Link.Host + Link.Path), ModIndex, pathList, CreatorName, OutName, OriginalLink, LeftOver);
+		}
+
 	private:
 		/// <summary>
 		/// Takes in a string and actually parses it, and puts it into an object
@@ -183,95 +263,5 @@ namespace ModPackMaker
 			/* finally, if it has gotten here, it means the current line is a normal mod, pass in all the info to the constructor */
 			return new ModInfo(wordArray[0], pathArray, wordArray[2], wordArray[3], wordArray[4], wordArray[5]);
 		}
-
-		public:
-			/// <summary>
-			/// takes in a filename for a modpackMaker and parses it fully
-			/// </summary>
-			/// <param name="modpackMakerFileName">- path/name of modpack Maker</param>
-			/// <returns>a DynamicArray of ModInfo pointers (ModInfo*)</returns>
-			static NosLib::DynamicArray<ModInfo*>* ModpackMakerFile_Parse(const std::string& modpackMakerFileName)
-			{
-				/* open binary file stream of modpack maker list */
-				std::ifstream modMakerFile(modpackMakerFileName, std::ios::binary);
-
-				/* got through all lines in the file. each line is a new mod */
-				std::string line;
-				while (std::getline(modMakerFile, line))
-				{
-					/* append to array */
-					modInfoList.Append(ParseLine(line));
-				}
-
-				return &modInfoList;
-			}
-
-			std::string GetFullFileName(const bool& withExtension)
-			{
-				switch (ModType)
-				{
-				case Type::Seperator:
-					return std::format("{}- {}_separator", ModIndex, OutName);
-
-				case Type::Standard:
-					if (withExtension)
-					{
-						return std::format("{}- {} {}{}", ModIndex, OutName, CreatorName, FileExtension);
-					}
-					/* ELSE */
-					return std::format("{}- {} {}", ModIndex, OutName, CreatorName);
-
-				case Type::Custom:
-					if (withExtension)
-					{
-						return std::format("{}{}", OutName, FileExtension);
-					}
-					/* ELSE */
-					return std::format("{}", OutName);
-
-				default:
-					return "Unknown Mod Type";
-				}
-			}
-
-			std::string ToString()
-			{
-				std::string TypeString;
-
-				switch (ModType)
-				{
-				case ModInfo::Type::Seperator:
-					TypeString = "Seperator";
-					break;
-				case ModInfo::Type::Standard:
-					TypeString = "Standard";
-					break;
-				default:
-					TypeString = "None";
-					break;
-				}
-
-				std::string pathList;
-				for (int i = 0; i <= InsidePaths.GetLastArrayIndex(); i++)
-				{
-					pathList += InsidePaths[i];
-					if (i != InsidePaths.GetLastArrayIndex())
-					{
-						pathList += " | ";
-					}
-				}
-
-				return std::format(
-					"===================================================\n\
-	Type:\t{}\n\n\
-	Download Link:\t|{}\n\
-	Number:\t{}\n\
-	Inside Path:\t|{}\n\
-	Creator Name:\t|{}\n\
-	Out Name:\t|{}\n\
-	Original Link:\t|{}\n\
-	Left Over:\t|{}\n\
-	===================================================\n", TypeString, (Link.Host + Link.Path), ModIndex, pathList, CreatorName, OutName, OriginalLink, LeftOver);
-			}
 	};
 }
