@@ -22,19 +22,6 @@
 #include "Headers\ModMakerParsing.hpp"
 #include "Headers\HTMLParsing.h"
 
-void copyIfExists(const std::wstring& from, const std::wstring& to)
-{
-	/* if DOESN'T exist, go to next path (this is to remove 1 layer of nesting */
-	if (!std::filesystem::exists(from))
-	{
-		return;
-	}
-	
-	/* repeat the previous step but this time with "fomod" sub directory */
-	std::filesystem::create_directories(to);
-	std::filesystem::copy(from, to, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
-}
-
 void InitializeInstaller()
 {
 	/* create directory for downloaded files */
