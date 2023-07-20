@@ -22,6 +22,8 @@ void copyIfExists(const std::wstring& from, const std::wstring& to)
 
 namespace ModPackMaker
 {
+	std::wstring InstallPath;
+
 	std::wstring ModDirectory = L"mods\\";
 	std::wstring ExtractedDirectory = L"extracted\\";
 	std::wstring DownloadedDirectory = L"downloads\\";
@@ -99,6 +101,7 @@ namespace ModPackMaker
 
 		std::string FileExtension;						/* extension of the downloaded file (Gets set at download time) */
 		std::string OutPath;							/* This is Custom modtype only, it defines were to copy the files to */
+		bool includeInstallPath;						/* If mod should include mod path when installing (ONLY FOR CUSTOM) */
 
 	public:
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoList;		/* A list of all mods */
@@ -299,19 +302,21 @@ namespace ModPackMaker
 			downloadClient.set_keep_alive(false);
 			downloadClient.set_default_headers({{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
 
+			std::string DownloadsOutDirectory = NosLib::String::ToString(InstallPath + DownloadedDirectory);
+
 			/* Decide the host type, there are different download steps for different websites */
 			switch (DetermineHostType(Link.Host))
 			{
 			case HostType::ModDB:
-				ModDBDownload(&downloadClient, this, NosLib::String::ToString(DownloadedDirectory));
+				ModDBDownload(&downloadClient, this, DownloadsOutDirectory);
 				break;
 
 			case HostType::Github:
-				GithubDownload(&downloadClient, this, NosLib::String::ToString(DownloadedDirectory));
+				GithubDownload(&downloadClient, this, DownloadsOutDirectory);
 				break;
 
 			case HostType::GoFile:
-				GoFileDownload(&downloadClient, this, NosLib::String::ToString(DownloadedDirectory));
+				GoFileDownload(&downloadClient, this, DownloadsOutDirectory);
 				break;
 
 			default:
@@ -320,22 +325,21 @@ namespace ModPackMaker
 			}
 
 			/* create path to extract into */
-			std::wstring extractedOutDirectory = ExtractedDirectory + NosLib::String::ToWstring(GetFullFileName(false));
+			std::wstring extractedOutDirectory = InstallPath + ExtractedDirectory + NosLib::String::ToWstring(GetFullFileName(false));
 
 			/* create directories in order to prevent any errors */
 			std::filesystem::create_directories(extractedOutDirectory);
 
 			/* extract into said directory */
-			//bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll")); /* Need a custom object, for some reason it crashes otherwise */
-			extractor.extract(NosLib::String::ToString(DownloadedDirectory) + GetFullFileName(true), NosLib::String::ToString(extractedOutDirectory));
-			wprintf(std::format(L"extracted: {} into: {}\n", NosLib::String::ToWstring(GetFullFileName(true)), extractedOutDirectory).c_str());
+			extractor.extract(DownloadsOutDirectory + GetFullFileName(true), NosLib::String::ToString(extractedOutDirectory));
+			wprintf(std::format(L"extracted: {} into: {}\n", NosLib::String::ToWstring(DownloadsOutDirectory + GetFullFileName(true)), extractedOutDirectory).c_str());
 
 			/* for every "inner" path, go through and find the needed files */
 			for (std::string path : InsidePaths)
 			{
 				/* root inner path, everything revolves around this */
 				std::wstring rootFrom = (extractedOutDirectory + NosLib::String::ToWstring(path));
-				std::wstring rootTo = (ModDirectory + NosLib::String::ToWstring(GetFullFileName(false)) + L"\\");
+				std::wstring rootTo = (InstallPath + ModDirectory + NosLib::String::ToWstring(GetFullFileName(false)) + L"\\");
 
 				/* create directories to prevent errors */
 				std::filesystem::create_directories(rootTo);
@@ -393,19 +397,21 @@ namespace ModPackMaker
 			downloadClient.set_keep_alive(true);
 			downloadClient.set_default_headers({{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
 
+			std::string DownloadsOutDirectory = NosLib::String::ToString(InstallPath + DownloadedDirectory);
+
 			/* Decide the host type, there are different download steps for different websites */
 			switch (DetermineHostType(Link.Host))
 			{
 			case HostType::ModDB:
-				ModDBDownload(&downloadClient, this, NosLib::String::ToString(DownloadedDirectory));
+				ModDBDownload(&downloadClient, this, DownloadsOutDirectory);
 				break;
 
 			case HostType::Github:
-				GithubDownload(&downloadClient, this, NosLib::String::ToString(DownloadedDirectory));
+				GithubDownload(&downloadClient, this, DownloadsOutDirectory);
 				break;
 
 			case HostType::GoFile:
-				GoFileDownload(&downloadClient, this, NosLib::String::ToString(DownloadedDirectory));
+				GoFileDownload(&downloadClient, this, DownloadsOutDirectory);
 				break;
 
 			default:
@@ -414,22 +420,22 @@ namespace ModPackMaker
 			}
 
 			/* create path to extract into */
-			std::wstring extractedOutDirectory = ExtractedDirectory + NosLib::String::ToWstring(GetFullFileName(false));
+			std::wstring extractedOutDirectory = InstallPath + ExtractedDirectory + NosLib::String::ToWstring(GetFullFileName(false));
 
 			/* create directories in order to prevent any errors */
 			std::filesystem::create_directories(extractedOutDirectory);
 
 			/* extract into said directory */
 			bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll")); /* Need a custom object, for some reason it crashes otherwise */
-			extractor.extract(NosLib::String::ToString(DownloadedDirectory) + GetFullFileName(true), NosLib::String::ToString(extractedOutDirectory));
-			wprintf(std::format(L"extracted: {} into: {}\n", NosLib::String::ToWstring(GetFullFileName(true)), extractedOutDirectory).c_str());
+			extractor.extract(DownloadsOutDirectory + GetFullFileName(true), NosLib::String::ToString(extractedOutDirectory));
+			wprintf(std::format(L"extracted: {} into: {}\n", NosLib::String::ToWstring(DownloadsOutDirectory + GetFullFileName(true)), extractedOutDirectory).c_str());
 
 			/* for every "inner" path, go through and find the needed files */
 			for (std::string path : InsidePaths)
 			{
 				/* root inner path, everything revolves around this */
 				std::wstring rootFrom = (extractedOutDirectory + NosLib::String::ToWstring(path));
-				std::wstring rootTo = NosLib::String::ToWstring(OutPath);
+				std::wstring rootTo = ((includeInstallPath ? InstallPath : L"") + NosLib::String::ToWstring(OutPath));
 
 				/* create directories to prevent errors */
 				std::filesystem::create_directories(rootTo);
@@ -476,7 +482,7 @@ namespace ModPackMaker
 
 		void SeparatorModProcess()
 		{
-			std::filesystem::create_directories(ModDirectory + NosLib::String::ToWstring(GetFullFileName(false)));
+			std::filesystem::create_directories(InstallPath + ModDirectory + NosLib::String::ToWstring(GetFullFileName(false)));
 		}
 	#pragma endregion
 

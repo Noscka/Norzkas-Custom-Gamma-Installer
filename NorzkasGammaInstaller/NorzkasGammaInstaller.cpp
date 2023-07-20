@@ -25,8 +25,8 @@
 void InitializeInstaller()
 {
 	/* create directory for downloaded files */
-	std::filesystem::create_directories(ModPackMaker::DownloadedDirectory);
-	std::filesystem::create_directories(ModPackMaker::ModDirectory);
+	std::filesystem::create_directories(ModPackMaker::InstallPath + ModPackMaker::DownloadedDirectory);
+	std::filesystem::create_directories(ModPackMaker::InstallPath + ModPackMaker::ModDirectory);
 
 	NosLib::DynamicArray<std::string> innerModOrganizerPaths;
 	innerModOrganizerPaths.Append("\\");
@@ -38,8 +38,8 @@ void InitializeInstaller()
 	ModPackMaker::ExtractedDirectory = L"GAMMA\\extracted\\";
 	ModPackMaker::DownloadedDirectory = L"GAMMA\\downloads\\";
 
-	std::filesystem::create_directories(ModPackMaker::DownloadedDirectory);
-	std::filesystem::create_directories(ModPackMaker::ModDirectory);
+	std::filesystem::create_directories(ModPackMaker::InstallPath + ModPackMaker::DownloadedDirectory);
+	std::filesystem::create_directories(ModPackMaker::InstallPath + ModPackMaker::ModDirectory);
 
 	NosLib::DynamicArray<std::string> innerInitializeDefinitionPaths;
 	innerInitializeDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modlist.txt");
@@ -48,8 +48,8 @@ void InitializeInstaller()
 
 	initiazizeMod.ProcessMod();
 
-	std::filesystem::create_directories(L"GAMMA\\profiles\\Default\\");
-	std::filesystem::rename(L"modlist.txt", L"GAMMA\\profiles\\Default\\modlist.txt");
+	std::filesystem::create_directories(ModPackMaker::InstallPath + L"GAMMA\\profiles\\Default\\");
+	std::filesystem::rename(L"modlist.txt", ModPackMaker::InstallPath + L"GAMMA\\profiles\\Default\\modlist.txt");
 
 	NosLib::DynamicArray<std::string> innerSetupPaths;
 	innerSetupPaths.Append("\\gamma_setup-main\\modpack_addons");
@@ -63,6 +63,35 @@ void InitializeInstaller()
 	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip", innerDefinitionPaths, NosLib::String::ToString(ModPackMaker::ModDirectory), "G.A.M.M.A. modpack definition"));
 }
 
+void GetInstallPath()
+{
+	bool gotValidPath = false;
+
+	std::wstring installPath;
+
+	while (!gotValidPath)
+	{
+		installPath = L"";
+
+		wprintf(L"Input a valid install path [will install here if left blank]: ");
+		std::getline(std::wcin, installPath);
+
+		try
+		{
+			std::filesystem::create_directories(installPath);
+			gotValidPath = true;
+		}
+		catch (...) {}
+	}
+
+	if (installPath.back() != L'\\')
+	{
+		installPath += L"\\";
+	}
+
+	ModPackMaker::InstallPath = installPath;
+}
+
 int main()
 {
 	NosLib::Console::InitializeModifiers::EnableUnicode();
@@ -70,6 +99,7 @@ int main()
 	NosLib::Console::InitializeModifiers::BeatifyConsole<wchar_t>(L"Norzka's Gamma Installer");
 	NosLib::Console::InitializeModifiers::InitializeEventHandler();
 
+	GetInstallPath();
 	InitializeInstaller();
 
 	/* go through all mods in global static array */
