@@ -28,12 +28,28 @@ void InitializeInstaller()
 	std::filesystem::create_directories(ModPackMaker::DownloadedDirectory);
 	std::filesystem::create_directories(ModPackMaker::ModDirectory);
 
-	NosLib::DynamicArray<std::string> innerDefinitionPaths2;
-	innerDefinitionPaths2.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modlist.txt");
-	innerDefinitionPaths2.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modpack_maker_list.txt");
-	ModPackMaker::ModInfo initiazizeMod("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip", innerDefinitionPaths2, ".\\", "G.A.M.M.A. modpack definition");
+	NosLib::DynamicArray<std::string> innerModOrganizerPaths;
+	innerModOrganizerPaths.Append("\\");
+	ModPackMaker::ModInfo modOrganizer("https://file120.gofile.io/download/86137f5a-201e-41ff-86b7-47fa42ba2d11/GAMMA%20RC3.7z", innerModOrganizerPaths, "GAMMA\\", "GAMMA RC3");
+
+	modOrganizer.ProcessMod();
+
+	ModPackMaker::ModDirectory = L"GAMMA\\mods\\";
+	ModPackMaker::ExtractedDirectory = L"GAMMA\\extracted\\";
+	ModPackMaker::DownloadedDirectory = L"GAMMA\\downloads\\";
+
+	std::filesystem::create_directories(ModPackMaker::DownloadedDirectory);
+	std::filesystem::create_directories(ModPackMaker::ModDirectory);
+
+	NosLib::DynamicArray<std::string> innerInitializeDefinitionPaths;
+	innerInitializeDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modlist.txt");
+	innerInitializeDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modpack_maker_list.txt");
+	ModPackMaker::ModInfo initiazizeMod("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip", innerInitializeDefinitionPaths, ".\\", "G.A.M.M.A. modpack definition");
 
 	initiazizeMod.ProcessMod();
+
+	std::filesystem::create_directories(L"GAMMA\\profiles\\Default\\");
+	std::filesystem::rename(L"modlist.txt", L"GAMMA\\profiles\\Default\\modlist.txt");
 
 	NosLib::DynamicArray<std::string> innerSetupPaths;
 	innerSetupPaths.Append("\\gamma_setup-main\\modpack_addons");
@@ -64,22 +80,4 @@ int main()
 
 	wprintf(L"Press any button to continue"); _getch();
 	return 0;
-
-	/* LATER SETUP */
-
-	AccountToken::GetAccountToken();
-
-	httplib::Client downloader("https://file120.gofile.io");
-
-	downloader.set_follow_location(false);
-	downloader.set_logger(&LoggingFunction);
-	downloader.set_keep_alive(false);
-	downloader.set_default_headers({
-		{"Cookie", std::format("accountToken={}", AccountToken::AccountToken)},
-		{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
-
-	//GetAndSaveFile(&downloader, "/download/86137f5a-201e-41ff-86b7-47fa42ba2d11/GAMMA%20RC3.7z", "GAMMA RC3.7z");
-
-	wprintf(L"Press any button to continue"); _getch();
-    return 0;
 }

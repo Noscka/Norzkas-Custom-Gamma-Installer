@@ -1,3 +1,4 @@
+https://github.com/Noscka/NosLib
 https://github.com/yhirose/cpp-httplib
 https://github.com/nlohmann/json/releases/tag/v3.11.2
 

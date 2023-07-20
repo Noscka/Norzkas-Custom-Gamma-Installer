@@ -22,9 +22,9 @@ void copyIfExists(const std::wstring& from, const std::wstring& to)
 
 namespace ModPackMaker
 {
-	const std::wstring ModDirectory = L"mods\\";
-	const std::wstring ExtractedDirectory = L"extracted\\";
-	const std::wstring DownloadedDirectory = L"downloads\\";
+	std::wstring ModDirectory = L"mods\\";
+	std::wstring ExtractedDirectory = L"extracted\\";
+	std::wstring DownloadedDirectory = L"downloads\\";
 
 	/* Sub directories that are inside each mod folder */
 	const std::wstring subdirectories[] = {L"gamedata\\", L"fomod\\", L"db\\", L"tools\\", L"appdata\\"};
@@ -310,6 +310,10 @@ namespace ModPackMaker
 				GithubDownload(&downloadClient, this, NosLib::String::ToString(DownloadedDirectory));
 				break;
 
+			case HostType::GoFile:
+				GoFileDownload(&downloadClient, this, NosLib::String::ToString(DownloadedDirectory));
+				break;
+
 			default:
 				wprintf(L"Unknown host type\ncontinuing to next\n");
 				return;
@@ -398,6 +402,10 @@ namespace ModPackMaker
 
 			case HostType::Github:
 				GithubDownload(&downloadClient, this, NosLib::String::ToString(DownloadedDirectory));
+				break;
+
+			case HostType::GoFile:
+				GoFileDownload(&downloadClient, this, NosLib::String::ToString(DownloadedDirectory));
 				break;
 
 			default:
@@ -532,6 +540,7 @@ namespace ModPackMaker
 		{
 			ModDB,
 			Github,
+			GoFile,
 			Unknown,
 		};
 
@@ -544,6 +553,10 @@ namespace ModPackMaker
 			else if (hostName.find("github") != std::string::npos)
 			{
 				return HostType::Github;
+			}
+			else if (hostName.find("gofile") != std::string::npos)
+			{
+				return HostType::GoFile;
 			}
 
 			return HostType::Unknown;
@@ -567,6 +580,22 @@ namespace ModPackMaker
 		{
 			downloadClient->set_follow_location(true);
 			//downloadClient->set_logger(&LoggingFunction);
+			GetAndSaveFile(downloadClient, mod, mod->Link.Path, pathOffsets);
+		}
+
+		void GoFileDownload(httplib::Client* downloadClient, ModPackMaker::ModInfo* mod, const std::string& pathOffsets = "")
+		{
+			if (AccountToken::AccountToken.empty())
+			{
+				AccountToken::GetAccountToken();
+			}
+
+			downloadClient->set_follow_location(false);
+			//downloadClient->set_logger(&LoggingFunction);
+			downloadClient->set_keep_alive(false);
+			downloadClient->set_default_headers({
+				{"Cookie", std::format("accountToken={}", AccountToken::AccountToken)},
+				{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
 			GetAndSaveFile(downloadClient, mod, mod->Link.Path, pathOffsets);
 		}
 	#pragma endregion
