@@ -10,6 +10,7 @@
 #include <format>
 
 #include "Headers/HTTPLogging.hpp"
+#include "GlobalVariables.hpp"
 
 namespace AccountToken
 {
@@ -19,8 +20,11 @@ namespace AccountToken
 	{
 		httplib::Client cookieGetter("https://api.gofile.io");
 
+		if constexpr (Global::verbose)
+		{
+			cookieGetter.set_logger(&LoggingFunction);
+		}
 		cookieGetter.set_follow_location(false);
-		cookieGetter.set_logger(&LoggingFunction);
 		cookieGetter.set_keep_alive(true);
 		cookieGetter.set_default_headers({{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
 

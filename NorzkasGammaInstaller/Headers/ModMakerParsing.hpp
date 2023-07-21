@@ -1,12 +1,16 @@
-#pragma once
+﻿#pragma once
 
 #include "..\EXTERNAL\httplib.h"
 
 #include <NosLib\DynamicArray.hpp>
 #include <NosLib\String.hpp>
+#include <NosLib\DynamicLoadingScreen.hpp>
+
 #include <format>
-#include "String.h"
-#include "HTMLParsing.h"
+
+#include "AccountToken.hpp"
+#include "HTMLParsing.hpp"
+#include "GlobalVariables.hpp"
 
 void copyIfExists(const std::wstring& from, const std::wstring& to)
 {
@@ -23,8 +27,6 @@ void copyIfExists(const std::wstring& from, const std::wstring& to)
 
 namespace ModPackMaker
 {
-	constexpr bool showHttpLogs = false;
-
 	std::wstring InstallPath;
 
 	std::wstring ModDirectory = L"mods\\";
@@ -102,7 +104,10 @@ namespace ModPackMaker
 		std::string FileExtension;						/* extension of the downloaded file (Gets set at download time) */
 		std::string OutPath;							/* This is Custom modtype only, it defines were to copy the files to */
 		bool UseInstallPath = true;						/* If mod should include mod path when installing (ONLY FOR CUSTOM) */
+
+		float SpaceAmountDone = 0.0f;					/* keeps track of how much this mod has been complete * amount of space I want the bar to take up */
 	public:
+		static inline NosLib::LoadingScreen* LoadingScreenObjectPointer;
 
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoList;		/* A list of all mods */
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modErrorList;	/* a list of all errors */
@@ -200,7 +205,7 @@ namespace ModPackMaker
 				break;
 
 			default: /* default meaning it is some other type which hasn't been defined yet */
-				wprintf(L"Mod type not yet define\ncontinuing to next\n");
+				LogError("Undefined Mod Type tried to be processed", __FUNCTION__);
 				return;
 			}
 		}
@@ -318,7 +323,7 @@ namespace ModPackMaker
 				break;
 
 			default:
-				wprintf(L"Unknown host type\ncontinuing to next\n");
+				LogError("Undefined Mod Type tried to be processed", __FUNCTION__);
 				return;
 			}
 		}
@@ -328,10 +333,11 @@ namespace ModPackMaker
 			/* create directories in order to prevent any errors */
 			std::filesystem::create_directories(extractDirectory);
 
+			std::wstring info = std::format(L"extracting: {} into: {}\n", NosLib::String::ToWstring(downloadDirectory + GetFullFileName(true)), extractDirectory);
+
 			/* extract into said directory */
 			bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll")); /* create extractor object */
 			extractor.extract(downloadDirectory + GetFullFileName(true), NosLib::String::ToString(extractDirectory));
-			wprintf(std::format(L"extracted: {} into: {}\n", NosLib::String::ToWstring(downloadDirectory + GetFullFileName(true)), extractDirectory).c_str());
 		}
 
 		void LogError(const std::string& exceptionMessage, const std::string& functioName)
@@ -340,8 +346,6 @@ namespace ModPackMaker
 			std::string logMessage = std::format("error in file \"{}\" in function \"{}\" with mod \"{}\" -> {}\n", __FILE__, functioName, GetFullFileName(true), exceptionMessage);
 			outLog.write(logMessage.c_str(), logMessage.size());
 			outLog.close();
-
-			std::cerr << logMessage << std::endl;
 
 			ModPackMaker::ModInfo::modErrorList.Append(this); /* add this mod to "failed" list */
 
@@ -483,21 +487,19 @@ namespace ModPackMaker
 					DownloadFile.write(data, data_length);
 					return true;
 				},
-				[](uint64_t len, uint64_t total)
+				[&](uint64_t len, uint64_t total)
 				{
-					/* TEMP: Just so it doesn't slow down downloads just because it is spamming the console */
-					if (len % 431 != 0)
-					{
-						return true;
-					}
+					float floatAmountDone = ((float)len / (float)total);
 
-					wprintf(L"%lld / %lld bytes => %d%% complete\n", len, total, (int)(len * 100 / total));
+					SpaceAmountDone = floatAmountDone * max(NosLib::Console::GetConsoleSize().Columns - 60, 20);
+
+					LoadingScreenObjectPointer->UpdateKnownProgressBar(floatAmountDone, (NosLib::LoadingScreen::GenerateProgressBar(SpaceAmountDone) + std::format(L"\nDownloading {}", NosLib::String::ToWstring(GetFullFileName(true)))));
 					return true; // return 'false' if you want to cancel the request.
 				});
 
 			if (!res)
 			{
-				wprintf(std::format(L"error code: {}\n", (int)res.error()).c_str());
+				LogError(std::format("error code: {}\n", (int)res.error()), __FUNCTION__);
 			}
 
 			DownloadFile.close();
@@ -540,7 +542,7 @@ namespace ModPackMaker
 				return;
 			}
 
-			if constexpr (showHttpLogs)
+			if constexpr (Global::verbose)
 			{
 				downloadClient->set_logger(&LoggingFunction);
 			}
@@ -550,7 +552,7 @@ namespace ModPackMaker
 
 		void GithubDownload(httplib::Client* downloadClient, ModPackMaker::ModInfo* mod, const std::string& pathOffsets = "")
 		{
-			if constexpr (showHttpLogs)
+			if constexpr (Global::verbose)
 			{
 				downloadClient->set_logger(&LoggingFunction);
 			}
@@ -565,7 +567,7 @@ namespace ModPackMaker
 				AccountToken::GetAccountToken();
 			}
 
-			if constexpr (showHttpLogs)
+			if constexpr (Global::verbose)
 			{
 				downloadClient->set_logger(&LoggingFunction);
 			}

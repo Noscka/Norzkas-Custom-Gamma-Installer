@@ -32,7 +32,10 @@
     <ClInclude Include="Headers\ModMakerParsing.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\HTMLParsing.h">
+    <ClInclude Include="Headers\HTMLParsing.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Headers\GlobalVariables.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
