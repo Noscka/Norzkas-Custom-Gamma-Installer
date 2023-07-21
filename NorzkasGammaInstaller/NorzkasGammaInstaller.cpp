@@ -24,21 +24,21 @@
 
 void InitializeInstaller()
 {
-	///* create directory for downloaded files */
+	/* create directory for downloaded files */
 
-	//NosLib::DynamicArray<std::string> innerModOrganizerPaths;
-	//innerModOrganizerPaths.Append("\\");
-	//ModPackMaker::ModInfo modOrganizer("https://file10.gofile.io/download/86137f5a-201e-41ff-86b7-47fa42ba2d11/GAMMA%20RC3.7z", innerModOrganizerPaths, "GAMMA\\", "GAMMA RC3");
+	NosLib::DynamicArray<std::string> innerModOrganizerPaths;
+	innerModOrganizerPaths.Append("\\");
+	ModPackMaker::ModInfo modOrganizer("https://file10.gofile.io/download/86137f5a-201e-41ff-86b7-47fa42ba2d11/GAMMA%20RC3.7z", innerModOrganizerPaths, "GAMMA\\", "GAMMA RC3");
 
-	//modOrganizer.ProcessMod();
+	modOrganizer.ProcessMod();
 
-	//std::filesystem::remove_all(ModPackMaker::InstallPath + ModPackMaker::DownloadedDirectory);
-	//std::filesystem::remove_all(ModPackMaker::InstallPath + ModPackMaker::ModDirectory);
-	//std::filesystem::remove_all(ModPackMaker::InstallPath + ModPackMaker::ExtractedDirectory);
+	std::filesystem::remove_all(ModPackMaker::InstallPath + ModPackMaker::DownloadedDirectory);
+	std::filesystem::remove_all(ModPackMaker::InstallPath + ModPackMaker::ModDirectory);
+	std::filesystem::remove_all(ModPackMaker::InstallPath + ModPackMaker::ExtractedDirectory);
 
-	//ModPackMaker::ModDirectory = L"GAMMA\\mods\\";
-	//ModPackMaker::ExtractedDirectory = L"GAMMA\\extracted\\";
-	//ModPackMaker::DownloadedDirectory = L"GAMMA\\downloads\\";
+	ModPackMaker::ModDirectory = L"GAMMA\\mods\\";
+	ModPackMaker::ExtractedDirectory = L"GAMMA\\extracted\\";
+	ModPackMaker::DownloadedDirectory = L"GAMMA\\downloads\\";
 
 	NosLib::DynamicArray<std::string> innerInitializeDefinitionPaths;
 	innerInitializeDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modlist.txt");
@@ -50,9 +50,9 @@ void InitializeInstaller()
 	std::filesystem::create_directories(ModPackMaker::InstallPath + L"GAMMA\\profiles\\Default\\");
 	std::filesystem::rename(L"modlist.txt", ModPackMaker::InstallPath + L"GAMMA\\profiles\\Default\\modlist.txt");
 
-	/*NosLib::DynamicArray<std::string> innerSetupPaths;
+	NosLib::DynamicArray<std::string> innerSetupPaths;
 	innerSetupPaths.Append("\\gamma_setup-main\\modpack_addons");
-	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/gamma_setup/archive/refs/heads/main.zip", innerSetupPaths, NosLib::String::ToString(ModPackMaker::ModDirectory), "G.A.M.M.A. setup files"));*/
+	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/gamma_setup/archive/refs/heads/main.zip", innerSetupPaths, NosLib::String::ToString(ModPackMaker::ModDirectory), "G.A.M.M.A. setup files"));
 
 	/* parse modpack maker file, put it into global static array */
 	ModPackMaker::ModInfo::ModpackMakerFile_Parse("modpack_maker_list.txt");
