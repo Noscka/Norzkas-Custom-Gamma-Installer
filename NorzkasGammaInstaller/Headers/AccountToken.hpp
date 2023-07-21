@@ -1,7 +1,6 @@
 #pragma once
 #define CPPHTTPLIB_OPENSSL_SUPPORT
 #include "../EXTERNAL/httplib.h"
-#include "../EXTERNAL/json.hpp"
 
 #include <NosLib/Console.hpp>
 
@@ -25,7 +24,12 @@ namespace AccountToken
 		cookieGetter.set_keep_alive(true);
 		cookieGetter.set_default_headers({{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
 
-		AccountToken = nlohmann::json::parse(cookieGetter.Get("/createAccount")->body)["data"]["token"];
+		/*
+		Using 32 and 32 for the substr to get the token because this is an example reponse from server:
+		{"status":"ok","data":{"token":"TQVqYtD4oadFe3RLFWs0Kgwha43dqIKY"}}
+		*/
+
+		AccountToken = cookieGetter.Get("/createAccount")->body.substr(32, 32);
 
 		cookieGetter.Get(std::format("/getContent?contentId=WlndL7&token={}&websiteToken=7fd94ds12fds4", AccountToken));
 	}

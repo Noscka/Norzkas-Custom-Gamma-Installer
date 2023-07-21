@@ -1,6 +1,6 @@
 https://github.com/Noscka/NosLib
 https://github.com/yhirose/cpp-httplib
-https://github.com/nlohmann/json/releases/tag/v3.11.2
+https://github.com/openssl/openssl/releases/tag/openssl-3.1.1
 
 https://github.com/rikyoz/bit7z
 Built with commands:
