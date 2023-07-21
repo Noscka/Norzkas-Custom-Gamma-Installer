@@ -101,9 +101,10 @@ namespace ModPackMaker
 
 		std::string FileExtension;						/* extension of the downloaded file (Gets set at download time) */
 		std::string OutPath;							/* This is Custom modtype only, it defines were to copy the files to */
-		bool includeInstallPath;						/* If mod should include mod path when installing (ONLY FOR CUSTOM) */
 
 	public:
+		bool includeInstallPath = true;					/* If mod should include mod path when installing (ONLY FOR CUSTOM) */
+
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoList;		/* A list of all mods */
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modFailedList;	/* a list of all failed mods (so even errors) */
 

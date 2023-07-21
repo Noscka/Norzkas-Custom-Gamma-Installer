@@ -45,6 +45,7 @@ void InitializeInstaller()
 	innerInitializeDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modlist.txt");
 	innerInitializeDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modpack_maker_list.txt");
 	ModPackMaker::ModInfo initiazizeMod("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip", innerInitializeDefinitionPaths, ".\\", "G.A.M.M.A. modpack definition");
+	initiazizeMod.includeInstallPath = false;
 
 	initiazizeMod.ProcessMod();
 
