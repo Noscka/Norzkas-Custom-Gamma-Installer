@@ -30,9 +30,13 @@ void InitializeInstaller()
 
 	NosLib::DynamicArray<std::string> innerModOrganizerPaths;
 	innerModOrganizerPaths.Append("\\");
-	ModPackMaker::ModInfo modOrganizer("https://file120.gofile.io/download/86137f5a-201e-41ff-86b7-47fa42ba2d11/GAMMA%20RC3.7z", innerModOrganizerPaths, "GAMMA\\", "GAMMA RC3");
+	ModPackMaker::ModInfo modOrganizer("https://file10.gofile.io/download/86137f5a-201e-41ff-86b7-47fa42ba2d11/GAMMA%20RC3.7z", innerModOrganizerPaths, "GAMMA\\", "GAMMA RC3");
 
 	modOrganizer.ProcessMod();
+
+	std::filesystem::remove_all(ModPackMaker::InstallPath + ModPackMaker::DownloadedDirectory);
+	std::filesystem::remove_all(ModPackMaker::InstallPath + ModPackMaker::ModDirectory);
+	std::filesystem::remove_all(ModPackMaker::InstallPath + ModPackMaker::ExtractedDirectory);
 
 	ModPackMaker::ModDirectory = L"GAMMA\\mods\\";
 	ModPackMaker::ExtractedDirectory = L"GAMMA\\extracted\\";
@@ -72,10 +76,13 @@ void GetInstallPath()
 
 	while (!gotValidPath)
 	{
-		installPath = L"";
-
 		wprintf(L"Input a valid install path [will install here if left blank]: ");
 		std::getline(std::wcin, installPath);
+
+		if (installPath == L"")
+		{
+			installPath = L".\\";
+		}
 
 		try
 		{

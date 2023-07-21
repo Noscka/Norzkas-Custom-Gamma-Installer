@@ -386,6 +386,9 @@ namespace ModPackMaker
 					failedMostListOutput.close();
 				}
 			}
+
+			std::filesystem::remove_all(DownloadsOutDirectory + GetFullFileName(true));
+			std::filesystem::remove_all(extractedOutDirectory);
 		}
 
 		void CustomModProcess()
@@ -479,6 +482,9 @@ namespace ModPackMaker
 					failedMostListOutput.close();
 				}
 			}
+
+			std::filesystem::remove_all(DownloadsOutDirectory + GetFullFileName(true));
+			std::filesystem::remove_all(extractedOutDirectory);
 		}
 
 		void SeparatorModProcess()
