@@ -25,7 +25,6 @@
     <ClInclude Include="Headers\HTMLParsing.h" />
     <ClInclude Include="Headers\HTTPLogging.hpp" />
     <ClInclude Include="Headers\ModMakerParsing.hpp" />
-    <ClInclude Include="Headers\String.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="NorzkasGammaInstaller.cpp" />

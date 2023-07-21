@@ -32,9 +32,6 @@
     <ClInclude Include="Headers\HTTPLogging.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Headers\String.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Headers\ModMakerParsing.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

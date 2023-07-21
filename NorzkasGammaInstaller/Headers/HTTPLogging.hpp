@@ -5,14 +5,6 @@
 #include <Windows.h>
 #include <format>
 
-void PrintServerResponse(const httplib::Result& serverResult)
-{
-	if (!serverResult)
-	{
-		wprintf(std::format(L"error code: {}\n", (int)serverResult.error()).c_str());
-	}
-}
-
 void LoggingFunction(const httplib::Request& req, const httplib::Response& res)
 {
 	wprintf(L"====================================================================================================================\nRequest\n");
