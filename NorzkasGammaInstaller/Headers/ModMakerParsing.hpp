@@ -336,9 +336,9 @@ namespace ModPackMaker
 			std::wstring info = std::format(L"extracting: {} into: {}\n", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory);
 
 			/* extract into said directory */
-			wprintf(std::format(L"extracting: {} into: {}\n", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory).c_str());
+			wprintf(std::format(L"...extracting: {} into: {}\n", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory).c_str());
 			extractor.extract(downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory);
-			wprintf(std::format(L"Finished", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory).c_str());
+			wprintf(std::format(L"extracted: {} into: {}\n", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory).c_str());
 		}
 
 		void LogError(const std::string& exceptionMessage, const std::string& functioName)
@@ -379,6 +379,7 @@ namespace ModPackMaker
 			std::wstring extractedOutDirectory = InstallPath + ExtractedDirectory + NosLib::String::ToWstring(GetFullFileName(false));
 			ExtractMod(NosLib::String::ToWstring(DownloadsOutDirectory), extractedOutDirectory);
 
+			wprintf(L"...Copying files to their place\n");
 			/* for every "inner" path, go through and find the needed files */
 			for (std::string path : InsidePaths)
 			{
@@ -404,9 +405,12 @@ namespace ModPackMaker
 					LogError(ex.what(), __FUNCTION__);
 				}
 			}
+			wprintf(L"Finished Copying\n");
 
+			wprintf(L"...Cleaning up files\n");
 			std::filesystem::remove_all(DownloadsOutDirectory + GetFullFileName(true));
 			std::filesystem::remove_all(extractedOutDirectory);
+			wprintf(L"Finished Clean up\n");
 		}
 
 		void CustomModProcess()
@@ -418,6 +422,7 @@ namespace ModPackMaker
 			std::wstring extractedOutDirectory = InstallPath + ExtractedDirectory + NosLib::String::ToWstring(GetFullFileName(false));
 			ExtractMod(NosLib::String::ToWstring(DownloadsOutDirectory), extractedOutDirectory);
 
+			wprintf(L"...Copying files to their place\n");
 			/* for every "inner" path, go through and find the needed files */
 			for (std::string path : InsidePaths)
 			{
@@ -440,9 +445,12 @@ namespace ModPackMaker
 					LogError(ex.what(), __FUNCTION__);
 				}
 			}
+			wprintf(L"Finished Copying\n");
 
+			wprintf(L"...Cleaning up files\n");
 			std::filesystem::remove_all(DownloadsOutDirectory + GetFullFileName(true));
 			std::filesystem::remove_all(extractedOutDirectory);
+			wprintf(L"Finished Clean up\n");
 		}
 
 		void SeparatorModProcess()
@@ -504,7 +512,54 @@ namespace ModPackMaker
 
 			if (!res)
 			{
-				LogError(std::format("error code: {}\n", (int)res.error()), __FUNCTION__);
+				std::string errorMessage;
+				switch (res.error())
+				{
+				case httplib::Error::Success:
+					errorMessage = "Success";
+					break;
+				case httplib::Error::Unknown:
+					errorMessage = "Unknown";
+					break;
+				case httplib::Error::Connection:
+					errorMessage = "Connection";
+					break;
+				case httplib::Error::BindIPAddress:
+					errorMessage = "Bind IP Address";
+					break;
+				case httplib::Error::Read:
+					errorMessage = "Read ";
+					break;
+				case httplib::Error::Write:
+					errorMessage = "Write";
+					break;
+				case httplib::Error::ExceedRedirectCount:
+					errorMessage = "Exceed Redirect Count";
+					break;
+				case httplib::Error::Canceled:
+					errorMessage = "Cancelled";
+					break;
+				case httplib::Error::SSLConnection:
+					errorMessage = "SSL Connection";
+					break;
+				case httplib::Error::SSLLoadingCerts:
+					errorMessage = "SSL Loading Certs";
+					break;
+				case httplib::Error::SSLServerVerification:
+					errorMessage = "SSL Server Verification";
+					break;
+				case httplib::Error::UnsupportedMultipartBoundaryChars:
+					errorMessage = "Unsupported Multipart Boundary Chars";
+					break;
+				case httplib::Error::Compression:
+					errorMessage = "Compression";
+					break;
+				case httplib::Error::ConnectionTimeout:
+					errorMessage = "Connection Timeout";
+					break;
+				}
+
+				LogError(std::format("error code: {}\n", errorMessage), __FUNCTION__);
 			}
 
 			DownloadFile.close();
