@@ -1,11 +1,12 @@
 ﻿#define CPPHTTPLIB_OPENSSL_SUPPORT
 #define BIT7Z_AUTO_FORMAT
 #define BIT7Z_REGEX_MATCHING
+#define BIT7Z_GENERATE_PIC
+#define BIT7Z_STATIC_RUNTIME
 
 #include "EXTERNAL\httplib.h"
 
 #include <NosLib\Console.hpp>
-#include <NosLib\DynamicLoadingScreen.hpp>
 
 #include <bit7z\bit7z.hpp>
 #include <bit7z\bit7zlibrary.hpp>
@@ -18,10 +19,8 @@
 
 #include "Headers\ModMakerParsing.hpp"
 
-void InitializeInstaller(NosLib::LoadingScreen* loadingScreenObject)
+void InitializeInstaller()
 {
-	ModPackMaker::ModInfo::LoadingScreenObjectPointer = loadingScreenObject;
-
 	NosLib::DynamicArray<std::string> innerModOrganizerPaths;
 	innerModOrganizerPaths.Append("\\");
 	ModPackMaker::ModInfo modOrganizer("https://file10.gofile.io/download/86137f5a-201e-41ff-86b7-47fa42ba2d11/GAMMA%20RC3.7z", innerModOrganizerPaths, "GAMMA\\", "GAMMA RC3");
@@ -56,17 +55,6 @@ void InitializeInstaller(NosLib::LoadingScreen* loadingScreenObject)
 	NosLib::DynamicArray<std::string> innerDefinitionPaths;
 	innerDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons");
 	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip", innerDefinitionPaths, NosLib::String::ToString(ModPackMaker::ModDirectory), "G.A.M.M.A. modpack definition"));
-}
-
-void loadingScreenManager(NosLib::LoadingScreen* loadingScreenObject)
-{
-	InitializeInstaller(loadingScreenObject);
-
-	/* go through all mods in global static array */
-	for (ModPackMaker::ModInfo* mod : ModPackMaker::ModInfo::modInfoList)
-	{
-		mod->ProcessMod();
-	}
 }
 
 void GetInstallPath()
@@ -108,14 +96,14 @@ int main()
 	NosLib::Console::InitializeModifiers::BeatifyConsole<wchar_t>(L"Norzka's Gamma Installer");
 	NosLib::Console::InitializeModifiers::InitializeEventHandler();
 
-	NosLib::LoadingScreen::InitilizeFont();
-
 	GetInstallPath();
+	InitializeInstaller();
 
-	NosLib::LoadingScreen mainLoadingScreen(NosLib::LoadingScreen::LoadType::Known);
-	mainLoadingScreen.StartLoading(&loadingScreenManager);
-
-	NosLib::LoadingScreen::TerminateFont();
+	/* go through all mods in global static array */
+	for (ModPackMaker::ModInfo* mod : ModPackMaker::ModInfo::modInfoList)
+	{
+		mod->ProcessMod();
+	}
 
 	wprintf(L"Press any button to continue"); _getch();
 	return 0;

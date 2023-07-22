@@ -4,7 +4,6 @@
 
 #include <NosLib\DynamicArray.hpp>
 #include <NosLib\String.hpp>
-#include <NosLib\DynamicLoadingScreen.hpp>
 
 #include <format>
 
@@ -107,8 +106,6 @@ namespace ModPackMaker
 
 		float SpaceAmountDone = 0.0f;					/* keeps track of how much this mod has been complete * amount of space I want the bar to take up */
 	public:
-		static inline NosLib::LoadingScreen* LoadingScreenObjectPointer;
-
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoList;		/* A list of all mods */
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modErrorList;	/* a list of all errors */
 
@@ -336,8 +333,10 @@ namespace ModPackMaker
 			std::wstring info = std::format(L"extracting: {} into: {}\n", NosLib::String::ToWstring(downloadDirectory + GetFullFileName(true)), extractDirectory);
 
 			/* extract into said directory */
+			wprintf(std::format(L"extracting: {} into: {}\n", NosLib::String::ToWstring(downloadDirectory + GetFullFileName(true)), extractDirectory).c_str());
 			bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll")); /* create extractor object */
 			extractor.extract(downloadDirectory + GetFullFileName(true), NosLib::String::ToString(extractDirectory));
+			wprintf(std::format(L"Finished", NosLib::String::ToWstring(downloadDirectory + GetFullFileName(true)), extractDirectory).c_str());
 		}
 
 		void LogError(const std::string& exceptionMessage, const std::string& functioName)
@@ -473,6 +472,8 @@ namespace ModPackMaker
 		{
 			std::ofstream DownloadFile;
 
+			wprintf(L"Starting Downloading...\n");
+
 			httplib::Result res = client->Get(filepath,
 				[&](const httplib::Response& response)
 				{
@@ -489,11 +490,13 @@ namespace ModPackMaker
 				},
 				[&](uint64_t len, uint64_t total)
 				{
-					float floatAmountDone = ((float)len / (float)total);
+					if (len % 431 != 0)
+					{
+						return true;
+					}
 
-					SpaceAmountDone = floatAmountDone * max(NosLib::Console::GetConsoleSize().Columns - 60, 20);
+					wprintf(L"%lld / %lld bytes => %d%% complete\n", len, total, (int)(len * 100 / total));
 
-					LoadingScreenObjectPointer->UpdateKnownProgressBar(floatAmountDone, (NosLib::LoadingScreen::GenerateProgressBar(SpaceAmountDone) + std::format(L"\nDownloading {}", NosLib::String::ToWstring(GetFullFileName(true)))));
 					return true; // return 'false' if you want to cancel the request.
 				});
 
