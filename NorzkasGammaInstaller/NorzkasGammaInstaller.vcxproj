@@ -119,7 +119,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>D:\Libraries\NosLib\Build\NosLib\$(Platform)\$(Configuration)\;D:\Libraries\OpenSSL\lib;D:\Libraries\bit7z\lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Console Loading Screen.res;libcrypto.lib;libssl.lib;bit7z.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcrypto.lib;libssl.lib;bit7z.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <UACUIAccess>false</UACUIAccess>
     </Link>
@@ -143,7 +143,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>D:\Libraries\NosLib\Build\NosLib\$(Platform)\$(Configuration)\;D:\Libraries\OpenSSL\lib;D:\Libraries\bit7z\lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Console Loading Screen.res;libcrypto.lib;libssl.lib;bit7z.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcrypto.lib;libssl.lib;bit7z.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <UACUIAccess>false</UACUIAccess>
     </Link>
@@ -163,7 +163,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>D:\Libraries\NosLib\Build\NosLib\$(Platform)\$(Configuration)\;D:\Libraries\OpenSSL\lib;D:\Libraries\bit7z\lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Console Loading Screen.res;libcrypto.lib;libssl.lib;bit7z.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcrypto.lib;libssl.lib;bit7z.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <UACUIAccess>false</UACUIAccess>
     </Link>
@@ -187,7 +187,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>D:\Libraries\NosLib\Build\NosLib\$(Platform)\$(Configuration)\;D:\Libraries\OpenSSL\lib;D:\Libraries\bit7z\lib\$(Platform)\$(Configuration)\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Console Loading Screen.res;libcrypto.lib;libssl.lib;bit7z.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcrypto.lib;libssl.lib;bit7z.lib;$(CoreLibraryDependencies)</AdditionalDependencies>
       <UACExecutionLevel>AsInvoker</UACExecutionLevel>
       <UACUIAccess>false</UACUIAccess>
     </Link>
