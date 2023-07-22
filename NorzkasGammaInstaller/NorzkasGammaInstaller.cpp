@@ -3,6 +3,7 @@
 #define BIT7Z_REGEX_MATCHING
 #define BIT7Z_GENERATE_PIC
 #define BIT7Z_STATIC_RUNTIME
+#define BIT7Z_USE_NATIVE_STRING
 
 #include "EXTERNAL\httplib.h"
 

@@ -90,6 +90,9 @@ namespace ModPackMaker
 
 		static inline int CurrentModIndex = 1;			/* a global counter, the normal GAMMA installer numbers all the mods depending on where they are in the install file. keep a global track */
 
+		static inline bit7z::Bit7zLibrary lib = bit7z::Bit7zLibrary(L"7z.dll"); /* Load 7z.dll into a class */
+		static inline bit7z::BitFileExtractor extractor = bit7z::BitFileExtractor(lib); /* create extractor object */
+
 		Type ModType;									/* the mod type */
 		int ModIndex;									/* the mod index, that will be used in the folder name */
 		HostPath Link;									/* the download link, will be used to download */
@@ -325,18 +328,17 @@ namespace ModPackMaker
 			}
 		}
 
-		void ExtractMod(const std::string& downloadDirectory, const std::wstring& extractDirectory)
+		void ExtractMod(const std::wstring& downloadDirectory, const std::wstring& extractDirectory)
 		{
 			/* create directories in order to prevent any errors */
 			std::filesystem::create_directories(extractDirectory);
 
-			std::wstring info = std::format(L"extracting: {} into: {}\n", NosLib::String::ToWstring(downloadDirectory + GetFullFileName(true)), extractDirectory);
+			std::wstring info = std::format(L"extracting: {} into: {}\n", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory);
 
 			/* extract into said directory */
-			wprintf(std::format(L"extracting: {} into: {}\n", NosLib::String::ToWstring(downloadDirectory + GetFullFileName(true)), extractDirectory).c_str());
-			bit7z::BitFileExtractor extractor(bit7z::Bit7zLibrary("7z.dll")); /* create extractor object */
-			extractor.extract(downloadDirectory + GetFullFileName(true), NosLib::String::ToString(extractDirectory));
-			wprintf(std::format(L"Finished", NosLib::String::ToWstring(downloadDirectory + GetFullFileName(true)), extractDirectory).c_str());
+			wprintf(std::format(L"extracting: {} into: {}\n", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory).c_str());
+			extractor.extract(downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory);
+			wprintf(std::format(L"Finished", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory).c_str());
 		}
 
 		void LogError(const std::string& exceptionMessage, const std::string& functioName)
@@ -375,7 +377,7 @@ namespace ModPackMaker
 
 			/* create path to extract into */
 			std::wstring extractedOutDirectory = InstallPath + ExtractedDirectory + NosLib::String::ToWstring(GetFullFileName(false));
-			ExtractMod(DownloadsOutDirectory, extractedOutDirectory);
+			ExtractMod(NosLib::String::ToWstring(DownloadsOutDirectory), extractedOutDirectory);
 
 			/* for every "inner" path, go through and find the needed files */
 			for (std::string path : InsidePaths)
@@ -414,7 +416,7 @@ namespace ModPackMaker
 
 			/* create path to extract into */
 			std::wstring extractedOutDirectory = InstallPath + ExtractedDirectory + NosLib::String::ToWstring(GetFullFileName(false));
-			ExtractMod(DownloadsOutDirectory, extractedOutDirectory);
+			ExtractMod(NosLib::String::ToWstring(DownloadsOutDirectory), extractedOutDirectory);
 
 			/* for every "inner" path, go through and find the needed files */
 			for (std::string path : InsidePaths)
