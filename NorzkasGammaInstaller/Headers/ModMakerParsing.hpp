@@ -334,7 +334,7 @@ namespace ModPackMaker
 				status += L"\n";
 			}
 
-			LoadingScreenObjectPointer->UpdateKnownProgressBar((Parsed ? NosLib::Cast<float>(ModIndex/ModCounter) : 0.0f), NosLib::String::Shorten(NosLib::LoadingScreen::GenerateProgressBar(SpaceAmountDone) + status + (Parsed ? std::format(L"mod {} out of {}", ModIndex, ModCounter) : L"Set Up Files, No Mod Count")));
+			LoadingScreenObjectPointer->UpdateKnownProgressBar((Parsed ? NosLib::Cast<float>(NosLib::Cast<float>(ModIndex)/ NosLib::Cast<float>(ModCounter)) : 0.0f), NosLib::String::Shorten(NosLib::LoadingScreen::GenerateProgressBar(percentageOnCurrentMod) + status + (Parsed ? std::format(L"mod {} out of {}", ModIndex, ModCounter) : L"Set Up Files, No Mod Count")));
 		}
 
 		void UpdateLoadingScreen(const std::wstring& status)
