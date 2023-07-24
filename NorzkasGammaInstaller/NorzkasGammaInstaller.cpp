@@ -106,7 +106,7 @@ int main()
 {
 	NosLib::Console::InitializeModifiers::EnableUnicode();
 	NosLib::Console::InitializeModifiers::EnableANSI();
-	NosLib::Console::InitializeModifiers::BeatifyConsole<wchar_t>(L"Norzka's Gamma Installer");
+	NosLib::Console::InitializeModifiers::BeatifyConsole<wchar_t>(L"Norzkas Custom Gamma Installer");
 	NosLib::Console::InitializeModifiers::InitializeEventHandler();
 
 	NosLib::LoadingScreen::InitilizeFont();

@@ -535,6 +535,12 @@ namespace ModPackMaker
 				[&](const httplib::Response& response)
 				{
 					mod->FileExtension = GetFileExtensionFromHeader(response.headers.find("Content-Type")->second);
+
+					if (response.headers.find("Transfer-Encoding")->second == "chunked")
+					{
+						UpdateLoadingScreen(L"Website is stupid af and is using chuncked for their \"Transfer-Encoding\"\nFILE IS DOWNLOADING BUT WON'T SHOW PROGRESS");
+					}
+
 					/* before start download, get "Content-Type" header tag to see the extensions, then open with the name+extension */
 					DownloadFile.open(pathOffsets + mod->GetFullFileName(true), std::ios::binary | std::ios::trunc);
 					return true; // return 'false' if you want to cancel the request.
