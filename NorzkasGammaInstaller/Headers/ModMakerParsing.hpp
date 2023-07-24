@@ -88,13 +88,14 @@ namespace ModPackMaker
 			Custom,		/* custom/manually created "mod" object */
 		};
 
-		static inline int CurrentModIndex = 1;			/* a global counter, the normal GAMMA installer numbers all the mods depending on where they are in the install file. keep a global track */
+		static inline int ModPrefixIndexCounter = 1;			/* a global trackers for the prefix number, GAMMA adds the mods index into the front of the file, only gets used on seperators and standard mods */
+		static inline int ModCounter = 0;						/* a global mod counter, counts EVERY mod, this is for the loading screen so it knows how many there are */
 
 		static inline bit7z::Bit7zLibrary lib = bit7z::Bit7zLibrary(L"7z.dll"); /* Load 7z.dll into a class */
 		static inline bit7z::BitFileExtractor extractor = bit7z::BitFileExtractor(lib); /* create extractor object */
 
 		Type ModType;									/* the mod type */
-		int ModIndex;									/* the mod index, that will be used in the folder name */
+		int ModPrefixIndex;								/* the mod index, that will be used in the folder name */
 		HostPath Link;									/* the download link, will be used to download */
 		NosLib::DynamicArray<std::string> InsidePaths;	/* an array of the inner paths (incase there is many) */
 		std::string CreatorName;						/* the creator name (used in folder name) */
@@ -107,8 +108,21 @@ namespace ModPackMaker
 		std::string OutPath;							/* This is Custom modtype only, it defines were to copy the files to */
 		bool UseInstallPath = true;						/* If mod should include mod path when installing (ONLY FOR CUSTOM) */
 
-		float SpaceAmountDone = 0.0f;					/* keeps track of how much this mod has been complete * amount of space I want the bar to take up */
+		/* LOADING SCREEN VARIABLES */
+		int ModIndex;						/* mods index, used for loading screen */
+		static inline bool Parsed = false;	/* if the installer has parsed the modpack file yet */
+
+		/// <summary>
+		/// Needs to be run by all the constructors, initializes for loading screen
+		/// </summary>
+		void InitializeModInfo()
+		{
+			ModCounter++;
+			ModIndex = ModCounter;
+		}
 	public:
+		static inline NosLib::LoadingScreen* LoadingScreenObjectPointer;
+
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoList;		/* A list of all mods */
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modErrorList;	/* a list of all errors */
 
@@ -119,11 +133,13 @@ namespace ModPackMaker
 		/// <param name="outName">- seperator name</param>
 		ModInfo(const std::string& outName)
 		{
-			ModIndex = CurrentModIndex;
-			CurrentModIndex++;
+			ModPrefixIndex = ModPrefixIndexCounter;
+			ModPrefixIndexCounter++;
 
 			OutName = outName;
 			ModType = Type::Seperator;
+
+			InitializeModInfo();
 		}
 
 		/// <summary>
@@ -137,8 +153,8 @@ namespace ModPackMaker
 		/// <param name="leftOver">- Any left over data</param>
 		ModInfo(const std::string& link, NosLib::DynamicArray<std::string>& insidePaths, const std::string& creatorName, const std::string& outName, const std::string& originalLink, const std::string& leftOver)
 		{
-			ModIndex = CurrentModIndex;
-			CurrentModIndex++;
+			ModPrefixIndex = ModPrefixIndexCounter;
+			ModPrefixIndexCounter++;
 
 			Link = HostPath(link);
 			InsidePaths << insidePaths;
@@ -147,6 +163,8 @@ namespace ModPackMaker
 			OriginalLink = originalLink;
 			LeftOver = leftOver;
 			ModType = Type::Standard;
+
+			InitializeModInfo();
 		}
 
 		/// <summary>
@@ -166,6 +184,8 @@ namespace ModPackMaker
 			ModType = Type::Custom;
 
 			UseInstallPath = useInstallPath;
+
+			InitializeModInfo();
 		}
 	#pragma endregion
 
@@ -174,10 +194,10 @@ namespace ModPackMaker
 			switch (ModType)
 			{
 			case Type::Seperator:
-				return std::format("{}- {}_separator", ModIndex, OutName);
+				return std::format("{}- {}_separator", ModPrefixIndex, OutName);
 
 			case Type::Standard:
-				return std::vformat((withExtension ? "{}- {} {}{}" : "{}- {} {}"), std::make_format_args(ModIndex, OutName, CreatorName, FileExtension));
+				return std::vformat((withExtension ? "{}- {} {}{}" : "{}- {} {}"), std::make_format_args(ModPrefixIndex, OutName, CreatorName, FileExtension));
 
 			case Type::Custom:
 				return std::vformat((withExtension ? "{}{}" : "{}"), std::make_format_args(OutName, FileExtension));
@@ -228,6 +248,8 @@ namespace ModPackMaker
 				/* append to array */
 				modInfoList.Append(ParseLine(line));
 			}
+
+			Parsed = true;
 
 			return &modInfoList;
 		}
@@ -293,6 +315,13 @@ namespace ModPackMaker
 		}
 	#pragma endregion
 
+		void UpdateLoadingScreen(const float& percentageOnCurrentMod, const std::wstring& status)
+		{
+			float SpaceAmountDone = percentageOnCurrentMod * max(NosLib::Console::GetConsoleSize().Columns - 60, 20);
+
+			LoadingScreenObjectPointer->UpdateKnownProgressBar(0.0f, NosLib::LoadingScreen::GenerateProgressBar(SpaceAmountDone) + status + (Parsed ? std::format(L"\nmod {} out of {}", ModIndex, ModCounter) : L"\nSet up, getting needed files"));
+		}
+
 	#pragma region Mod Processing
 		void DownloadMod(const std::string& downloadDirectory)
 		{
@@ -336,9 +365,9 @@ namespace ModPackMaker
 			std::wstring info = std::format(L"extracting: {} into: {}\n", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory);
 
 			/* extract into said directory */
-			wprintf(std::format(L"...extracting: {} into: {}\n", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory).c_str());
+			//wprintf(std::format(L"...extracting: {} into: {}\n", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory).c_str());
 			extractor.extract(downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory);
-			wprintf(std::format(L"extracted: {} into: {}\n", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory).c_str());
+			//wprintf(std::format(L"extracted: {} into: {}\n", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory).c_str());
 		}
 
 		void LogError(const std::string& exceptionMessage, const std::string& functioName)
@@ -379,7 +408,7 @@ namespace ModPackMaker
 			std::wstring extractedOutDirectory = InstallPath + ExtractedDirectory + NosLib::String::ToWstring(GetFullFileName(false));
 			ExtractMod(NosLib::String::ToWstring(DownloadsOutDirectory), extractedOutDirectory);
 
-			wprintf(L"...Copying files to their place\n");
+			//wprintf(L"...Copying files to their place\n");
 			/* for every "inner" path, go through and find the needed files */
 			for (std::string path : InsidePaths)
 			{
@@ -405,12 +434,12 @@ namespace ModPackMaker
 					LogError(ex.what(), __FUNCTION__);
 				}
 			}
-			wprintf(L"Finished Copying\n");
+			//wprintf(L"Finished Copying\n");
 
-			wprintf(L"...Cleaning up files\n");
+			//wprintf(L"...Cleaning up files\n");
 			std::filesystem::remove_all(DownloadsOutDirectory + GetFullFileName(true));
 			std::filesystem::remove_all(extractedOutDirectory);
-			wprintf(L"Finished Clean up\n");
+			//wprintf(L"Finished Clean up\n");
 		}
 
 		void CustomModProcess()
@@ -422,7 +451,7 @@ namespace ModPackMaker
 			std::wstring extractedOutDirectory = InstallPath + ExtractedDirectory + NosLib::String::ToWstring(GetFullFileName(false));
 			ExtractMod(NosLib::String::ToWstring(DownloadsOutDirectory), extractedOutDirectory);
 
-			wprintf(L"...Copying files to their place\n");
+			//wprintf(L"...Copying files to their place\n");
 			/* for every "inner" path, go through and find the needed files */
 			for (std::string path : InsidePaths)
 			{
@@ -445,12 +474,12 @@ namespace ModPackMaker
 					LogError(ex.what(), __FUNCTION__);
 				}
 			}
-			wprintf(L"Finished Copying\n");
+			//wprintf(L"Finished Copying\n");
 
-			wprintf(L"...Cleaning up files\n");
+			//wprintf(L"...Cleaning up files\n");
 			std::filesystem::remove_all(DownloadsOutDirectory + GetFullFileName(true));
 			std::filesystem::remove_all(extractedOutDirectory);
-			wprintf(L"Finished Clean up\n");
+			//wprintf(L"Finished Clean up\n");
 		}
 
 		void SeparatorModProcess()
@@ -482,7 +511,7 @@ namespace ModPackMaker
 		{
 			std::ofstream DownloadFile;
 
-			wprintf(L"Starting Downloading...\n");
+			//wprintf(L"Starting Downloading...\n");
 
 			httplib::Result res = client->Get(filepath,
 				[&](const httplib::Response& response)
@@ -500,12 +529,7 @@ namespace ModPackMaker
 				},
 				[&](uint64_t len, uint64_t total)
 				{
-					if (len % 431 != 0)
-					{
-						return true;
-					}
-
-					wprintf(L"%lld / %lld bytes => %d%% complete\n", len, total, (int)(len * 100 / total));
+					UpdateLoadingScreen(((float)len / (float)total), std::format(L"\nDownloading {}", NosLib::String::ToWstring(GetFullFileName(true))));
 
 					return true; // return 'false' if you want to cancel the request.
 				});
