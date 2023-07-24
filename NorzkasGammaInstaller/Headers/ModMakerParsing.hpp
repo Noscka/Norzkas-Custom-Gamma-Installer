@@ -315,11 +315,31 @@ namespace ModPackMaker
 		}
 	#pragma endregion
 
-		void UpdateLoadingScreen(const float& percentageOnCurrentMod, const std::wstring& status)
+		float LastPercentageOnCurrentMod = 0.0f; /* tracks the last percentage on the file, incase overload without the percentage gets called */
+
+		void UpdateLoadingScreen(const float& percentageOnCurrentMod, std::wstring status /* get copy so it can be modified */)
 		{
+			LastPercentageOnCurrentMod = percentageOnCurrentMod;
+
 			float SpaceAmountDone = percentageOnCurrentMod * max(NosLib::Console::GetConsoleSize().Columns - 60, 20);
 
-			LoadingScreenObjectPointer->UpdateKnownProgressBar(0.0f, NosLib::LoadingScreen::GenerateProgressBar(SpaceAmountDone) + status + (Parsed ? std::format(L"\nmod {} out of {}", ModIndex, ModCounter) : L"\nSet up, getting needed files"));
+			/* if first character isn't new line, insert \n to front */
+			if (status[0] != L'\n')
+			{
+				status.insert(0, L"\n");
+			}
+			/* if last character isn't new line, append \n to back */
+			if (status.back() != L'\n')
+			{
+				status += L"\n";
+			}
+
+			LoadingScreenObjectPointer->UpdateKnownProgressBar((Parsed ? NosLib::Cast<float>(ModIndex/ModCounter) : 0.0f), NosLib::String::Shorten(NosLib::LoadingScreen::GenerateProgressBar(SpaceAmountDone) + status + (Parsed ? std::format(L"mod {} out of {}", ModIndex, ModCounter) : L"Set Up Files, No Mod Count")));
+		}
+
+		void UpdateLoadingScreen(const std::wstring& status)
+		{
+			return UpdateLoadingScreen(LastPercentageOnCurrentMod, status);
 		}
 
 	#pragma region Mod Processing
@@ -362,12 +382,10 @@ namespace ModPackMaker
 			/* create directories in order to prevent any errors */
 			std::filesystem::create_directories(extractDirectory);
 
-			std::wstring info = std::format(L"extracting: {} into: {}\n", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory);
-
 			/* extract into said directory */
-			//wprintf(std::format(L"...extracting: {} into: {}\n", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory).c_str());
+			UpdateLoadingScreen(std::format(L"...extracting: {} into: {}", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory));
 			extractor.extract(downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory);
-			//wprintf(std::format(L"extracted: {} into: {}\n", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory).c_str());
+			UpdateLoadingScreen(std::format(L"extracted: {} into: {}", downloadDirectory + NosLib::String::ToWstring(GetFullFileName(true)), extractDirectory));
 		}
 
 		void LogError(const std::string& exceptionMessage, const std::string& functioName)
@@ -408,7 +426,7 @@ namespace ModPackMaker
 			std::wstring extractedOutDirectory = InstallPath + ExtractedDirectory + NosLib::String::ToWstring(GetFullFileName(false));
 			ExtractMod(NosLib::String::ToWstring(DownloadsOutDirectory), extractedOutDirectory);
 
-			//wprintf(L"...Copying files to their place\n");
+			UpdateLoadingScreen(L"...Copying files\n");
 			/* for every "inner" path, go through and find the needed files */
 			for (std::string path : InsidePaths)
 			{
@@ -434,12 +452,12 @@ namespace ModPackMaker
 					LogError(ex.what(), __FUNCTION__);
 				}
 			}
-			//wprintf(L"Finished Copying\n");
+			UpdateLoadingScreen(L"Finished Copying");
 
-			//wprintf(L"...Cleaning up files\n");
+			UpdateLoadingScreen(L"...Cleaning up files");
 			std::filesystem::remove_all(DownloadsOutDirectory + GetFullFileName(true));
 			std::filesystem::remove_all(extractedOutDirectory);
-			//wprintf(L"Finished Clean up\n");
+			UpdateLoadingScreen(L"Finished Clean up");
 		}
 
 		void CustomModProcess()
@@ -451,7 +469,7 @@ namespace ModPackMaker
 			std::wstring extractedOutDirectory = InstallPath + ExtractedDirectory + NosLib::String::ToWstring(GetFullFileName(false));
 			ExtractMod(NosLib::String::ToWstring(DownloadsOutDirectory), extractedOutDirectory);
 
-			//wprintf(L"...Copying files to their place\n");
+			UpdateLoadingScreen(L"...Copying files\n");
 			/* for every "inner" path, go through and find the needed files */
 			for (std::string path : InsidePaths)
 			{
@@ -474,12 +492,12 @@ namespace ModPackMaker
 					LogError(ex.what(), __FUNCTION__);
 				}
 			}
-			//wprintf(L"Finished Copying\n");
+			UpdateLoadingScreen(L"Finished Copying");
 
-			//wprintf(L"...Cleaning up files\n");
+			UpdateLoadingScreen(L"...Cleaning up files");
 			std::filesystem::remove_all(DownloadsOutDirectory + GetFullFileName(true));
 			std::filesystem::remove_all(extractedOutDirectory);
-			//wprintf(L"Finished Clean up\n");
+			UpdateLoadingScreen(L"Finished Clean up");
 		}
 
 		void SeparatorModProcess()
@@ -511,7 +529,7 @@ namespace ModPackMaker
 		{
 			std::ofstream DownloadFile;
 
-			//wprintf(L"Starting Downloading...\n");
+			UpdateLoadingScreen(L"Starting Downloading...");
 
 			httplib::Result res = client->Get(filepath,
 				[&](const httplib::Response& response)
@@ -529,7 +547,7 @@ namespace ModPackMaker
 				},
 				[&](uint64_t len, uint64_t total)
 				{
-					UpdateLoadingScreen(((float)len / (float)total), std::format(L"\nDownloading {}", NosLib::String::ToWstring(GetFullFileName(true))));
+					UpdateLoadingScreen(((float)len / (float)total), std::format(L"Downloading {}", NosLib::String::ToWstring(GetFullFileName(true))));
 
 					return true; // return 'false' if you want to cancel the request.
 				});
@@ -648,7 +666,10 @@ namespace ModPackMaker
 		{
 			if (AccountToken::AccountToken.empty())
 			{
+
+				UpdateLoadingScreen(L"Getting GoLink Token");
 				AccountToken::GetAccountToken();
+				UpdateLoadingScreen(std::format(L"Got Token \"{}\" and got authorized", NosLib::String::ToWstring(AccountToken::AccountToken)));
 			}
 
 			if constexpr (Global::verbose)
