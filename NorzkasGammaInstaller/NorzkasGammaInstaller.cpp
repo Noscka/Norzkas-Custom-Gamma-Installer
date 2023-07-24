@@ -57,6 +57,10 @@ void InitializeInstaller(NosLib::LoadingScreen* loadingScreenObject)
 	NosLib::DynamicArray<std::string> innerDefinitionPaths;
 	innerDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons");
 	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip", innerDefinitionPaths, NosLib::String::ToString(ModPackMaker::ModDirectory), "G.A.M.M.A. modpack definition"));
+
+	NosLib::DynamicArray<std::string> innerOverridePaths;
+	innerDefinitionPaths.Append(".\\Norzkas-GAMMA-Overwrite-main\\");
+	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Noscka/Norzkas-GAMMA-Overwrite/archive/refs/heads/main.zip", innerOverridePaths, ".\\GAMMA\\", "Norzkas G.A.M.M.A. files"));
 }
 
 void GetInstallPath()
