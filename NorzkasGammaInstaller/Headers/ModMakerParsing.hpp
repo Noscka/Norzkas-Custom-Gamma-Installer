@@ -538,7 +538,7 @@ namespace ModPackMaker
 
 					if (response.headers.find("Transfer-Encoding")->second == "chunked")
 					{
-						UpdateLoadingScreen(L"Website is stupid af and is using chuncked for their \"Transfer-Encoding\"\nFILE IS DOWNLOADING BUT WON'T SHOW PROGRESS");
+						UpdateLoadingScreen(L"Website is stupid af and is using \"chunked\" for \"Transfer-Encoding\"\nFILE IS DOWNLOADING BUT WON'T SHOW PROGRESS");
 					}
 
 					/* before start download, get "Content-Type" header tag to see the extensions, then open with the name+extension */
