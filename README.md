@@ -9,10 +9,11 @@ Requirements:
  - Have around 50GB free (final installation should be 39GB)
 
 Usage:
- - Download and unzip the program
- - Run `NorzkasGammaInstaller.exe`
- - Type in the directory in which you want GAMMA to be installed in
- - Let the installer do all the work (installation can take up 2 hours or longer depending on your internet speed)
+ 1. Download and unzip the program
+ 2. Run `NorzkasGammaInstaller.exe`
+ 3. Type in the directory in which you want GAMMA to be installed in
+ 4. click or press enter on `Start Download`
+ 5. Let the installer do all the work (installation can take up 2 hours or longer depending on your internet speed)
 
 Features:
  - installs both Mod Organizer with GAMMA mods, so you can just leave the program to run in the background and do its job
