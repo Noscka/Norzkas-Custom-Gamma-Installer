@@ -8,6 +8,7 @@
 #include "EXTERNAL\httplib.h"
 
 #include <NosLib\Console.hpp>
+#include <NosLib\DynamicMenuSystem.hpp>
 #include <NosLib\DynamicLoadingScreen.hpp>
 
 #include <bit7z\bit7z.hpp>
@@ -20,6 +21,8 @@
 #include <format>
 
 #include "Headers\ModMakerParsing.hpp"
+
+bool addOverwriteFiles = true;
 
 void InitializeInstaller(NosLib::LoadingScreen* loadingScreenObject)
 {
@@ -53,8 +56,11 @@ void InitializeInstaller(NosLib::LoadingScreen* loadingScreenObject)
 	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
 		NosLib::DynamicArray<std::string>({"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons"}),NosLib::String::ToString(ModPackMaker::ModDirectory), "G.A.M.M.A. modpack definition"));
 
-	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Noscka/Norzkas-GAMMA-Overwrite/archive/refs/heads/main.zip",
-		NosLib::DynamicArray<std::string>({".\\Norzkas-GAMMA-Overwrite-main\\"}), ".\\GAMMA\\", "Norzkas G.A.M.M.A. files"));
+	if (addOverwriteFiles)
+	{
+		ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Noscka/Norzkas-GAMMA-Overwrite/archive/refs/heads/main.zip",
+			NosLib::DynamicArray<std::string>({".\\Norzkas-GAMMA-Overwrite-main\\"}), ".\\GAMMA\\", "Norzkas G.A.M.M.A. files"));
+	}
 }
 
 void GetInstallPath()
@@ -100,6 +106,34 @@ void loadingScreenManager(NosLib::LoadingScreen* loadingScreenObject)
 	}
 }
 
+const std::wstring Splash =LR"(
+              ███████▄        ▄████▀  ▄▀          ▄▄██████████▄   ▄▀         ▄███████████▄   ▓        ████▀ ▄█
+             ▐████████       ▄██▀  ▄█▀         ▄█████████████▀ ▄██        ▄████████████▀ ▄▄██        ██▀ ▄██▀ 
+             ██████████     █▀  ▄███▀        ▄██████▀▀  ▓█▀ ▄█████      ███████▀▀  ▓▀  ▄█████      ▓▀ ▄████▌  
+            ▐██████████▌     ▄█████▌        ██████▀        ███████     ██████▀        ███████       ███████   
+            ███████████▀    ███████        ██████▌                    ██████▌                       ██████▌   
+           ▓██████ █▀  ▄█   ██████▌       ███████                    ██████▀     ▄▄▄▄▄▄▄▄▄         ███████    
+           ██████▀  ▄█████ ███████       ▄████▀                     ████▀       ███████▀  ▄█      ▐██████     
+          ████▀     ▐████████████▌      ▄██▀ ▄██               ▄▀  ██▀  ▄██     ▀▀██▀  ▄███       ████▀  ▄    
+          █▀  ▄█▌    ▀███████████      █▀ ▄█████         █▀ ▄██▒  ▀  ▄█████         ▄█████▌      ▓█▀  ▄█▀     
+           ▄████      ██████████         ███████▄        ▄████      ████████       ███████      ▀  ▄████      
+        ▄██████▌       █████████          ██████████▀ ▄█████▀        ██████▀  ▄██████████       ▄██████       
+     ▄█████████        ▐███████            ▀█████▀ ▄█████▀             ▀▀  ▄█████████▀▀         ███████       
+  ▐▀▀▀                                           ▀▀                     ▐▀▀                                   
+
+)";
+
+void StartDownloadEntry(NosLib::Menu::DynamicMenu* parentMenu)
+{
+	parentMenu->StopMenu();
+}
+
+void Exit()
+{
+	NosLib::LoadingScreen::TerminateFont();
+	exit(0);
+}
+
 int main()
 {
 	NosLib::Console::InitializeModifiers::EnableUnicode();
@@ -111,20 +145,12 @@ int main()
 
 	GetInstallPath();
 
-	std::wstring Splash = LR"(
-            ███████▄        ▄████▀  ▄▀          ▄▄██████████▄   ▄▀         ▄███████████▄   ▓        ████▀ ▄█
-           ▐████████       ▄██▀  ▄█▀         ▄█████████████▀ ▄██        ▄████████████▀ ▄▄██        ██▀ ▄██▀ 
-           ██████████     █▀  ▄███▀        ▄██████▀▀  ▓█▀ ▄█████      ███████▀▀  ▓▀  ▄█████      ▓▀ ▄████▌  
-          ▐██████████▌     ▄█████▌        ██████▀        ███████     ██████▀        ███████       ███████   
-          ███████████▀    ███████        ██████▌                    ██████▌                       ██████▌   
-         ▓██████ █▀  ▄█   ██████▌       ███████                    ██████▀     ▄▄▄▄▄▄▄▄▄         ███████    
-         ██████▀  ▄█████ ███████       ▄████▀                     ████▀       ███████▀  ▄█      ▐██████     
-        ████▀     ▐████████████▌      ▄██▀ ▄██               ▄▀  ██▀  ▄██     ▀▀██▀  ▄███       ████▀  ▄    
-        █▀  ▄█▌    ▀███████████      █▀ ▄█████         █▀ ▄██▒  ▀  ▄█████         ▄█████▌      ▓█▀  ▄█▀     
-         ▄████      ██████████         ███████▄        ▄████      ████████       ███████      ▀  ▄████      
-      ▄██████▌       █████████          ██████████▀ ▄█████▀        ██████▀  ▄██████████       ▄██████       
-   ▄█████████        ▐███████            ▀█████▀ ▄█████▀             ▀▀  ▄█████████▀▀         ███████       
-▐▀▀▀                                           ▀▀                     ▐▀▀                                   )";
+	NosLib::Menu::DynamicMenu setUpMenu(Splash, false, false, true);
+
+	setUpMenu.AddMenuEntry(new NosLib::Menu::MenuEntry(L"Start Downloading", new NosLib::Functional::FunctionStore(&StartDownloadEntry, &setUpMenu)));
+	//setUpMenu.AddMenuEntry(new NosLib::Menu::MenuEntry(L"Extra Files", &addOverwriteFiles));
+	setUpMenu.AddMenuEntry(new NosLib::Menu::MenuEntry(L"Exit", new NosLib::Functional::FunctionStore(&Exit)));
+	setUpMenu.StartMenu();
 
 	NosLib::LoadingScreen mainLoadingScreen(NosLib::LoadingScreen::LoadType::Known, Splash);
 	mainLoadingScreen.StartLoading(&loadingScreenManager);
