@@ -24,10 +24,8 @@
 void InitializeInstaller(NosLib::LoadingScreen* loadingScreenObject)
 {
 	ModPackMaker::ModInfo::LoadingScreenObjectPointer = loadingScreenObject;
-
-	NosLib::DynamicArray<std::string> innerModOrganizerPaths;
-	innerModOrganizerPaths.Append("\\");
-	ModPackMaker::ModInfo modOrganizer("https://file10.gofile.io/download/86137f5a-201e-41ff-86b7-47fa42ba2d11/GAMMA%20RC3.7z", innerModOrganizerPaths, "GAMMA\\", "GAMMA RC3");
+	
+	ModPackMaker::ModInfo modOrganizer("https://file10.gofile.io/download/86137f5a-201e-41ff-86b7-47fa42ba2d11/GAMMA%20RC3.7z", NosLib::DynamicArray<std::string>({"\\"}), "GAMMA\\", "GAMMA RC3");
 	modOrganizer.ProcessMod();
 
 	std::filesystem::remove_all(ModPackMaker::InstallPath + ModPackMaker::DownloadedDirectory);
@@ -38,29 +36,25 @@ void InitializeInstaller(NosLib::LoadingScreen* loadingScreenObject)
 	ModPackMaker::ExtractedDirectory = L"GAMMA\\extracted\\";
 	ModPackMaker::DownloadedDirectory = L"GAMMA\\downloads\\";
 
-	NosLib::DynamicArray<std::string> innerInitializeDefinitionPaths;
-	innerInitializeDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modlist.txt");
-	innerInitializeDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modpack_maker_list.txt");
-	ModPackMaker::ModInfo initializeMod("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip", innerInitializeDefinitionPaths, ".\\", "G.A.M.M.A. modpack definition", false);
+	ModPackMaker::ModInfo initializeMod("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
+		NosLib::DynamicArray<std::string>({"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modlist.txt", "\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modpack_maker_list.txt"}),
+		".\\", "G.A.M.M.A. modpack definition", false);
 	initializeMod.ProcessMod();
 
 	std::filesystem::create_directories(ModPackMaker::InstallPath + L"GAMMA\\profiles\\Default\\");
 	std::filesystem::rename(L"modlist.txt", ModPackMaker::InstallPath + L"GAMMA\\profiles\\Default\\modlist.txt");
 
-	NosLib::DynamicArray<std::string> innerSetupPaths;
-	innerSetupPaths.Append("\\gamma_setup-main\\modpack_addons");
-	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/gamma_setup/archive/refs/heads/main.zip", innerSetupPaths, NosLib::String::ToString(ModPackMaker::ModDirectory), "G.A.M.M.A. setup files"));
+	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/gamma_setup/archive/refs/heads/main.zip",
+		NosLib::DynamicArray<std::string>({"\\gamma_setup-main\\modpack_addons"}), NosLib::String::ToString(ModPackMaker::ModDirectory), "G.A.M.M.A. setup files"));
 
 	/* parse modpack maker file, put it into global static array */
 	ModPackMaker::ModInfo::ModpackMakerFile_Parse("modpack_maker_list.txt");
+	
+	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
+		NosLib::DynamicArray<std::string>({"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons"}),NosLib::String::ToString(ModPackMaker::ModDirectory), "G.A.M.M.A. modpack definition"));
 
-	NosLib::DynamicArray<std::string> innerDefinitionPaths;
-	innerDefinitionPaths.Append("\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons");
-	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip", innerDefinitionPaths, NosLib::String::ToString(ModPackMaker::ModDirectory), "G.A.M.M.A. modpack definition"));
-
-	NosLib::DynamicArray<std::string> innerOverridePaths;
-	innerDefinitionPaths.Append(".\\Norzkas-GAMMA-Overwrite-main\\");
-	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Noscka/Norzkas-GAMMA-Overwrite/archive/refs/heads/main.zip", innerOverridePaths, ".\\GAMMA\\", "Norzkas G.A.M.M.A. files"));
+	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Noscka/Norzkas-GAMMA-Overwrite/archive/refs/heads/main.zip",
+		NosLib::DynamicArray<std::string>({".\\Norzkas-GAMMA-Overwrite-main\\"}), ".\\GAMMA\\", "Norzkas G.A.M.M.A. files"));
 }
 
 void GetInstallPath()

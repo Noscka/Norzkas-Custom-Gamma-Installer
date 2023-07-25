@@ -171,11 +171,32 @@ namespace ModPackMaker
 		/// Custom Mod Constructor, can output anywhere
 		/// </summary>
 		/// <param name="link"> - the download link, will be used to download</param>
-		/// <param name="insidePaths">- an array of the inner paths (incase there is many)</param>
+		/// <param name="insidePaths">- an array of the inner paths (incase there is many) I-Value</param>
 		/// <param name="OutPath">- where to copy the extracted data to</param>
 		/// <param name="outName">- what to name the file</param>
 		/// <param name="useInstallPath">(default = true) - if it should add installPath string to the front of its paths</param>
 		ModInfo(const std::string& link, NosLib::DynamicArray<std::string>& insidePaths, const std::string& outPath, const std::string& outName, const bool& useInstallPath = true)
+		{
+			Link = HostPath(link);
+			InsidePaths << insidePaths;
+			OutName = outName;
+			OutPath = outPath;
+			ModType = Type::Custom;
+
+			UseInstallPath = useInstallPath;
+
+			InitializeModInfo();
+		}
+
+		/// <summary>
+		/// Custom Mod Constructor, can output anywhere
+		/// </summary>
+		/// <param name="link"> - the download link, will be used to download</param>
+		/// <param name="insidePaths">- an array of the inner paths (incase there is many) R-Value</param>
+		/// <param name="OutPath">- where to copy the extracted data to</param>
+		/// <param name="outName">- what to name the file</param>
+		/// <param name="useInstallPath">(default = true) - if it should add installPath string to the front of its paths</param>
+		ModInfo(const std::string& link, NosLib::DynamicArray<std::string>&& insidePaths, const std::string& outPath, const std::string& outName, const bool& useInstallPath = true)
 		{
 			Link = HostPath(link);
 			InsidePaths << insidePaths;
