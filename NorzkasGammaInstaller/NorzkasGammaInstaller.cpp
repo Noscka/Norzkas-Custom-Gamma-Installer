@@ -147,7 +147,7 @@ int main()
 
 	NosLib::Menu::DynamicMenu setUpMenu(Splash, false, false, true);
 
-	setUpMenu.AddMenuEntry(new NosLib::Menu::MenuEntry(L"Start Downloading", new NosLib::Functional::FunctionStore(&StartDownloadEntry, &setUpMenu)));
+	setUpMenu.AddMenuEntry(new NosLib::Menu::MenuEntry(L"Start Download", new NosLib::Functional::FunctionStore(&StartDownloadEntry, &setUpMenu)));
 	//setUpMenu.AddMenuEntry(new NosLib::Menu::MenuEntry(L"Extra Files", &addOverwriteFiles));
 	setUpMenu.AddMenuEntry(new NosLib::Menu::MenuEntry(L"Exit", new NosLib::Functional::FunctionStore(&Exit)));
 	setUpMenu.StartMenu();
