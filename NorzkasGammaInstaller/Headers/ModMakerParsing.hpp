@@ -13,13 +13,13 @@
 
 void copyIfExists(const std::wstring& from, const std::wstring& to)
 {
-	/* if DOESN'T exist, go to next path (this is to remove 1 layer of nesting */
+	/* if DOESN'T exist, go to next path (this is to remove 1 layer of nesting) */
 	if (!std::filesystem::exists(from))
 	{
 		return;
 	}
 
-	/* repeat the previous step but this time with "fomod" sub directory */
+	/* if it does exist, copy the directory with all the subdirectories and folders */
 	std::filesystem::create_directories(to);
 	std::filesystem::copy(from, to, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
 }
@@ -27,13 +27,17 @@ void copyIfExists(const std::wstring& from, const std::wstring& to)
 namespace ModPackMaker
 {
 	std::wstring InstallPath;
+	std::wstring StalkerAnomalyPath;
+
+	const std::wstring GammaFolderName = L"GAMMA\\";
 
 	std::wstring ModDirectory = L"mods\\";
 	std::wstring ExtractedDirectory = L"extracted\\";
 	std::wstring DownloadedDirectory = L"downloads\\";
 
 	/* Sub directories that are inside each mod folder */
-	const std::wstring subdirectories[] = {L"gamedata\\", L"fomod\\", L"db\\", L"tools\\", L"appdata\\"};
+	NosLib::DynamicArray<std::wstring> StalkerSubDirectories({L"appdata", L"bin", L"db\\", L"gamedata\\", L"tools\\"});
+	NosLib::DynamicArray<std::wstring> ModSubDirectories = NosLib::DynamicArray<std::wstring>({L"fomod\\"}) + StalkerSubDirectories;
 
 	struct HostPath
 	{
@@ -463,7 +467,7 @@ namespace ModPackMaker
 					/* copy all files from root (any readme/extra info files) */
 					std::filesystem::copy(rootFrom, rootTo, std::filesystem::copy_options::overwrite_existing);
 
-					for (std::wstring subdirectory : subdirectories)
+					for (std::wstring subdirectory : ModSubDirectories)
 					{
 						copyIfExists(rootFrom + subdirectory, rootTo + subdirectory);
 					}
