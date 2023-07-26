@@ -52,8 +52,6 @@ namespace ModDBParsing
 	/// <returns>a link if found</returns>
 	HTMLParseReturn ParseHtmlForLink(const std::string& html)
 	{
-		HTMLParseReturn output{"No Link Found", false};
-
 		std::istringstream htmlStream(html);
 
 		std::string line;
@@ -63,11 +61,10 @@ namespace ModDBParsing
 
 			if (parseResult.Found == true)
 			{
-				output = HTMLParseReturn{parseResult.Link, true};
-				break;
+				return parseResult;
 			}
 		}
 
-		return output;
+		return {"No Link Found", false};
 	}
 }

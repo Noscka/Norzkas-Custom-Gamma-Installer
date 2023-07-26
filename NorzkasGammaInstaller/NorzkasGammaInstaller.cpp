@@ -27,7 +27,7 @@ bool RemoveGAMMADefaultInstaller = true;
 
 void InitializeInstaller()
 {
-	ModPackMaker::ModInfo modOrganizer("https://file10.gofile.io/download/86137f5a-201e-41ff-86b7-47fa42ba2d11/GAMMA%20RC3.7z", NosLib::DynamicArray<std::string>({"\\"}), "GAMMA\\", "GAMMA RC3");
+	ModPackMaker::ModInfo modOrganizer(L"https://file10.gofile.io/download/86137f5a-201e-41ff-86b7-47fa42ba2d11/GAMMA%20RC3.7z", NosLib::DynamicArray<std::wstring>({L"\\"}), L"GAMMA\\", L"GAMMA RC3");
 	modOrganizer.ProcessMod();
 
 	if (RemoveGAMMADefaultInstaller)
@@ -44,31 +44,31 @@ void InitializeInstaller()
 	ModPackMaker::ExtractedDirectory.insert(0, ModPackMaker::GammaFolderName);
 	ModPackMaker::DownloadedDirectory.insert(0, ModPackMaker::GammaFolderName);
 
-	ModPackMaker::ModInfo initializeMod("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
-		NosLib::DynamicArray<std::string>({"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modlist.txt", "\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modpack_maker_list.txt", "\\Stalker_GAMMA-main\\G.A.M.M.A_definition_version.txt"}),
-		".\\", "G.A.M.M.A. modpack definition", false);
+	ModPackMaker::ModInfo initializeMod(L"https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
+		NosLib::DynamicArray<std::wstring>({L"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modlist.txt", L"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modpack_maker_list.txt", L"\\Stalker_GAMMA-main\\G.A.M.M.A_definition_version.txt"}),
+		L".\\", L"G.A.M.M.A. modpack definition", false);
 	initializeMod.ProcessMod();
 
 	std::filesystem::create_directories(ModPackMaker::InstallPath + L"GAMMA\\profiles\\Default\\");
 	std::filesystem::rename(L"modlist.txt", ModPackMaker::InstallPath + L"GAMMA\\profiles\\Default\\modlist.txt");
 
-	ModPackMaker::ModInfo patchMod("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
-		NosLib::DynamicArray<std::string>({"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_patches"}), NosLib::String::ToString(ModPackMaker::StalkerAnomalyPath), "G.A.M.M.A. modpack definition", false);
+	ModPackMaker::ModInfo patchMod(L"https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
+		NosLib::DynamicArray<std::wstring>({L"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_patches"}), ModPackMaker::StalkerAnomalyPath, L"G.A.M.M.A. modpack definition", false);
 	patchMod.ProcessMod();
 	
-	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/gamma_setup/archive/refs/heads/main.zip",
-		NosLib::DynamicArray<std::string>({"\\gamma_setup-main\\modpack_addons"}), NosLib::String::ToString(ModPackMaker::ModDirectory), "G.A.M.M.A. setup files"));
+	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo(L"https://github.com/Grokitach/gamma_setup/archive/refs/heads/main.zip",
+		NosLib::DynamicArray<std::wstring>({L"\\gamma_setup-main\\modpack_addons"}), ModPackMaker::ModDirectory, L"G.A.M.M.A. setup files"));
 
 	/* parse modpack maker file, put it into global static array */
-	ModPackMaker::ModInfo::ModpackMakerFile_Parse("modpack_maker_list.txt");
+	ModPackMaker::ModInfo::ModpackMakerFile_Parse(L"modpack_maker_list.txt");
 	
-	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
-		NosLib::DynamicArray<std::string>({"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons"}),NosLib::String::ToString(ModPackMaker::ModDirectory), "G.A.M.M.A. modpack definition"));
+	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo(L"https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
+		NosLib::DynamicArray<std::wstring>({L"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons"}),ModPackMaker::ModDirectory, L"G.A.M.M.A. modpack definition"));
 
 	if (AddOverwriteFiles)
 	{
-		ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo("https://github.com/Noscka/Norzkas-GAMMA-Overwrite/archive/refs/heads/main.zip",
-			NosLib::DynamicArray<std::string>({".\\Norzkas-GAMMA-Overwrite-main\\"}), ".\\GAMMA\\", "Norzkas G.A.M.M.A. files"));
+		ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo(L"https://github.com/Noscka/Norzkas-GAMMA-Overwrite/archive/refs/heads/main.zip",
+			NosLib::DynamicArray<std::wstring>({L".\\Norzkas-GAMMA-Overwrite-main\\"}), L".\\GAMMA\\", L"Norzkas G.A.M.M.A. files"));
 	}
 }
 
