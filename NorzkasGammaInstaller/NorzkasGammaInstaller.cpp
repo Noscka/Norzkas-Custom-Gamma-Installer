@@ -10,6 +10,7 @@
 #include <NosLib\Console.hpp>
 #include <NosLib\DynamicMenuSystem.hpp>
 #include <NosLib\DynamicLoadingScreen.hpp>
+#include <NosLib\FileManagement.hpp>
 
 #include <bit7z\bit7z.hpp>
 #include <bit7z\bit7zlibrary.hpp>
@@ -64,12 +65,6 @@ void InitializeInstaller()
 	
 	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo(L"https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
 		NosLib::DynamicArray<std::wstring>({L"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons"}),ModPackMaker::ModDirectory, L"G.A.M.M.A. modpack definition"));
-
-	if (AddOverwriteFiles)
-	{
-		ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo(L"https://github.com/Noscka/Norzkas-GAMMA-Overwrite/archive/refs/heads/main.zip",
-			NosLib::DynamicArray<std::wstring>({L".\\Norzkas-GAMMA-Overwrite-main\\"}), L".\\GAMMA\\", L"Norzkas G.A.M.M.A. files"));
-	}
 }
 
 void GetInstallPath()
@@ -149,6 +144,7 @@ void GetInstallPath()
 
 void loadingScreenManager(NosLib::LoadingScreen* loadingScreenObject)
 {
+	goto SKIP;
 	ModPackMaker::ModInfo::LoadingScreenObjectPointer = loadingScreenObject;
 
 	InitializeInstaller();
@@ -158,6 +154,17 @@ void loadingScreenManager(NosLib::LoadingScreen* loadingScreenObject)
 	{
 		mod->ProcessMod();
 	}
+
+	if (AddOverwriteFiles)
+	{
+		ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo(L"https://github.com/Noscka/Norzkas-GAMMA-Overwrite/archive/refs/heads/main.zip",
+			NosLib::DynamicArray<std::wstring>({L".\\Norzkas-GAMMA-Overwrite-main\\"}), L".\\GAMMA\\", L"Norzkas G.A.M.M.A. files"));
+	}
+
+	SKIP:
+	static wchar_t path[MAX_PATH + 1];
+	SHGetSpecialFolderPath(HWND_DESKTOP, path, CSIDL_DESKTOP, FALSE);
+	NosLib::FileManagement::CreateFileShortcut((ModPackMaker::InstallPath + ModPackMaker::GammaFolderName + L"ModOrganizer.exe").c_str(), (std::wstring(path) + L"\\G.A.M.M.A..lnk").c_str(), L"", L"");
 }
 
 const std::wstring Splash =LR"(
