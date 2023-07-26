@@ -44,6 +44,10 @@ void InitializeInstaller()
 		".\\", "G.A.M.M.A. modpack definition", false);
 	initializeMod.ProcessMod();
 
+	ModPackMaker::ModInfo patchMod("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
+		NosLib::DynamicArray<std::string>({"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_patches"}), NosLib::String::ToString(ModPackMaker::StalkerAnomalyPath), "G.A.M.M.A. modpack definition", false);
+	patchMod.ProcessMod();
+
 	std::filesystem::create_directories(ModPackMaker::InstallPath + L"GAMMA\\profiles\\Default\\");
 	std::filesystem::rename(L"modlist.txt", ModPackMaker::InstallPath + L"GAMMA\\profiles\\Default\\modlist.txt");
 	std::filesystem::rename(L"modlist.txt", ModPackMaker::InstallPath + L"GAMMA\\profiles\\Default\\modlist.txt");
@@ -142,16 +146,6 @@ void GetInstallPath()
 void loadingScreenManager(NosLib::LoadingScreen* loadingScreenObject)
 {
 	ModPackMaker::ModInfo::LoadingScreenObjectPointer = loadingScreenObject;
-
-	/* insert the GAMMA folder name to the front of all of the directories  */
-	ModPackMaker::ModDirectory.insert(0, ModPackMaker::GammaFolderName);
-	ModPackMaker::ExtractedDirectory.insert(0, ModPackMaker::GammaFolderName);
-	ModPackMaker::DownloadedDirectory.insert(0, ModPackMaker::GammaFolderName);
-
-	ModPackMaker::ModInfo initializeMod("https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
-		NosLib::DynamicArray<std::string>({"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modlist.txt", "\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modpack_maker_list.txt", "\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_patches"}),
-		".\\", "G.A.M.M.A. modpack definition", false);
-	initializeMod.ProcessMod();
 
 	InitializeInstaller();
 
