@@ -32,7 +32,7 @@ void InitializeInstaller()
 
 	if (RemoveGAMMADefaultInstaller)
 	{
-		std::filesystem::remove(ModPackMaker::InstallPath + ModPackMaker::GammaFolderName);
+		std::filesystem::remove_all(ModPackMaker::InstallPath + ModPackMaker::GammaFolderName + L".Grok's Modpack Installer");
 	}
 
 	std::filesystem::remove_all(ModPackMaker::InstallPath + ModPackMaker::DownloadedDirectory);
