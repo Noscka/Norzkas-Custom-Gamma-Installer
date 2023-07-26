@@ -23,7 +23,6 @@ void copyIfExists(const std::wstring& from, const std::wstring& to)
 	std::filesystem::create_directories(to);
 	std::filesystem::copy(from, to, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
 }
-
 namespace ModPackMaker
 {
 	std::wstring InstallPath;
@@ -76,6 +75,56 @@ namespace ModPackMaker
 					slashCount++;
 				}
 			}
+		}
+
+		bool operator==(HostPath right)
+		{
+			return (this->Host == right.Host) && (this->Path == right.Path);
+		}
+	};
+
+	class File
+	{
+	private:
+		static inline NosLib::DynamicArray<File*> fileArray;
+
+		HostPath Link;
+
+		File(const HostPath& link)
+		{
+			Link = link;
+		}
+
+		/// <summary>
+		/// Function used to compare the file objects
+		/// </summary>
+		/// <returns>if the objects both are about the same file</returns>
+		static bool Compare(File* left, File* right)
+		{
+			return (left->Link == right->Link);
+		}
+	public:
+		/// <summary>
+		/// Registers the file, if the file already exists, returns that object
+		/// </summary>
+		/// <param name="name">- name of the file</param>
+		/// <returns>file pointer that will be used</returns>
+		static File* RegisterFile(const HostPath& link)
+		{
+			File* newFile = new File(link);
+
+			for (File* entry : fileArray)
+			{
+				if (Compare(newFile, entry))
+				{
+					delete newFile;
+					return entry;
+				}
+			}
+
+			fileArray.Append(newFile);
+
+			return newFile;
 		}
 	};
 
