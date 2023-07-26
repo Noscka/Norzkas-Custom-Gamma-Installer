@@ -89,6 +89,7 @@ namespace ModPackMaker
 		static inline NosLib::DynamicArray<File*> fileArray;
 
 		HostPath Link;
+		std::wstring FileName;
 
 		File(const HostPath& link)
 		{
@@ -104,6 +105,11 @@ namespace ModPackMaker
 			return (left->Link == right->Link);
 		}
 	public:
+		void UpdateFileName(const std::wstring& fileName)
+		{
+			FileName = fileName;
+		}
+
 		/// <summary>
 		/// Registers the file, if the file already exists, returns that object
 		/// </summary>
@@ -155,7 +161,7 @@ namespace ModPackMaker
 		std::wstring OutName;							/* the main folder name (use in folder name) */
 		std::wstring OriginalLink;						/* original mod link (I don't know why its there but I'll parse it anyway) */
 
-		std::wstring LeftOver;							/* any left over data */
+		File* FileObject;
 
 		std::wstring FileExtension;						/* extension of the downloaded file (Gets set at download time) */
 		std::wstring OutPath;							/* This is Custom modtype only, it defines were to copy the files to */
@@ -204,7 +210,7 @@ namespace ModPackMaker
 		/// <param name="outName">- the main folder name (use in folder name)</param>
 		/// <param name="originalLink">- original mod link (I don't know why its there but I'll parse it anyway)</param>
 		/// <param name="leftOver">- Any left over data</param>
-		ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>& insidePaths, const std::wstring& creatorName, const std::wstring& outName, const std::wstring& originalLink, const std::wstring& leftOver)
+		ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>& insidePaths, const std::wstring& creatorName, const std::wstring& outName, const std::wstring& originalLink)
 		{
 			ModPrefixIndex = ModPrefixIndexCounter;
 			ModPrefixIndexCounter++;
@@ -214,7 +220,6 @@ namespace ModPackMaker
 			CreatorName = creatorName;
 			OutName = outName;
 			OriginalLink = originalLink;
-			LeftOver = leftOver;
 			ModType = Type::Standard;
 
 			InitializeModInfo();
@@ -385,7 +390,7 @@ namespace ModPackMaker
 			}
 
 			/* finally, if it has gotten here, it means the current line is a normal mod, pass in all the info to the constructor */
-			return new ModInfo(wordArray[0], pathArray, wordArray[2], wordArray[3], wordArray[4], wordArray[5]);
+			return new ModInfo(wordArray[0], pathArray, wordArray[2], wordArray[3], wordArray[4]);
 		}
 	#pragma endregion
 
@@ -470,25 +475,6 @@ namespace ModPackMaker
 			outLog.close();
 
 			ModPackMaker::ModInfo::modErrorList.Append(this); /* add this mod to "failed" list */
-
-			/* create "error mod list" file if there was any failed/unfinished mods */
-			std::wofstream errorModListOutput(L"error mod list.txt", std::ios::binary | std::ios::app);
-
-			std::wstring pathList;
-			for (int i = 0; i <= InsidePaths.GetLastArrayIndex(); i++)
-			{
-				pathList += InsidePaths[i];
-				if (i != InsidePaths.GetLastArrayIndex())
-				{
-					pathList += L":";
-				}
-			}
-
-			std::wstring line = std::format(L"{}\t----\t{}\t{}\t{}\t{}\t{}\t{}\n", GetFullFileName(true), Link.Host + Link.Path, pathList, CreatorName, OutName, OriginalLink, LeftOver);
-
-			errorModListOutput.write(line.c_str(), line.size());
-
-			errorModListOutput.close();
 		}
 
 		void StandardModProcess()
