@@ -46,12 +46,13 @@ void InitializeInstaller()
 	ModPackMaker::DownloadedDirectory.insert(0, ModPackMaker::GammaFolderName);
 
 	ModPackMaker::ModInfo initializeMod(L"https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
-		NosLib::DynamicArray<std::wstring>({L"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modlist.txt", L"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\modpack_maker_list.txt", L"\\Stalker_GAMMA-main\\G.A.M.M.A_definition_version.txt"}),
+		NosLib::DynamicArray<std::wstring>({L"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\", L"\\Stalker_GAMMA-main\\G.A.M.M.A_definition_version.txt"}),
 		L".\\", L"G.A.M.M.A. modpack definition", false);
 	initializeMod.ProcessMod();
 
-	std::filesystem::create_directories(ModPackMaker::InstallPath + L"GAMMA\\profiles\\Default\\");
-	std::filesystem::rename(L"modlist.txt", ModPackMaker::InstallPath + L"GAMMA\\profiles\\Default\\modlist.txt");
+	std::filesystem::create_directories(ModPackMaker::InstallPath + ModPackMaker::GammaFolderName + L"profiles\\Default\\");
+	std::filesystem::rename(L"modlist.txt", ModPackMaker::InstallPath + ModPackMaker::GammaFolderName + L"profiles\\Default\\modlist.txt");
+	std::filesystem::rename(L"modpack_icon.ico", ModPackMaker::InstallPath + ModPackMaker::GammaFolderName + L"modpack_icon.ico");
 
 	ModPackMaker::ModInfo patchMod(L"https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
 		NosLib::DynamicArray<std::wstring>({L"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_patches"}), ModPackMaker::StalkerAnomalyPath, L"G.A.M.M.A. modpack definition", false);
@@ -65,6 +66,12 @@ void InitializeInstaller()
 	
 	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo(L"https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
 		NosLib::DynamicArray<std::wstring>({L"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_addons"}),ModPackMaker::ModDirectory, L"G.A.M.M.A. modpack definition"));
+
+	if (AddOverwriteFiles)
+	{
+		ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo(L"https://github.com/Noscka/Norzkas-GAMMA-Overwrite/archive/refs/heads/main.zip",
+			NosLib::DynamicArray<std::wstring>({L".\\Norzkas-GAMMA-Overwrite-main\\"}), L".\\GAMMA\\", L"Norzkas G.A.M.M.A. files"));
+	}
 }
 
 void GetInstallPath()
@@ -144,7 +151,6 @@ void GetInstallPath()
 
 void loadingScreenManager(NosLib::LoadingScreen* loadingScreenObject)
 {
-	goto SKIP;
 	ModPackMaker::ModInfo::LoadingScreenObjectPointer = loadingScreenObject;
 
 	InitializeInstaller();
@@ -155,16 +161,9 @@ void loadingScreenManager(NosLib::LoadingScreen* loadingScreenObject)
 		mod->ProcessMod();
 	}
 
-	if (AddOverwriteFiles)
-	{
-		ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo(L"https://github.com/Noscka/Norzkas-GAMMA-Overwrite/archive/refs/heads/main.zip",
-			NosLib::DynamicArray<std::wstring>({L".\\Norzkas-GAMMA-Overwrite-main\\"}), L".\\GAMMA\\", L"Norzkas G.A.M.M.A. files"));
-	}
-
-	SKIP:
 	static wchar_t path[MAX_PATH + 1];
 	SHGetSpecialFolderPath(HWND_DESKTOP, path, CSIDL_DESKTOP, FALSE);
-	NosLib::FileManagement::CreateFileShortcut((ModPackMaker::InstallPath + ModPackMaker::GammaFolderName + L"ModOrganizer.exe").c_str(), (std::wstring(path) + L"\\G.A.M.M.A..lnk").c_str(), L"", L"");
+	NosLib::FileManagement::CreateFileShortcut((ModPackMaker::InstallPath + ModPackMaker::GammaFolderName + L"ModOrganizer.exe").c_str(), (std::wstring(path) + L"\\G.A.M.M.A..lnk").c_str(), (ModPackMaker::InstallPath + ModPackMaker::GammaFolderName + L"modpack_icon.ico").c_str(), 0);
 }
 
 const std::wstring Splash =LR"(

@@ -596,7 +596,9 @@ namespace ModPackMaker
 				{
 					mod->FileExtension = GetFileExtensionFromHeader(response.headers.find("Content-Type")->second);
 
-					if (response.headers.find("Transfer-Encoding")->second == "chunked")
+					httplib::Headers::const_iterator itr = response.headers.find("Transfer-Encoding");
+
+					if ((itr != response.headers.end() ? itr->second : "HEADER DOESN'T EXIST") == "chunked")
 					{
 						UpdateLoadingScreen(L"Website is stupid af and is using \"chunked\" for \"Transfer-Encoding\"\nFILE IS DOWNLOADING BUT WON'T SHOW PROGRESS");
 					}
