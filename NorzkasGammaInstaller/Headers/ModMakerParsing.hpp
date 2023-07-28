@@ -35,8 +35,8 @@ namespace ModPackMaker
 	std::wstring DownloadedDirectory = L"downloads\\";
 
 	/* Sub directories that are inside each mod folder */
-	NosLib::DynamicArray<std::wstring> StalkerSubDirectories({L"appdata", L"bin", L"db\\", L"gamedata\\", L"tools\\"});
-	NosLib::DynamicArray<std::wstring> ModSubDirectories = NosLib::DynamicArray<std::wstring>({L"fomod\\"}) + StalkerSubDirectories;
+	NosLib::DynamicArray<std::wstring> StalkerSubDirectories({L"appdata\\", L"bin\\", L"db\\", L"gamedata\\", L"tools\\"});
+	NosLib::DynamicArray<std::wstring> ModSubDirectories = NosLib::DynamicArray<std::wstring>({L"fomod\\"}) + StalkerSubDirectories.ObjectExclude(L"bin\\");
 
 	struct HostPath
 	{
