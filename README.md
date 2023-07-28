@@ -6,7 +6,7 @@ The official installer for GAMMA isn't the best and needed many improvements, so
 
 Requirements:
  - Have unmodded anomaly v1.5.2 already installed and ran at least once
- - Have around 50GB free (final installation should be 39GB)
+ - Have around 50GB free, final installation will be 39GB, or 30GB if "Remove GAMMA default installer" is set to true
 
 Usage:
  1. Download and unzip the program
