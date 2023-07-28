@@ -11,17 +11,18 @@ Requirements:
 Usage:
  1. Download and unzip the program
  2. Run `NorzkasGammaInstaller.exe`
- 3. Type in the directory in which you want GAMMA to be installed in
- 4. click or press enter on `Start Download`
- 5. Let the installer do all the work (installation can take up 2 hours or longer depending on your internet speed)
+ 3. Input a path to a directory in which you want GAMMA to be installed in
+ 4. Input a path to a valid stalker anomaly installation
+ 5. click or press enter on `Start Download`
+ 6. Let the installer do all the work (installation can take up 2 hours or longer depending on your internet speed)
 
 Features:
- - installs both Mod Organizer with GAMMA mods, so you can just leave the program to run in the background and do its job
+ - Installs both Mod Organizer with GAMMA mods and patches the stalker anomaly binaries, so you can just leave the program to run in the background and do its job
  - Install anywhere you want (Might only be possible on Windows 10 and later)
  - Has a nice UI, loading screen and is made to be lightweight
 
 Planned Features:
- - Menu for choosing different settings before install
- - estimated time display
+ - Estimated time display
+ - Options to install stalker anomaly as well
 
 here is the [lastest release](https://github.com/Noscka/Norzkas-Gamma-Installer/releases/latest)
