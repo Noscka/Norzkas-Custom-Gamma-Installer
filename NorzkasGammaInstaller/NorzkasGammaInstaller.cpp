@@ -114,7 +114,7 @@ void GetInstallPath()
 	while (!gotValidPath)
 	{
 	restartAsk:
-		wprintf(L"Input a Stalker Anomaly path [default: C:\\ANOMALY]");
+		wprintf(L"Input a Stalker Anomaly path [default: C:\\ANOMALY]: ");
 		std::getline(std::wcin, installPath);
 
 		if (installPath == L"")
