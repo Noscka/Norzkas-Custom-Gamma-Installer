@@ -25,4 +25,5 @@ Planned Features:
  - Estimated time display
  - Options to install stalker anomaly as well
 
+![Github All Releases](https://img.shields.io/github/downloads/Noscka/Norzkas-Custom-Gamma-Installer/total.svg)  
 here is the [lastest release](https://github.com/Noscka/Norzkas-Gamma-Installer/releases/latest)
