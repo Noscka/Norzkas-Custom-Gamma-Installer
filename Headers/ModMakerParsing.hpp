@@ -1,9 +1,9 @@
 ﻿#pragma once
 
-#include "..\EXTERNAL\httplib.h"
-
 #include <NosLib\DynamicArray.hpp>
 #include <NosLib\String.hpp>
+#include <NosLib\HostPath.hpp>
+#include <NosLib\HttpClient.hpp>
 
 #include <format>
 
@@ -38,60 +38,15 @@ namespace ModPackMaker
 	NosLib::DynamicArray<std::wstring> StalkerSubDirectories({L"appdata\\", L"bin\\", L"db\\", L"gamedata\\", L"tools\\"});
 	NosLib::DynamicArray<std::wstring> ModSubDirectories = NosLib::DynamicArray<std::wstring>({L"fomod\\"}) + StalkerSubDirectories.ObjectExclude(L"bin\\");
 
-	struct HostPath
-	{
-		std::wstring Host;
-		std::wstring Path;
-
-		HostPath() {}
-
-		HostPath(const std::wstring& host, const std::wstring& path)
-		{
-			Host = host;
-			Path = path;
-		}
-
-		HostPath(const std::string& host, const std::string& path)
-		{
-			Host = NosLib::String::ConvertString<wchar_t, char>(host);
-			Path = NosLib::String::ConvertString<wchar_t, char>(path);
-		}
-
-		HostPath(const std::wstring& link)
-		{
-			int slashCount = 0;
-
-			for (int i = 0; i < link.length(); i++)
-			{
-				if (slashCount == 3)
-				{
-					Host = link.substr(0, i - 1);
-					Path = link.substr(i - 1);
-					break;
-				}
-
-				if (link[i] == L'/')
-				{
-					slashCount++;
-				}
-			}
-		}
-
-		bool operator==(HostPath right)
-		{
-			return (this->Host == right.Host) && (this->Path == right.Path);
-		}
-	};
-
 	class File
 	{
 	private:
 		static inline NosLib::DynamicArray<File*> fileArray;
 
-		HostPath Link;
+		NosLib::HostPath Link;
 		std::wstring FileName;
 
-		File(const HostPath& link)
+		File(const NosLib::HostPath& link)
 		{
 			Link = link;
 		}
@@ -115,7 +70,7 @@ namespace ModPackMaker
 		/// </summary>
 		/// <param name="name">- name of the file</param>
 		/// <returns>file pointer that will be used</returns>
-		static File* RegisterFile(const HostPath& link)
+		static File* RegisterFile(const NosLib::HostPath& link)
 		{
 			File* newFile = new File(link);
 
@@ -155,7 +110,7 @@ namespace ModPackMaker
 
 		Type ModType;									/* the mod type */
 		int ModPrefixIndex;								/* the mod index, that will be used in the folder name */
-		HostPath Link;									/* the download link, will be used to download */
+		NosLib::HostPath Link;							/* the download link, will be used to download */
 		NosLib::DynamicArray<std::wstring> InsidePaths;	/* an array of the inner paths (incase there is many) */
 		std::wstring CreatorName;						/* the creator name (used in folder name) */
 		std::wstring OutName;							/* the main folder name (use in folder name) */
@@ -180,7 +135,7 @@ namespace ModPackMaker
 			ModIndex = ModCounter;
 		}
 	public:
-		static inline NosLib::LoadingScreen* LoadingScreenObjectPointer;
+		//static inline NosLib::LoadingScreen* LoadingScreenObjectPointer;
 
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoList;		/* A list of all mods */
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modErrorList;	/* a list of all errors */
@@ -215,7 +170,7 @@ namespace ModPackMaker
 			ModPrefixIndex = ModPrefixIndexCounter;
 			ModPrefixIndexCounter++;
 
-			Link = HostPath(link);
+			Link = NosLib::HostPath(link);
 			InsidePaths << insidePaths;
 			CreatorName = creatorName;
 			OutName = outName;
@@ -235,7 +190,7 @@ namespace ModPackMaker
 		/// <param name="useInstallPath">(default = true) - if it should add installPath string to the front of its paths</param>
 		ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& useInstallPath = true)
 		{
-			Link = HostPath(link);
+			Link = NosLib::HostPath(link);
 			InsidePaths << insidePaths;
 			OutName = outName;
 			OutPath = outPath;
@@ -256,7 +211,7 @@ namespace ModPackMaker
 		/// <param name="useInstallPath">(default = true) - if it should add installPath string to the front of its paths</param>
 		ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>&& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& useInstallPath = true)
 		{
-			Link = HostPath(link);
+			Link = NosLib::HostPath(link);
 			InsidePaths << insidePaths;
 			OutName = outName;
 			OutPath = outPath;
@@ -400,20 +355,7 @@ namespace ModPackMaker
 		{
 			LastPercentageOnCurrentMod = percentageOnCurrentMod;
 
-			float SpaceAmountDone = percentageOnCurrentMod * max(NosLib::Console::GetConsoleSize().Columns - 60, 20);
-
-			/* if first character isn't new line, insert \n to front */
-			if (status[0] != L'\n')
-			{
-				status.insert(0, L"\n");
-			}
-			/* if last character isn't new line, append \n to back */
-			if (status.back() != L'\n')
-			{
-				status += L"\n";
-			}
-
-			LoadingScreenObjectPointer->UpdateKnownProgressBar((Parsed ? NosLib::Cast<float>(NosLib::Cast<float>(ModIndex)/ NosLib::Cast<float>(ModCounter)) : 0.0f), NosLib::String::Shorten(NosLib::LoadingScreen::GenerateProgressBar(percentageOnCurrentMod) + status + (Parsed ? std::format(L"mod {} out of {}", ModIndex, ModCounter) : L"Set Up Files, No Mod Count")));
+			//LoadingScreenObjectPointer->UpdateKnownProgressBar((Parsed ? NosLib::Cast<float>(NosLib::Cast<float>(ModIndex)/ NosLib::Cast<float>(ModCounter)) : 0.0f), NosLib::String::Shorten(NosLib::LoadingScreen::GenerateProgressBar(percentageOnCurrentMod) + status + (Parsed ? std::format(L"mod {} out of {}", ModIndex, ModCounter) : L"Set Up Files, No Mod Count")));
 		}
 
 		void UpdateLoadingScreen(const std::wstring& status)
@@ -425,12 +367,7 @@ namespace ModPackMaker
 		void DownloadMod(const std::wstring& downloadDirectory)
 		{
 			/* create client for the host */
-			httplib::Client downloadClient(NosLib::String::ToString(Link.Host));
-
-			/* set properties */
-			downloadClient.set_follow_location(false);
-			downloadClient.set_keep_alive(false);
-			downloadClient.set_default_headers({{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
+			httplib::Client downloadClient = NosLib::MakeClient(NosLib::String::ToString(Link.Host), true, "NCGI");
 
 			/* create directories in order to prevent any errors */
 			std::filesystem::create_directories(downloadDirectory);
@@ -712,20 +649,12 @@ namespace ModPackMaker
 				return;
 			}
 
-			if constexpr (Global::verbose)
-			{
-				downloadClient->set_logger(&LoggingFunction);
-			}
 			downloadClient->set_follow_location(true);
 			GetAndSaveFile(downloadClient, mod, NosLib::String::ToWstring(LinkOutput.Link), pathOffsets);
 		}
 
 		void GithubDownload(httplib::Client* downloadClient, ModPackMaker::ModInfo* mod, const std::wstring& pathOffsets = L"")
 		{
-			if constexpr (Global::verbose)
-			{
-				downloadClient->set_logger(&LoggingFunction);
-			}
 			downloadClient->set_follow_location(true);
 			GetAndSaveFile(downloadClient, mod, mod->Link.Path, pathOffsets);
 		}
@@ -740,15 +669,11 @@ namespace ModPackMaker
 				UpdateLoadingScreen(std::format(L"Got Token \"{}\" and got authorized", NosLib::String::ToWstring(AccountToken::AccountToken)));
 			}
 
-			if constexpr (Global::verbose)
-			{
-				downloadClient->set_logger(&LoggingFunction);
-			}
 			downloadClient->set_follow_location(false);
 			downloadClient->set_keep_alive(false);
 			downloadClient->set_default_headers({
 				{"Cookie", std::format("accountToken={}", AccountToken::AccountToken)},
-				{"User-Agent", "Norzka-Gamma-Installer (cpp-httplib)"}});
+				{"User-Agent", "NCGI (cpp-httplib)"}});
 			GetAndSaveFile(downloadClient, mod, mod->Link.Path, pathOffsets);
 		}
 	#pragma endregion

@@ -1,22 +1,11 @@
-﻿#define CPPHTTPLIB_OPENSSL_SUPPORT
-#define BIT7Z_AUTO_FORMAT
-#define BIT7Z_REGEX_MATCHING
-#define BIT7Z_GENERATE_PIC
-#define BIT7Z_STATIC_RUNTIME
-#define BIT7Z_USE_NATIVE_STRING
-
-#include "EXTERNAL\httplib.h"
-
+﻿#include <NosLib\DynamicArray.hpp>
 #include <NosLib\Console.hpp>
-#include <NosLib\DynamicMenuSystem.hpp>
-#include <NosLib\DynamicLoadingScreen.hpp>
 #include <NosLib\FileManagement.hpp>
 
 #include <bit7z\bit7z.hpp>
 #include <bit7z\bit7zlibrary.hpp>
 #include <bit7z\bitfileextractor.hpp>
 
-#include <windows.h>
 #include <conio.h>
 #include <fstream>
 #include <format>
@@ -82,7 +71,7 @@ void GetInstallPath()
 
 	while (!gotValidPath)
 	{
-		wprintf(L"Input an install path [will install here if left blank]: ");
+		wprintf(L"Input an install path for GAMMA [will install here if left blank]: ");
 		std::getline(std::wcin, installPath);
 
 		if (installPath == L"")
@@ -149,9 +138,11 @@ void GetInstallPath()
 	ModPackMaker::StalkerAnomalyPath = installPath;
 }
 
-void loadingScreenManager(NosLib::LoadingScreen* loadingScreenObject)
+int main()
 {
-	ModPackMaker::ModInfo::LoadingScreenObjectPointer = loadingScreenObject;
+	GetInstallPath();
+
+	//RemoveGAMMADefaultInstaller;
 
 	InitializeInstaller();
 
@@ -163,60 +154,12 @@ void loadingScreenManager(NosLib::LoadingScreen* loadingScreenObject)
 
 	static wchar_t path[MAX_PATH + 1];
 	SHGetSpecialFolderPath(HWND_DESKTOP, path, CSIDL_DESKTOP, FALSE);
-	NosLib::FileManagement::CreateFileShortcut((ModPackMaker::InstallPath + ModPackMaker::GammaFolderName + L"ModOrganizer.exe").c_str(), (std::wstring(path) + L"\\G.A.M.M.A..lnk").c_str(), (ModPackMaker::InstallPath + ModPackMaker::GammaFolderName + L"modpack_icon.ico").c_str(), 0);
-}
 
-const std::wstring Splash =LR"(
-              ███████▄        ▄████▀  ▄▀          ▄▄██████████▄   ▄▀         ▄███████████▄   ▓        ████▀ ▄█
-             ▐████████       ▄██▀  ▄█▀         ▄█████████████▀ ▄██        ▄████████████▀ ▄▄██        ██▀ ▄██▀ 
-             ██████████     █▀  ▄███▀        ▄██████▀▀  ▓█▀ ▄█████      ███████▀▀  ▓▀  ▄█████      ▓▀ ▄████▌  
-            ▐██████████▌     ▄█████▌        ██████▀        ███████     ██████▀        ███████       ███████   
-            ███████████▀    ███████        ██████▌                    ██████▌                       ██████▌   
-           ▓██████ █▀  ▄█   ██████▌       ███████                    ██████▀     ▄▄▄▄▄▄▄▄▄         ███████    
-           ██████▀  ▄█████ ███████       ▄████▀                     ████▀       ███████▀  ▄█      ▐██████     
-          ████▀     ▐████████████▌      ▄██▀ ▄██               ▄▀  ██▀  ▄██     ▀▀██▀  ▄███       ████▀  ▄    
-          █▀  ▄█▌    ▀███████████      █▀ ▄█████         █▀ ▄██▒  ▀  ▄█████         ▄█████▌      ▓█▀  ▄█▀     
-           ▄████      ██████████         ███████▄        ▄████      ████████       ███████      ▀  ▄████      
-        ▄██████▌       █████████          ██████████▀ ▄█████▀        ██████▀  ▄██████████       ▄██████       
-     ▄█████████        ▐███████            ▀█████▀ ▄█████▀             ▀▀  ▄█████████▀▀         ███████       
-  ▐▀▀▀                                           ▀▀                     ▐▀▀                                   
+	std::wstring targetFile = (ModPackMaker::InstallPath + ModPackMaker::GammaFolderName + L"ModOrganizer.exe");
+	std::wstring outputFile = (std::wstring(path) + L"\\G.A.M.M.A..lnk");
+	std::wstring iconFile = (ModPackMaker::InstallPath + ModPackMaker::GammaFolderName + L"modpack_icon.ico");
 
-)";
-
-void StartDownloadEntry(NosLib::Menu::DynamicMenu* parentMenu)
-{
-	parentMenu->StopMenu();
-}
-
-void Exit()
-{
-	NosLib::LoadingScreen::TerminateFont();
-	exit(0);
-}
-
-int main()
-{
-	NosLib::Console::InitializeModifiers::EnableUnicode();
-	NosLib::Console::InitializeModifiers::EnableANSI();
-	NosLib::Console::InitializeModifiers::BeatifyConsole<wchar_t>(L"Norzkas Custom Gamma Installer (NCGI)");
-	NosLib::Console::InitializeModifiers::InitializeEventHandler();
-
-	NosLib::LoadingScreen::InitilizeFont();
-
-	GetInstallPath();
-
-	NosLib::Menu::DynamicMenu setUpMenu(Splash, false, false, true);
-
-	setUpMenu.AddMenuEntry(new NosLib::Menu::MenuEntry(L"Start Download", new NosLib::Functional::FunctionStore(&StartDownloadEntry, &setUpMenu)));
-	//setUpMenu.AddMenuEntry(new NosLib::Menu::MenuEntry(L"Extra Files", &AddOverwriteFiles));
-	setUpMenu.AddMenuEntry(new NosLib::Menu::MenuEntry(L"Remove GAMMA default installer (saves 9GBs)", &RemoveGAMMADefaultInstaller));
-	setUpMenu.AddMenuEntry(new NosLib::Menu::MenuEntry(L"Exit", new NosLib::Functional::FunctionStore(&Exit)));
-	setUpMenu.StartMenu();
-
-	NosLib::LoadingScreen mainLoadingScreen(NosLib::LoadingScreen::LoadType::Known, Splash);
-	mainLoadingScreen.StartLoading(&loadingScreenManager);
-
-	NosLib::LoadingScreen::TerminateFont();
+	NosLib::FileManagement::CreateFileShortcut(targetFile.c_str(), outputFile.c_str(), iconFile.c_str(), 0);
 
 	wprintf(L"Press any button to continue"); _getch();
 	return 0;
