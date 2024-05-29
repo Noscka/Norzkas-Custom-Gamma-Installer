@@ -1,4 +1,7 @@
-﻿#include <NosLib\DynamicArray.hpp>
+﻿#include <QtWidgets/QApplication>
+#include "InstallerWindow/InstallerWindow.hpp"
+
+#include <NosLib\DynamicArray.hpp>
 #include <NosLib\Console.hpp>
 #include <NosLib\FileManagement.hpp>
 
@@ -71,7 +74,7 @@ void GetInstallPath()
 
 	while (!gotValidPath)
 	{
-		wprintf(L"Input an install path for GAMMA [will install here if left blank]: ");
+		printf("Input an install path for GAMMA [will install here if left blank]: ");
 		std::getline(std::wcin, installPath);
 
 		if (installPath == L"")
@@ -91,7 +94,7 @@ void GetInstallPath()
 		}
 		catch (...)
 		{
-			wprintf(L"Something went wrong, couldn't create directory, Please input another path\n");
+			printf("Something went wrong, couldn't create directory, Please input another path\n");
 		}
 	}
 
@@ -103,7 +106,7 @@ void GetInstallPath()
 	while (!gotValidPath)
 	{
 	restartAsk:
-		wprintf(L"Input a Stalker Anomaly path [default: C:\\ANOMALY]: ");
+		printf("Input a Stalker Anomaly path [default: C:\\ANOMALY]: ");
 		std::getline(std::wcin, installPath);
 
 		if (installPath == L"")
@@ -118,15 +121,16 @@ void GetInstallPath()
 
 		if (!std::filesystem::exists(installPath))
 		{ /* IF the path doesn't exist */
-			wprintf(L"Path doesn't exist, please input a valid path\n");
+			printf("Path doesn't exist, please input a valid path\n");
 			continue;
 		}
 
+		/* go through all the subdirectories that Stalker Anomaly should have */
 		for (std::wstring subdirectory : ModPackMaker::StalkerSubDirectories)
-		{ /* go through all the subdirectories that Stalker Anomaly should have */
+		{
 			if (!std::filesystem::exists(installPath + subdirectory))
 			{ /* IF the path doesn't exist */
-				wprintf(L"Directory isn't a valid Stalker Anomaly installation\n");
+				printf("Directory isn't a valid Stalker Anomaly installation\n");
 				goto restartAsk;
 			}
 		}
@@ -138,8 +142,14 @@ void GetInstallPath()
 	ModPackMaker::StalkerAnomalyPath = installPath;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+	QApplication a(argc, argv);
+	InstallerWindow w;
+	w.show();
+	return a.exec();
+
+#if 0
 	GetInstallPath();
 
 	//RemoveGAMMADefaultInstaller;
@@ -160,7 +170,6 @@ int main()
 	std::wstring iconFile = (ModPackMaker::InstallPath + ModPackMaker::GammaFolderName + L"modpack_icon.ico");
 
 	NosLib::FileManagement::CreateFileShortcut(targetFile.c_str(), outputFile.c_str(), iconFile.c_str(), 0);
+#endif // 0
 
-	wprintf(L"Press any button to continue"); _getch();
-	return 0;
 }

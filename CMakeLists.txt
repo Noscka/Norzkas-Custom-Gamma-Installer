@@ -1,8 +1,14 @@
 ﻿cmake_minimum_required(VERSION 3.8)
-
-set(CMAKE_CXX_STANDARD 20)
-
 project ("NCGI" VERSION 1.0.0 LANGUAGES CXX)
+
+# Set Options and Properties
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON) 
 
 set(BIT7Z_AUTO_FORMAT ON CACHE BOOL "")
 set(BIT7Z_REGEX_MATCHING ON CACHE BOOL "")
@@ -11,22 +17,55 @@ set(BIT7Z_STATIC_RUNTIME ON CACHE BOOL "")
 set(BIT7Z_USE_NATIVE_STRING ON CACHE BOOL "")
 set(BIT7Z_AUTO_PREFIX_LONG_PATHS  ON CACHE BOOL "")
 
+# Run Library CMakes
 add_subdirectory(External)
 
-file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "Headers/*")
+# Find QT Lib
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+find_package(Qt${QT_VERSION_MAJOR}
+    COMPONENTS
+        Core
+        Gui
+        Widgets
+)
+qt_standard_project_setup()
 
-add_executable (${PROJECT_NAME} "main.cpp" ${ProjectFiles})
+# Get All Project Files
+file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "Headers/*" "CustomWidgets/*" "InstallerWindow/*")
 
+qt_add_executable(${PROJECT_NAME} "main.cpp" ${ProjectFiles})
+qt_add_resources(${PROJECT_NAME} "Images"
+    FILES
+       Images/Logo.png
+       "Images/Logo - Simplified.png"
+)
+
+# Make console invisible
+#set_target_properties(${PROJECT_NAME} PROPERTIES
+#    WIN32_EXECUTABLE ON
+#    MACOSX_BUNDLE ON
+#)
+
+# Link Libraries
+target_link_libraries(${PROJECT_NAME}
+    PUBLIC
+        Qt::Core
+        Qt::Gui
+        Qt::Widgets
+)
 target_link_libraries(${PROJECT_NAME} PRIVATE -static NosLib)
 target_link_libraries(${PROJECT_NAME} PRIVATE -static bit7z)
 
+# Add Compiler Definitions
 add_compile_definitions(CPPHTTPLIB_OPENSSL_SUPPORT)
 add_compile_definitions(WIN32_LEAN_AND_MEAN)
 
+# Use Unicode
 if (MSVC)
      target_compile_definitions(${PROJECT_NAME} PUBLIC UNICODE _UNICODE)
- endif()
+endif()
 
+# Out Build Path
 set(OUTDIR ${PROJECT_SOURCE_DIR}/Out/)
 
 message(STATUS "POST BUILD OUT PATH: ${OUTDIR}")
@@ -46,6 +85,6 @@ add_custom_command(
 #
 #  add_custom_command(
 #    TARGET ${PROJECT_NAME} POST_BUILD
-#    COMMAND "windeployqt" "${OUTDIR}/CarSearch.exe"
+#    COMMAND "windeployqt" "${OUTDIR}/NCGI.exe"
 #  )
 #endif ()
