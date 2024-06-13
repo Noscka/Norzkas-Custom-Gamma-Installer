@@ -1,35 +1,34 @@
 #pragma once
 
-#include <NosLib/Console.hpp>
 #include <NosLib/HttpClient.hpp>
+#include <NosLib/Logging.hpp>
 
 #include <fstream>
 #include <format>
 
-#include "GlobalVariables.hpp"
-
 namespace AccountToken
 {
-	std::string AccountToken;
+	inline std::string AccountToken;
 
-	void GetAccountToken()
+	inline void GetAccountToken()
 	{
 		httplib::Client cookieGetter = NosLib::MakeClient("https://api.gofile.io", true, "NCGI");
 
 		cookieGetter.set_keep_alive(true);
 
 		/*
-		Using 32 and 32 for the substr to get the token because this is an example reponse from server:
-		{"status":"ok","data":{"token":"TQVqYtD4oadFe3RLFWs0Kgwha43dqIKY"}}
+		Example Reponse from GoLink:
+		{"status":"ok","data":{"id":"a11cf144-f11a-4458-a085-468a4d3fc55b","token":"euCT1LRW8n67BJjGiu0tBPcTB6v1q7XF"}}
 		*/
-		//wprintf(L"Getting GoLink Token\n");
-		AccountToken = cookieGetter.Get("/createAccount")->body.substr(32, 32);
+		std::string response = cookieGetter.Post("/accounts")->body;
+		std::string id = response.substr(29, 36);
+		AccountToken = response.substr(76, 32);
 
-		cookieGetter.Get(std::format("/getContent?contentId=WlndL7&token={}&websiteToken=7fd94ds12fds4", AccountToken));
+		cookieGetter.set_default_headers({
+				{"Authorization", std::format("Bearer {}", AccountToken)},
+				{"User-Agent", "NCGI (cpp-httplib)"} });
+		cookieGetter.Get("/contents/ccbnSP?wt=4fd6sg89d7s6");
 
-		if constexpr (Global::verbose)
-		{
-			printf("Got Token %s and got authorized\n", AccountToken.c_str());
-		}
+		NosLib::Logging::CreateLog<char>(std::format("Got Token {} and got authorized", AccountToken), NosLib::Logging::Severity::Info);
 	}
 }

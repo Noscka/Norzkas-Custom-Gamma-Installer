@@ -11,14 +11,14 @@ namespace ModDBParsing
 		bool Found;
 	};
 
-	const std::string linkIdentifier = "<a href=\""; /* substring which is used to identify the start of the link */
+	const inline std::string linkIdentifier = "<a href=\""; /* substring which is used to identify the start of the link */
 
 	/// <summary>
 	/// takes in a line of html and parses to find the link
 	/// </summary>
 	/// <param name="line">- a html line</param>
 	/// <returns>HTMLParseReturn struct</returns>
-	HTMLParseReturn ParseHtmlLine(const std::string& line)
+	inline HTMLParseReturn ParseHtmlLine(const std::string& line)
 	{
 		/* find the start offset using the above string */
 		size_t startPosition = line.find(linkIdentifier);
@@ -50,7 +50,7 @@ namespace ModDBParsing
 	/// </summary>
 	/// <param name="fileName">- file path/name</param>
 	/// <returns>a link if found</returns>
-	HTMLParseReturn ParseHtmlForLink(const std::string& html)
+	inline HTMLParseReturn ParseHtmlForLink(const std::string& html)
 	{
 		std::istringstream htmlStream(html);
 

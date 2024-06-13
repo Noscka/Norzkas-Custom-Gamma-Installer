@@ -8,6 +8,10 @@
 #include <QtWidgets/QVBoxLayout>
 #include <QSpacerItem>
 
+#include <QFileDialog>
+
+#include <functional>
+
 class InstallPathWidget;
 
 /*
@@ -24,6 +28,12 @@ protected:
 	QLineEdit* PathInput;
 	QLabel* PathLabel;
 	QPushButton* PathBrowseButton;
+
+	QSpacerItem* MiddleVerticalSpacer;
+	QLabel* ErrorLabel;
+
+	bool ValidPath = true;
+	std::function<bool(const QString&)> DirectoryValidateFunction;
 
 public:
 	inline InnerInstallPathFrame(QWidget* parent = nullptr) : QFrame(parent)
@@ -54,7 +64,16 @@ public:
 
 		MainGridLayout->addWidget(PathBrowseButton, 1, 1, 1, 1);
 
+		MiddleVerticalSpacer = new QSpacerItem(10, 10, QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Preferred);
+		MainGridLayout->addItem(MiddleVerticalSpacer, 2, 0);
+
+		ErrorLabel = new QLabel(this);
+		ErrorLabel->setAlignment(Qt::AlignmentFlag::AlignCenter);
+		/* Add Error type color */
+		MainGridLayout->addWidget(ErrorLabel, 3, 0, 1, 2);
+
 		SetUiDefaultText();
+		ConnectButtons();
 	}
 
 	protected:
@@ -63,6 +82,48 @@ public:
 			PathInput->setText(QCoreApplication::translate("InstallerWindow", "", nullptr));
 			PathLabel->setText(QCoreApplication::translate("InstallerWindow", "Path", nullptr));
 			PathBrowseButton->setText(QCoreApplication::translate("InstallerWindow", "Browse...", nullptr));
+		}
+
+		inline void ConnectButtons()
+		{
+			/* Browse Path */
+			connect(PathBrowseButton, &QPushButton::released, this, [&]()
+			{
+				QString stalkerAnomalyPath = 
+					QFileDialog::getExistingDirectory(this, QCoreApplication::translate("InstallerWindow", "Path", nullptr), QDir::currentPath());
+
+				if (!stalkerAnomalyPath.isEmpty())
+				{
+					PathInput->setText(stalkerAnomalyPath);
+				}
+			});
+
+			connect(PathInput, &QLineEdit::textChanged, this, &InnerInstallPathFrame::ValidatePath);
+		}
+
+		inline void ValidatePath(const QString& text)
+		{
+			if (DirectoryValidateFunction == nullptr)
+			{
+				ErrorLabel->setText("");
+				return;
+			}
+
+			ValidPath = DirectoryValidateFunction(text);
+
+			if (ValidPath)
+			{
+				ErrorLabel->setText("Directory is valid");
+			}
+			else
+			{
+				ErrorLabel->setText("Directory isn't valid\n Are you sure this it the right path?");
+			}
+		}
+
+		inline void SelfValidatePath()
+		{
+			ValidatePath(PathInput->text());
 		}
 	};
 
@@ -105,5 +166,23 @@ public:
 	void SetInputText(const QString& newText)
 	{
 		InnerInstallPathWidget->PathInput->setText(newText);
+		InnerInstallPathWidget->SelfValidatePath();
+	}
+
+	void SetDirectoryValidateFunction(const std::function<bool(const QString&)> directoryValidateFunction)
+	{
+		InnerInstallPathWidget->DirectoryValidateFunction = directoryValidateFunction;
+		InnerInstallPathWidget->SelfValidatePath();
+	}
+
+	bool IsPathValid()
+	{
+		InnerInstallPathWidget->SelfValidatePath();
+		return InnerInstallPathWidget->ValidPath;
+	}
+
+	std::wstring GetPath()
+	{
+		return InnerInstallPathWidget->PathInput->text().toStdWString();
 	}
 };
