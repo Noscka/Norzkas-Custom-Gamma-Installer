@@ -6,6 +6,8 @@
 #include <NosLib/FileManagement.hpp>
 #include "InstallOptions.hpp"
 
+#include <fstream>
+
 class InstallManager : public QObject
 {
 	Q_OBJECT
@@ -62,9 +64,30 @@ public slots:
 		FinishInstall();
 	}
 
+	/* To fix annoying as fuck issue with some creator names having spaces */
+	static void NormalizeModList(const std::wstring& modListPath)
+	{
+		std::wifstream modListFileRead(modListPath, std::ios::binary);
+
+		std::wstring out;
+
+		std::wstring line;
+		while (std::getline(modListFileRead, line))
+		{
+			/* Normalize */
+			out += NosLib::String::Reduce(line);
+			out += L"\n";
+		}
+		modListFileRead.close();
+
+		std::wofstream modListFileWrite(modListPath, std::ios::binary | std::ios::trunc);
+		modListFileWrite.write(out.c_str(), out.size());
+		modListFileWrite.close();
+	}
 protected:
 	void InitializeInstaller();
 	void MainInstall();
+
 
 	inline void FinishInstall()
 	{

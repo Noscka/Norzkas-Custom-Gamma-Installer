@@ -449,6 +449,12 @@
         </item>
         <item>
          <widget class="QProgressBar" name="TotalProgressBar">
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
           <property name="value">
            <number>0</number>
           </property>

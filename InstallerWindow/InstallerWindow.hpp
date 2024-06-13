@@ -101,51 +101,19 @@ protected:
 		ui.StartInstallButton->setEnabled(stalkerAnomalyPathValidity && stalkerGammaValidity);
 	}
 
-	/* Make Global */
-	inline std::wstring MakeSystemPaths(std::wstring inPath)
-	{
-#ifdef _WIN32
-		std::wstring prefix = LR"(\\?\)";
-		wchar_t usedSeperator = L'\\';
-		wchar_t wrongSeperator = L'/';
-#elif unix
-		std::wstring prefix = "";
-		wchar_t usedSeperator = L'/';
-		wchar_t wrongSeperator = L'\\';
-#endif
-		
-		inPath.insert(0, prefix);
-
-		if (inPath.back() != L'/' || inPath.back() != L'\\')
-		{
-			inPath.push_back(usedSeperator);
-		}
-
-		for (wchar_t& pathLetter : inPath)
-		{
-			/* if wrong seperator is used, use the right one */
-			if (pathLetter == wrongSeperator)
-			{
-				pathLetter = usedSeperator;
-			}
-		}
-
-		return inPath;
-	}
-
 	inline void PreStartInstall()
 	{
 		bool stalkerAnomalyPathValidity = ui.AnomalyPathInput->IsPathValid();
 		bool stalkerGammaValidity = ui.GammaPathInput->IsPathValid();
 
-		InstallOptions::StalkerAnomalyPath = MakeSystemPaths(ui.AnomalyPathInput->GetPath());
+		InstallOptions::StalkerAnomalyPath = ui.AnomalyPathInput->GetPath();
 
-		InstallOptions::GammaInstallPath = MakeSystemPaths(ui.GammaPathInput->GetPath());
+		InstallOptions::GammaInstallPath = ui.GammaPathInput->GetPath();
 
 		NosLib::Logging::CreateLog<wchar_t>(std::format(L"Stalker Anomaly Path: \"{}\" | Gamma Install Path: \"{}\"",
 														InstallOptions::StalkerAnomalyPath,
 														InstallOptions::GammaInstallPath),
-											NosLib::Logging::Severity::Debug);
+											NosLib::Logging::Severity::Info);
 
 
 		/* Invalid Paths */

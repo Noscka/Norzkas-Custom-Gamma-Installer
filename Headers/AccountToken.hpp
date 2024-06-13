@@ -24,11 +24,13 @@ namespace AccountToken
 		std::string id = response.substr(29, 36);
 		AccountToken = response.substr(76, 32);
 
+		NosLib::Logging::CreateLog<char>(std::format("Got Token {}", AccountToken), NosLib::Logging::Severity::Info);
+
 		cookieGetter.set_default_headers({
 				{"Authorization", std::format("Bearer {}", AccountToken)},
 				{"User-Agent", "NCGI (cpp-httplib)"} });
 		cookieGetter.Get("/contents/ccbnSP?wt=4fd6sg89d7s6");
 
-		NosLib::Logging::CreateLog<char>(std::format("Got Token {} and got authorized", AccountToken), NosLib::Logging::Severity::Info);
+		NosLib::Logging::CreateLog<char>(std::format("Authorized Token {}", AccountToken), NosLib::Logging::Severity::Info);
 	}
 }

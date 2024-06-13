@@ -272,7 +272,7 @@ namespace ModPackMaker
 		/// </summary>
 		/// <param name="modpackMakerFileName">(default = "modpack_maker_list.txt") - path/name of modpack Maker</param>
 		/// <returns>a DynamicArray of ModInfo pointers (ModInfo*)</returns>
-		static inline NosLib::DynamicArray<ModInfo*>* ModpackMakerFile_Parse(const std::wstring& modpackMakerFileName = L"modpack_maker_list.txt")
+		static inline NosLib::DynamicArray<ModInfo*>* ModpackMakerFile_Parse(const std::wstring& modpackMakerFileName)
 		{
 			/* open binary file stream of modpack maker list */
 			std::wifstream modMakerFile(modpackMakerFileName, std::ios::binary);
@@ -364,7 +364,6 @@ namespace ModPackMaker
 			instance->UpdateTotalProgress((ModIndex * 100) /ModCounter);
 			instance->UpdateSingularProgress(percentageOnCurrentMod);
 
-			//LoadingScreenObjectPointer->UpdateKnownProgressBar((Parsed ? NosLib::Cast<float>(NosLib::Cast<float>(ModIndex)/ NosLib::Cast<float>(ModCounter)) : 0.0f), NosLib::String::Shorten(NosLib::LoadingScreen::GenerateProgressBar(percentageOnCurrentMod) + status + (Parsed ? std::format(L"mod {} out of {}", ModIndex, ModCounter) : L"Set Up Files, No Mod Count")));
 			return UpdateLoadingScreen(status);
 		}
 
@@ -372,7 +371,7 @@ namespace ModPackMaker
 	#pragma region Mod Processing
 		inline void DownloadMod(const std::wstring& downloadDirectory)
 		{
-			NosLib::Logging::CreateLog<wchar_t>(std::format(L"Downloading {} To \"{}\"", OutName, downloadDirectory), NosLib::Logging::Severity::Debug);
+			NosLib::Logging::CreateLog<wchar_t>(std::format(L"Downloading {} To \"{}\"", GetFullFileName(true), downloadDirectory), NosLib::Logging::Severity::Info);
 
 			/* create client for the host */
 			httplib::Client downloadClient = NosLib::MakeClient(NosLib::String::ToString(Link.Host), true, "NCGI");
@@ -400,20 +399,22 @@ namespace ModPackMaker
 				return;
 			}
 
-			NosLib::Logging::CreateLog<wchar_t>(std::format(L"Downloaded {} To \"{}\"", OutName, downloadDirectory), NosLib::Logging::Severity::Debug);
+			NosLib::Logging::CreateLog<wchar_t>(std::format(L"Downloaded {} To \"{}\"", GetFullFileName(true), downloadDirectory), NosLib::Logging::Severity::Info);
 		}
 
 		inline void ExtractMod(const std::wstring& downloadDirectory, const std::wstring& extractDirectory)
 		{
+			std::wstring filePath = downloadDirectory + GetFullFileName(true);
+
 			/* create directories in order to prevent any errors */
 			std::filesystem::create_directories(extractDirectory);
 
 			/* extract into said directory */
 			UpdateLoadingScreen(std::format(L"extracting \"{}\"", GetFullFileName(true)));
-			NosLib::Logging::CreateLog<wchar_t>(std::format(L"Extracting {} To \"{}\"", OutName, extractDirectory), NosLib::Logging::Severity::Debug);
+			NosLib::Logging::CreateLog<wchar_t>(std::format(L"Extracting \"{}\" To \"{}\"", filePath, extractDirectory), NosLib::Logging::Severity::Info);
 			try
 			{
-				extractor.extract(downloadDirectory + GetFullFileName(true), extractDirectory);
+				extractor.extract(filePath, extractDirectory);
 			}
 			catch (const bit7z::BitException& ex)
 			{
@@ -427,7 +428,7 @@ namespace ModPackMaker
 				NosLib::Logging::CreateLog<wchar_t>(errorMessage, NosLib::Logging::Severity::Error);
 				return;
 			}
-			NosLib::Logging::CreateLog<wchar_t>(std::format(L"Extracted {} To \"{}\"", OutName, extractDirectory), NosLib::Logging::Severity::Debug);
+			NosLib::Logging::CreateLog<wchar_t>(std::format(L"Extracted \"{}\" To \"{}\"", filePath, extractDirectory), NosLib::Logging::Severity::Info);
 			UpdateLoadingScreen(std::format(L"extracted \"{}\"", GetFullFileName(true)));
 		}
 
@@ -462,6 +463,7 @@ namespace ModPackMaker
 				std::wstring rootFrom = (extractedOutDirectory + path);
 				std::wstring rootTo = (InstallOptions::GammaInstallPath + ModDirectory + GetFullFileName(false) + L"\\");
 
+
 				/* create directories to prevent errors */
 				std::filesystem::create_directories(rootTo);
 
@@ -472,7 +474,14 @@ namespace ModPackMaker
 
 					for (std::wstring subdirectory : ModSubDirectories)
 					{
-						copyIfExists(rootFrom + subdirectory, rootTo + subdirectory);
+						std::wstring subRootFrom = rootFrom + subdirectory;
+						std::wstring subRootTo = rootTo + subdirectory;
+
+						NosLib::Logging::CreateLog<wchar_t>(std::format(L"Copying \"{}\" To \"{}\"", subRootFrom, subRootTo), NosLib::Logging::Severity::Info);
+
+						copyIfExists(subRootFrom, subRootTo);
+
+						NosLib::Logging::CreateLog<wchar_t>(std::format(L"Copied \"{}\" To \"{}\"", subRootFrom, subRootTo), NosLib::Logging::Severity::Info);
 					}
 				}
 				catch (const std::exception& ex)
@@ -483,8 +492,16 @@ namespace ModPackMaker
 			UpdateLoadingScreen(L"Finished Copying");
 
 			UpdateLoadingScreen(L"...Cleaning up files");
-			std::filesystem::remove_all(DownloadsOutDirectory + GetFullFileName(true));
-			std::filesystem::remove_all(extractedOutDirectory);
+			std::error_code ec;
+			if (-1 == std::filesystem::remove_all(DownloadsOutDirectory + GetFullFileName(true), ec))
+			{
+				NosLib::Logging::CreateLog<wchar_t>(std::format(L"error: \"{}\" When trying to remove download File", NosLib::String::ToWstring(ec.message())), NosLib::Logging::Severity::Error);
+			}
+
+			if (-1 == std::filesystem::remove_all(extractedOutDirectory, ec))
+			{
+				NosLib::Logging::CreateLog<wchar_t>(std::format(L"error: \"{}\" When trying to remove extract directory", NosLib::String::ToWstring(ec.message())), NosLib::Logging::Severity::Error);
+			}
 			UpdateLoadingScreen(L"Finished Clean up");
 		}
 
@@ -505,6 +522,8 @@ namespace ModPackMaker
 				std::wstring rootFrom = (extractedOutDirectory + path);
 				std::wstring rootTo = (UseInstallPath ? InstallOptions::GammaInstallPath : L"") + OutPath;
 
+				NosLib::Logging::CreateLog<wchar_t>(std::format(L"Copying \"{}\" To \"{}\"", rootFrom, rootTo), NosLib::Logging::Severity::Info);
+
 				/* create directories to prevent errors */
 				std::filesystem::create_directories(rootTo);
 
@@ -514,6 +533,7 @@ namespace ModPackMaker
 					std::filesystem::copy(rootFrom, rootTo, std::filesystem::copy_options::overwrite_existing);
 
 					copyIfExists(rootFrom, rootTo);
+					NosLib::Logging::CreateLog<wchar_t>(std::format(L"Copied \"{}\" To \"{}\"", rootFrom, rootTo), NosLib::Logging::Severity::Info);
 				}
 				catch (const std::exception& ex)
 				{
@@ -526,12 +546,12 @@ namespace ModPackMaker
 			std::error_code ec;
 			if (-1 == std::filesystem::remove_all(DownloadsOutDirectory + GetFullFileName(true), ec))
 			{
-				NosLib::Logging::CreateLog<wchar_t>(std::format(L"error: \"{}\" When trying to remove download File", NosLib::String::ToWstring(ec.message())), NosLib::Logging::Severity::Debug);
+				NosLib::Logging::CreateLog<wchar_t>(std::format(L"error: \"{}\" When trying to remove download File", NosLib::String::ToWstring(ec.message())), NosLib::Logging::Severity::Error);
 			}
 			
 			if (-1 == std::filesystem::remove_all(extractedOutDirectory, ec))
 			{
-				NosLib::Logging::CreateLog<wchar_t>(std::format(L"error: \"{}\" When trying to remove extract directory", NosLib::String::ToWstring(ec.message())), NosLib::Logging::Severity::Debug);
+				NosLib::Logging::CreateLog<wchar_t>(std::format(L"error: \"{}\" When trying to remove extract directory", NosLib::String::ToWstring(ec.message())), NosLib::Logging::Severity::Error);
 			}
 			UpdateLoadingScreen(L"Finished Clean up");
 		}
