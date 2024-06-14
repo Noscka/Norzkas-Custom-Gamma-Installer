@@ -65,11 +65,6 @@ public:
 			InstallOptions::AddOverwriteFiles = (state == Qt::Checked);
 		});
 
-		connect(ui.OptionSaveSpace, &QCheckBox::checkStateChanged, this, [&](Qt::CheckState state)
-		{
-			InstallOptions::RemoveGAMMADefaultInstaller = (state == Qt::Checked);
-		});
-
 		/* Install Start */
 		connect(ui.StartInstallButton, &QPushButton::released, this, &InstallerWindow::PreStartInstall);
 	}

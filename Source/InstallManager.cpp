@@ -1,17 +1,14 @@
-#include "InstallManager.hpp"
+#include "../Headers/InstallManager.hpp"
 
-#include "ModMakerParsing.hpp"
+#include "../Headers/ModOrganizer.hpp"
+#include "../Headers/ModMakerParsing.hpp"
 
 void InstallManager::InitializeInstaller()
 {
-	/* TODO: Self Gather */
-	ModPackMaker::ModInfo modOrganizer(L"https://file5.gofile.io/download/web/65cb42c0-9d71-436b-84a5-8738313443ae/GAMMA%20RC3.7z", NosLib::DynamicArray<std::wstring>({ L"\\" }), L""/* Root */, L"GAMMA RC3");
+	ModPackMaker::ModInfo modOrganizer = MO::GetModOrganizerModObject();
 	modOrganizer.ProcessMod();
 
-	if (InstallOptions::RemoveGAMMADefaultInstaller)
-	{
-		std::filesystem::remove_all(InstallOptions::GammaInstallPath + L".Grok's Modpack Installer");
-	}
+	MO::WriteConfigFile(InstallOptions::GammaInstallPath, InstallOptions::StalkerAnomalyPath);
 
 	ModPackMaker::ModInfo initializeMod(L"https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
 										NosLib::DynamicArray<std::wstring>({ L"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\", L"\\Stalker_GAMMA-main\\G.A.M.M.A_definition_version.txt" }),
@@ -20,8 +17,8 @@ void InstallManager::InitializeInstaller()
 
 	std::filesystem::create_directories(InstallOptions::GammaInstallPath + L"profiles\\Default\\");
 	std::filesystem::rename(InstallOptions::GammaInstallPath + ModPackMaker::ExtractedDirectory + L"modlist.txt", InstallOptions::GammaInstallPath + L"profiles\\Default\\modlist.txt");
-	NormalizeModList(InstallOptions::GammaInstallPath + L"profiles\\Default\\modlist.txt");
 	std::filesystem::rename(InstallOptions::GammaInstallPath + ModPackMaker::ExtractedDirectory + L"modpack_icon.ico", InstallOptions::GammaInstallPath + L"modpack_icon.ico");
+	NormalizeModList(InstallOptions::GammaInstallPath + L"profiles\\Default\\modlist.txt");
 
 	ModPackMaker::ModInfo::modInfoList.Append(new ModPackMaker::ModInfo(L"https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
 								   NosLib::DynamicArray<std::wstring>({ L"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_patches" }), InstallOptions::StalkerAnomalyPath, L"G.A.M.M.A. modpack definition", false));

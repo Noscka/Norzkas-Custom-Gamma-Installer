@@ -5,6 +5,7 @@
 The official installer for GAMMA felt badly put together, so I created my own: a customized installer for GAMMA (mod for STALKER anomaly) </br></br>
 
 Improvements over the official Installer:
+ - Saves 50GBs
  - Does everything for you, from installing the Mod Organizer with GAMMA mods to patching the stalker anomaly binaries, so you can just leave the program to run in the background and do its job
  - Install anywhere you want (Might only be possible on Windows 10 and later)
  - Light weight and extremely easy to use
@@ -14,7 +15,7 @@ Improvements over the official Installer:
 
 Requirements:
  - Have unmodded anomaly v1.5.2 already installed and ran at least once
- - Have around 50GB free, final installation will be 30GB with "Remove GAMMA default installer" is set to true, 53GB if set to false
+ - Have around 50GB free, final installation will be 30GB with `Save Space` is set to true, 53GB if set to false
 
 Usage:
  1. Download and unzip the program

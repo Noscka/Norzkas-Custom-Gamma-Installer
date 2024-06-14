@@ -18,6 +18,7 @@
 #include "Validation.hpp"
 #include "InstallOptions.hpp"
 #include "InstallManager.hpp"
+#include "File.hpp"
 
 inline void copyIfExists(const std::wstring& from, const std::wstring& to)
 {
@@ -38,58 +39,7 @@ namespace ModPackMaker
 	inline std::wstring DownloadedDirectory = L"downloads\\";
 
 	/* Sub directories that are inside each mod folder */
-	inline NosLib::DynamicArray<std::wstring> ModSubDirectories = NosLib::DynamicArray<std::wstring>({L"fomod\\"}) + Validation::StalkerSubDirectories.ObjectExclude(L"bin\\");
-
-	class File
-	{
-	private:
-		static inline NosLib::DynamicArray<File*> fileArray;
-
-		NosLib::HostPath Link;
-		std::wstring FileName;
-
-		File(const NosLib::HostPath& link)
-		{
-			Link = link;
-		}
-
-		/// <summary>
-		/// Function used to compare the file objects
-		/// </summary>
-		/// <returns>if the objects both are about the same file</returns>
-		static bool Compare(File* left, File* right)
-		{
-			return (left->Link == right->Link);
-		}
-	public:
-		void UpdateFileName(const std::wstring& fileName)
-		{
-			FileName = fileName;
-		}
-
-		/// <summary>
-		/// Registers the file, if the file already exists, returns that object
-		/// </summary>
-		/// <param name="name">- name of the file</param>
-		/// <returns>file pointer that will be used</returns>
-		static File* RegisterFile(const NosLib::HostPath& link)
-		{
-			File* newFile = new File(link);
-
-			for (File* entry : fileArray)
-			{
-				if (Compare(newFile, entry))
-				{
-					delete newFile;
-					return entry;
-				}
-			}
-
-			fileArray.Append(newFile);
-
-			return newFile;
-		}
-	};
+	inline NosLib::DynamicArray<std::wstring> ModSubDirectories = NosLib::DynamicArray<std::wstring>({ L"fomod\\" }) + Validation::StalkerSubDirectories.ObjectExclude(L"bin\\");
 
 	class ModInfo
 	{
@@ -104,7 +54,7 @@ namespace ModPackMaker
 			Custom,		/* custom/manually created "mod" object */
 		};
 
-		static inline int ModPrefixIndexCounter = 1;			/* a global trackers for the prefix number, GAMMA adds the mods index into the front of the file, only gets used on seperators and standard mods */
+		static inline int ModPrefixIndexCounter = 1;			/* a global trackers for the prefix number, GAMMA adds the mods index into the front of the file, only gets used on separators and standard mods */
 		static inline int ModCounter = 0;						/* a global mod counter, counts EVERY mod, this is for the loading screen so it knows how many there are */
 
 		static inline bit7z::Bit7zLibrary lib = bit7z::Bit7zLibrary(L"7z.dll"); /* Load 7z.dll into a class */
@@ -137,16 +87,14 @@ namespace ModPackMaker
 			ModIndex = ModCounter;
 		}
 	public:
-		//static inline NosLib::LoadingScreen* LoadingScreenObjectPointer;
-
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modInfoList;		/* A list of all mods */
 		static inline NosLib::DynamicArray<ModPackMaker::ModInfo*> modErrorList;	/* a list of all errors */
 
-	#pragma region constructors
-		/// <summary>
-		/// Seperator constructor, only has a name and index
-		/// </summary>
-		/// <param name="outName">- seperator name</param>
+#pragma region constructors
+	/// <summary>
+	/// Seperator constructor, only has a name and index
+	/// </summary>
+	/// <param name="outName">- seperator name</param>
 		inline ModInfo(const std::wstring& outName)
 		{
 			ModPrefixIndex = ModPrefixIndexCounter;
@@ -190,7 +138,8 @@ namespace ModPackMaker
 		/// <param name="OutPath">- where to copy the extracted data to</param>
 		/// <param name="outName">- what to name the file</param>
 		/// <param name="useInstallPath">(default = true) - if it should add installPath string to the front of its paths</param>
-		inline ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& useInstallPath = true)
+		/// <param name="customExtension">(default = L"") - custom extension</param>
+		inline ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& useInstallPath = true, const std::wstring& customExtension = L"")
 		{
 			Link = NosLib::HostPath(link);
 			InsidePaths << insidePaths;
@@ -199,6 +148,7 @@ namespace ModPackMaker
 			ModType = Type::Custom;
 
 			UseInstallPath = useInstallPath;
+			FileExtension = customExtension;
 
 			InitializeModInfo();
 		}
@@ -211,7 +161,8 @@ namespace ModPackMaker
 		/// <param name="OutPath">- where to copy the extracted data to</param>
 		/// <param name="outName">- what to name the file</param>
 		/// <param name="useInstallPath">(default = true) - if it should add installPath string to the front of its paths</param>
-		inline ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>&& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& useInstallPath = true)
+		/// <param name="customExtension">(default = L"") - custom extension</param>
+		inline ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>&& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& useInstallPath = true, const std::wstring& customExtension = L"")
 		{
 			Link = NosLib::HostPath(link);
 			InsidePaths << insidePaths;
@@ -220,10 +171,11 @@ namespace ModPackMaker
 			ModType = Type::Custom;
 
 			UseInstallPath = useInstallPath;
+			FileExtension = customExtension;
 
 			InitializeModInfo();
 		}
-	#pragma endregion
+#pragma endregion
 
 		inline std::wstring GetFullFileName(const bool& withExtension)
 		{
@@ -266,12 +218,12 @@ namespace ModPackMaker
 			}
 		}
 
-	#pragma region Parsing
-		/// <summary>
-		/// takes in a filename for a modpackMaker and parses it fully
-		/// </summary>
-		/// <param name="modpackMakerFileName">(default = "modpack_maker_list.txt") - path/name of modpack Maker</param>
-		/// <returns>a DynamicArray of ModInfo pointers (ModInfo*)</returns>
+#pragma region Parsing
+	/// <summary>
+	/// takes in a filename for a modpackMaker and parses it fully
+	/// </summary>
+	/// <param name="modpackMakerFileName">(default = "modpack_maker_list.txt") - path/name of modpack Maker</param>
+	/// <returns>a DynamicArray of ModInfo pointers (ModInfo*)</returns>
 		static inline NosLib::DynamicArray<ModInfo*>* ModpackMakerFile_Parse(const std::wstring& modpackMakerFileName)
 		{
 			/* open binary file stream of modpack maker list */
@@ -349,26 +301,35 @@ namespace ModPackMaker
 			/* finally, if it has gotten here, it means the current line is a normal mod, pass in all the info to the constructor */
 			return new ModInfo(wordArray[0], pathArray, wordArray[2], wordArray[3], wordArray[4]);
 		}
-	#pragma endregion
+#pragma endregion
 
 		inline void UpdateLoadingScreen(std::wstring status)
 		{
-			status.insert(0, std::format(L"Mod {} out of {}\n", ModIndex, ModCounter));
-			InstallManager::GetInstallManager()->UpdateStatus(status);
+			InstallManager* instance = InstallManager::GetInstallManager();
+			status.insert(0, (Parsed ?
+							  std::format(L"Mod {} out of {}\n", ModIndex, ModCounter) :
+							  L"Initial Setup\n"));
+			instance->UpdateStatus(status);
+		}
+
+		inline void UpdateLoadingScreen(const int& percentageOnCurrentMod)
+		{
+			InstallManager* instance = InstallManager::GetInstallManager();
+
+			instance->UpdateTotalProgress((ModIndex * 100) / ModCounter);
+			instance->UpdateSingularProgress(percentageOnCurrentMod);
 		}
 
 		inline void UpdateLoadingScreen(const int& percentageOnCurrentMod, const std::wstring& status)
 		{
 			InstallManager* instance = InstallManager::GetInstallManager();
 
-			instance->UpdateTotalProgress((ModIndex * 100) /ModCounter);
-			instance->UpdateSingularProgress(percentageOnCurrentMod);
-
-			return UpdateLoadingScreen(status);
+			UpdateLoadingScreen(percentageOnCurrentMod);
+			UpdateLoadingScreen(status);
 		}
 
 
-	#pragma region Mod Processing
+#pragma region Mod Processing
 		inline void DownloadMod(const std::wstring& downloadDirectory)
 		{
 			NosLib::Logging::CreateLog<wchar_t>(std::format(L"Downloading {} To \"{}\"", GetFullFileName(true), downloadDirectory), NosLib::Logging::Severity::Info);
@@ -421,10 +382,10 @@ namespace ModPackMaker
 				std::wstring errorMessage;
 				for (std::pair<std::wstring, std::error_code> entry : ex.failedFiles())
 				{
-					errorMessage+=std::format(L"{} : {}\n", entry.first, NosLib::String::ToWstring(entry.second.message()));
+					errorMessage += std::format(L"{} : {}\n", entry.first, NosLib::String::ToWstring(entry.second.message()));
 				}
 
-				errorMessage+=NosLib::String::ToWstring(std::format("{}\n", ex.what()));
+				errorMessage += NosLib::String::ToWstring(std::format("{}\n", ex.what()));
 				NosLib::Logging::CreateLog<wchar_t>(errorMessage, NosLib::Logging::Severity::Error);
 				return;
 			}
@@ -548,7 +509,7 @@ namespace ModPackMaker
 			{
 				NosLib::Logging::CreateLog<wchar_t>(std::format(L"error: \"{}\" When trying to remove download File", NosLib::String::ToWstring(ec.message())), NosLib::Logging::Severity::Error);
 			}
-			
+
 			if (-1 == std::filesystem::remove_all(extractedOutDirectory, ec))
 			{
 				NosLib::Logging::CreateLog<wchar_t>(std::format(L"error: \"{}\" When trying to remove extract directory", NosLib::String::ToWstring(ec.message())), NosLib::Logging::Severity::Error);
@@ -560,9 +521,9 @@ namespace ModPackMaker
 		{
 			std::filesystem::create_directories(InstallOptions::GammaInstallPath + ModDirectory + GetFullFileName(false));
 		}
-	#pragma endregion
+#pragma endregion
 
-	#pragma region Downloading
+#pragma region Downloading
 		inline std::wstring GetFileExtensionFromHeader(const std::string& type)
 		{
 			if (type.find("application/zip") != std::string::npos)
@@ -588,33 +549,39 @@ namespace ModPackMaker
 			UpdateLoadingScreen(L"Starting Downloading...");
 
 			httplib::Result res = client->Get(NosLib::String::ToString(filepath),
-				[&](const httplib::Response& response)
+			[&](const httplib::Response& response)
+			{
+				if (mod->FileExtension.empty())
 				{
 					mod->FileExtension = GetFileExtensionFromHeader(response.headers.find("Content-Type")->second);
+				}
 
-					httplib::Headers::const_iterator itr = response.headers.find("Transfer-Encoding");
+				std::wstring statusText = std::format(L"Downloading \"{}\"", GetFullFileName(true));
 
-					if ((itr != response.headers.end() ? itr->second : "HEADER DOESN'T EXIST") == "chunked")
-					{
-						UpdateLoadingScreen(L"FILE IS DOWNLOADING BUT WON'T SHOW PROGRESS");
-					}
-
-					/* before start download, get "Content-Type" header tag to see the extensions, then open with the name+extension */
-					DownloadFile.open(pathOffsets + mod->GetFullFileName(true), std::ios::binary | std::ios::trunc);
-					return true; // return 'false' if you want to cancel the request.
-				},
-				[&](const char* data, size_t data_length)
+				httplib::Headers::const_iterator itr = response.headers.find("Transfer-Encoding");
+				if ((itr != response.headers.end() ? itr->second : "HEADER DOESN'T EXIST") == "chunked")
 				{
-					/* write to file while downloading, this makes sure that it doesn't download to memory and then write */
-					DownloadFile.write(data, data_length);
-					return true;
-				},
-				[&](uint64_t len, uint64_t total)
-				{
-					UpdateLoadingScreen((len * 100) / total, std::format(L"Downloading \"{}\"", GetFullFileName(true)));
+					statusText += L" - Won't Show Progress Due to \"chunked\" Transfer-Encoding";
+				}
 
-					return true; // return 'false' if you want to cancel the request.
-				});
+				UpdateLoadingScreen(statusText);
+
+				/* before start download, get "Content-Type" header tag to see the extensions, then open with the name+extension */
+				DownloadFile.open(pathOffsets + mod->GetFullFileName(true), std::ios::binary | std::ios::trunc);
+				return true; // return 'false' if you want to cancel the request.
+			},
+			[&](const char* data, size_t data_length)
+			{
+				/* write to file while downloading, this makes sure that it doesn't download to memory and then write */
+				DownloadFile.write(data, data_length);
+				return true;
+			},
+			[&](uint64_t len, uint64_t total)
+			{
+				UpdateLoadingScreen((len * 100) / total);
+
+				return true; // return 'false' if you want to cancel the request.
+			});
 
 			if (!res)
 			{
@@ -690,6 +657,6 @@ namespace ModPackMaker
 				{"User-Agent", "NCGI (cpp-httplib)"} });
 			GetAndSaveFile(downloadClient, mod, mod->Link.Path, pathOffsets);
 		}
-	#pragma endregion
+#pragma endregion
 	};
 }

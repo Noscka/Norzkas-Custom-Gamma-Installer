@@ -31,7 +31,7 @@ find_package(Qt${QT_VERSION_MAJOR}
 qt_standard_project_setup()
 
 # Get All Project Files
-file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "Headers/*" "CustomWidgets/*" "InstallerWindow/*")
+file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "Headers/*" "Source/*" "CustomWidgets/*" "InstallerWindow/*")
 
 qt_add_executable(${PROJECT_NAME} "main.cpp" ${ProjectFiles})
 qt_add_resources(${PROJECT_NAME} "Images"

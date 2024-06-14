@@ -8,5 +8,4 @@ namespace InstallOptions
 	inline std::wstring GammaInstallPath;
 
 	inline bool AddOverwriteFiles = true;
-	inline bool RemoveGAMMADefaultInstaller = true;
 }
