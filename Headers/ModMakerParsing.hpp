@@ -373,6 +373,20 @@ namespace ModPackMaker
 			/* extract into said directory */
 			UpdateLoadingScreen(std::format(L"extracting \"{}\"", GetFullFileName(true)));
 			NosLib::Logging::CreateLog<wchar_t>(std::format(L"Extracting \"{}\" To \"{}\"", filePath, extractDirectory), NosLib::Logging::Severity::Info);
+
+			uint64_t totalSize = 0;
+
+			extractor.setTotalCallback([&](uint64_t total_size)
+			{
+				totalSize = total_size;
+			});
+
+			extractor.setProgressCallback([&](uint64_t processed_size)
+			{
+				UpdateLoadingScreen((static_cast<double>(processed_size) * 100.0) / static_cast<double>(totalSize));
+				return true;
+			});
+
 			try
 			{
 				extractor.extract(filePath, extractDirectory);
