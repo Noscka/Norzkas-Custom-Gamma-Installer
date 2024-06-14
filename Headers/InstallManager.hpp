@@ -18,7 +18,7 @@ private:
 
 signals:
 	void FinishInstallerInitializing();
-	void FinishInstalling();
+	void FinishInstalling(const std::wstring&);
 
 	void TotalUpdateProgress(const int&);
 	void SingularUpdateProgress(const int&);
@@ -62,7 +62,6 @@ public slots:
 		emit FinishInstallerInitializing();
 
 		MainInstall();
-		emit FinishInstalling();
 
 		FinishInstall();
 
@@ -73,6 +72,8 @@ public slots:
 		std::wofstream installTimeWrite(L"InstallTime.txt", std::ios::binary | std::ios::app);
 		installTimeWrite.write(timeTaken.c_str(), timeTaken.size());
 		installTimeWrite.close();
+
+		emit FinishInstalling(timeTaken);
 	}
 
 	/* To fix annoying as fuck issue with some creator names having spaces */

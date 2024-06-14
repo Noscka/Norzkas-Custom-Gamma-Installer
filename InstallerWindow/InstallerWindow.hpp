@@ -67,6 +67,12 @@ public:
 
 		/* Install Start */
 		connect(ui.StartInstallButton, &QPushButton::released, this, &InstallerWindow::PreStartInstall);
+
+		/* Finish Install */
+		connect(ui.FinishInstallButton, &QPushButton::released, this, [&]()
+		{
+			QCoreApplication::exit(0);
+		});
 	}
 
 	inline ~InstallerWindow()
@@ -157,9 +163,10 @@ public slots:
 		UpdateStatus("Starting Mod Installs");
 	}
 
-	void FinishInstalling()
+	void FinishInstalling(const std::wstring& timeTakenString)
 	{
 		ui.stackedWidget->setCurrentIndex(2);
+		ui.TimeTakenLabel->setText(QString::fromStdWString(timeTakenString));
 	}
 
 	void TotalUpdateProgress(const int& newProgress)
