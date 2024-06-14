@@ -7,6 +7,7 @@
 #include "InstallOptions.hpp"
 
 #include <fstream>
+#include <chrono>
 
 class InstallManager : public QObject
 {
@@ -55,6 +56,8 @@ public:
 public slots:
 	inline void StartInstall()
 	{
+		auto start = std::chrono::system_clock::now();
+
 		InitializeInstaller();
 		emit FinishInstallerInitializing();
 
@@ -62,6 +65,14 @@ public slots:
 		emit FinishInstalling();
 
 		FinishInstall();
+
+		auto end = std::chrono::system_clock::now();
+		auto elapsed = end - start;
+		std::wstring timeTaken = std::vformat(L"Install Took: {:%H:%M}\n", std::make_wformat_args(elapsed));
+
+		std::wofstream installTimeWrite(L"InstallTime.txt", std::ios::binary | std::ios::app);
+		installTimeWrite.write(timeTaken.c_str(), timeTaken.size());
+		installTimeWrite.close();
 	}
 
 	/* To fix annoying as fuck issue with some creator names having spaces */
