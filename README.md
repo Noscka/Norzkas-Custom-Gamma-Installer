@@ -1,6 +1,6 @@
 # Norzkas Gamma Installer
 <div align="center">
- <img src="./Images/Logo.png" title="Norzkas Custom Gamma Installer Logo" alt="Norzkas Custom Gamma Installer Logo" width="600" height="250"/>
+ <img src="./Assets/Images/Logo.png" title="Norzkas Custom Gamma Installer Logo" alt="Norzkas Custom Gamma Installer Logo" width="600" height="250"/>
 </div>
 The official installer for GAMMA felt badly put together, so I created my own: a customized installer for GAMMA (mod for STALKER anomaly) </br></br>
 

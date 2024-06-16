@@ -1,0 +1,1 @@
+https://github.com/ModOrganizer2/modorganizer/tree/master/src/stylesheets
