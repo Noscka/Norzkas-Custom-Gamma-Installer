@@ -58,10 +58,10 @@ BASE "Assets/"
 )
 
 # Make console invisible
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    WIN32_EXECUTABLE ON
-    MACOSX_BUNDLE ON
-)
+#set_target_properties(${PROJECT_NAME} PROPERTIES
+#    WIN32_EXECUTABLE ON
+#    MACOSX_BUNDLE ON
+#)
 
 # Link Libraries
 target_link_libraries(${PROJECT_NAME}

@@ -100,7 +100,6 @@ protected:
 	void InitializeInstaller();
 	void MainInstall();
 
-
 	inline void FinishInstall()
 	{
 		#ifdef _WIN32

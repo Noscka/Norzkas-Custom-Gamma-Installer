@@ -2,12 +2,11 @@
 #include "InstallerWindow/InstallerWindow.hpp"
 
 #include <NosLib/Logging.hpp>
+#include <NosLib/HttpClient.hpp>
 
 #include <conio.h>
 #include <fstream>
 #include <format>
-
-#include "Headers\ModMakerParsing.hpp"
 
 QString GetStyleSheet()
 {
@@ -19,7 +18,8 @@ QString GetStyleSheet()
 
 int main(int argc, char* argv[])
 {
-	NosLib::Logging::SetVerboseLevel(NosLib::Logging::Verbose::Error);
+	NosLib::Logging::SetVerboseLevel(NosLib::Logging::Verbose::Debug);
+	NosLib::SetUserAgent("NCGI");
 
 	QApplication app(argc, argv);
 	app.setStyleSheet(GetStyleSheet());
