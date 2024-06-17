@@ -102,6 +102,6 @@ if (CMAKE_IMPORT_LIBRARY_SUFFIX)
 
   add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND "windeployqt" "${OUTDIR}/NCGI.exe"
+    COMMAND "windeployqt" --release --compiler-runtime "${OUTDIR}/NCGI.exe"
   )
 endif ()
