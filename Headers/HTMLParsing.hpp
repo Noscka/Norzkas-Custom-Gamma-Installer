@@ -7,7 +7,7 @@ namespace ModDBParsing
 {
 	struct HTMLParseReturn
 	{
-		std::string Link;
+		std::wstring Link;
 		bool Found;
 	};
 
@@ -26,7 +26,7 @@ namespace ModDBParsing
 		/* if it returns "npos", means it wasn't found and therefore return */
 		if (startPosition == std::string::npos)
 		{
-			return {"Not Found", false};
+			return {L"Not Found", false};
 		}
 
 		/* add the lenght of the substring used since that is true start */
@@ -38,11 +38,13 @@ namespace ModDBParsing
 		/* if return "npos", return again since it means something isn't right */
 		if (endPosition == std::string::npos)
 		{
-			return {"Not Found", false};
+			return {L"Not Found", false};
 		}
 
+		std::string link = line.substr(startPosition, endPosition - (startPosition));
+
 		/* if got here, that means it has all the needed info, create substring and put it into struct */
-		return HTMLParseReturn{line.substr(startPosition, endPosition - (startPosition)), true};
+		return HTMLParseReturn{NosLib::String::ToWstring(link), true};
 	}
 
 	/// <summary>
@@ -50,7 +52,7 @@ namespace ModDBParsing
 	/// </summary>
 	/// <param name="fileName">- file path/name</param>
 	/// <returns>a link if found</returns>
-	inline HTMLParseReturn ParseHtmlForLink(const std::string& html)
+	inline std::wstring ParseHtmlForLink(const std::string& html)
 	{
 		std::istringstream htmlStream(html);
 
@@ -61,10 +63,10 @@ namespace ModDBParsing
 
 			if (parseResult.Found == true)
 			{
-				return parseResult;
+				return parseResult.Link;
 			}
 		}
 
-		return {"No Link Found", false};
+		return L"No Link Found";
 	}
 }

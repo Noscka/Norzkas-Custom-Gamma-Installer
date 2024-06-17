@@ -1,6 +1,6 @@
 # Norzkas Gamma Installer
 <div align="center">
- <img src="./Images/Logo.png" title="Norzkas Custom Gamma Installer Logo" alt="Norzkas Custom Gamma Installer Logo" width="600" height="250"/>
+ <img src="./Assets/Images/Logo.png" title="Norzkas Custom Gamma Installer Logo" alt="Norzkas Custom Gamma Installer Logo" width="600" height="250"/>
 </div>
 The official installer for GAMMA felt badly put together, so I created my own: a customized installer for GAMMA (mod for STALKER anomaly) </br></br>
 
@@ -26,8 +26,11 @@ Usage:
  6. Let the installer do all the work (installation can take up 2 hours or longer depending on your internet speed)
 
 Planned Features:
- - Estimated time display
- - Option to install stalker anomaly
+ - [x] Add File Reuse System
+ - [ ] Estimated time display
+ - [ ] Option to install stalker anomaly
+ - [ ] Make Linux Native too
+ - [ ] Add Both Single Mod and Mod Pack Updates
 
 ![Github All Releases](https://img.shields.io/github/downloads/Noscka/Norzkas-Custom-Gamma-Installer/total.svg)  
 here is the [lastest release](https://github.com/Noscka/Norzkas-Gamma-Installer/releases/latest)

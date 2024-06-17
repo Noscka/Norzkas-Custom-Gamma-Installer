@@ -3,7 +3,7 @@
 #include <NosLib/HostPath.hpp>
 #include <NosLib/Logging.hpp>
 
-#include "ModMakerParsing.hpp"
+#include "ModInfo.hpp"
 
 namespace MO
 {
@@ -64,7 +64,7 @@ namespace MO
 		}
 	}
 
-	ModPackMaker::ModInfo GetModOrganizerModObject()
+	ModInfo GetModOrganizerModObject()
 	{
 		httplib::Client client = NosLib::MakeClient("https://github.com");
 		client.set_keep_alive(true);
@@ -74,7 +74,7 @@ namespace MO
 
 		std::wstring fileName = std::format(L"Mod.Organizer-{}", moVersion);
 
-		return ModPackMaker::ModInfo(moDownloadLink,
+		return ModInfo(moDownloadLink,
 									 NosLib::DynamicArray<std::wstring>({ L"\\" }),
 									 L""/* Root */,
 									 fileName,

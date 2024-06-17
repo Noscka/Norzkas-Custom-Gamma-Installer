@@ -33,11 +33,28 @@ qt_standard_project_setup()
 # Get All Project Files
 file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "Headers/*" "Source/*" "CustomWidgets/*" "InstallerWindow/*")
 
-qt_add_executable(${PROJECT_NAME} "main.cpp" ${ProjectFiles})
-qt_add_resources(${PROJECT_NAME} "Images"
+if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    enable_language("RC")
+    set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Icon.rc")
+endif()
+
+qt_add_executable(${PROJECT_NAME} "main.cpp" ${ProjectFiles} ${app_icon_resource_windows})
+
+qt_add_resources(${PROJECT_NAME} "Icon"
     FILES
-       Images/Logo.png
-       "Images/Logo - Simplified.png"
+       "Resource/icon.ico"
+)
+
+file(GLOB_RECURSE ThemeFiles RELATIVE "${PROJECT_SOURCE_DIR}" CONFIGURE_DEPENDS
+    "Assets/Theme/vs15/*"    
+)
+
+qt_add_resources(${PROJECT_NAME} "Assets"
+BASE "Assets/"
+    FILES
+       "Assets/Images/Logo.png"
+       "Assets/Theme/vs15 Dark-Red.qss"
+       ${ThemeFiles}
 )
 
 # Make console invisible
