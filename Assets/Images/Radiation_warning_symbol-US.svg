@@ -7,7 +7,7 @@
 		</radialGradient>
 	</defs>
 	<rect width="600" height="600" fill="none"/>
-	<g transform="translate(300,300)" fill="#00302e" stroke="white" stroke-width="3">
+	<g transform="translate(300,300)" fill="Black" stroke="white" stroke-width="3">
 		<circle r="270" fill="url(#grad1)" stroke="black"/>
 		<circle r="50"/>
 		<path d="M75,0 A 75,75 0 0,0 37.5,-64.952 L 125,-216.506 A 250,250 0 0,1 250,0 z" id="bld"/>

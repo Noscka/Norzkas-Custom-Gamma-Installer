@@ -333,21 +333,9 @@ private:
 
 	inline void StandardModProcess()
 	{
-		UpdateLoadingScreen(L"Downloading File...");
-		std::wstring filePath = FileObject->GetFile(
-													[&](const std::wstring& status)
-		{
-			return InitialResponseCallback(status);
-		},
-													[&](uint64_t len, uint64_t total)
-		{
-			return ProgressCallback(len, total);
-		});
-		UpdateLoadingScreen(L"Downloaded File");
-
-		UpdateLoadingScreen(L"Extracting File...");
-		std::wstring extractPath = FileObject->GetExtractFile();
-		UpdateLoadingScreen(L"Extracted File...");
+		UpdateLoadingScreen(L"Requesting File...");
+		std::wstring extractPath = FileObject->GetFile(this, &ModInfo::InitialResponseCallback, &ModInfo::ProgressCallback);
+		UpdateLoadingScreen(L"Received File");
 
 		UpdateLoadingScreen(L"Copying files...");
 		/* for every "inner" path, go through and find the needed files */
@@ -388,21 +376,9 @@ private:
 
 	inline void CustomModProcess()
 	{
-		UpdateLoadingScreen(L"Downloading File...");
-		std::wstring filePath = FileObject->GetFile(
-													[&](const std::wstring& status)
-		{
-			return InitialResponseCallback(status);
-		},
-													[&](uint64_t len, uint64_t total)
-		{
-			return ProgressCallback(len, total);
-		});
-		UpdateLoadingScreen(L"Downloaded File");
-
-		UpdateLoadingScreen(L"Extracting File...");
-		std::wstring extractPath = FileObject->GetExtractFile();
-		UpdateLoadingScreen(L"Extracted File...");
+		UpdateLoadingScreen(L"Requesting File...");
+		std::wstring extractPath = FileObject->GetFile(this, &ModInfo::InitialResponseCallback, &ModInfo::ProgressCallback);
+		UpdateLoadingScreen(L"Received File");
 
 		UpdateLoadingScreen(L"Copying files...");
 		/* for every "inner" path, go through and find the needed files */

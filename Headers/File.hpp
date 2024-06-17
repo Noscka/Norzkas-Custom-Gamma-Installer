@@ -13,11 +13,13 @@
 #include <functional>
 #include <filesystem>
 
+class ModInfo;
+
 class File
 {
 public:
-	using Initial = std::function<void(const std::wstring&)>;
-	using Progress = std::function<bool(uint64_t, uint64_t)>;
+	using Status = void(ModInfo::*)(const std::wstring&);
+	using Progress = bool(ModInfo::*)(uint64_t, uint64_t);
 protected:
 	struct FileStore
 	{
@@ -58,11 +60,11 @@ protected:
 	NosLib::HostPath Link;
 	FileStore FileName;
 
-	bool Downloaded = false;
 	bool Extracted = false;
 	int UsageCount;
 
-	Initial InitialCallback;
+	ModInfo* CallerPointer = nullptr;
+	Status StatusCallback;
 	Progress ProgressCallback;
 
 
@@ -113,30 +115,20 @@ public:
 	}
 
 	/* Returns File Path */
-	std::wstring GetFile(const Initial& initialCallback, const Progress& progressCallback)
+	std::wstring GetFile(ModInfo* callerPointer, const Status& statusCallback, const Progress& progressCallback)
 	{
 		/* Update Callbacks */
-		InitialCallback = initialCallback;
+		CallerPointer = callerPointer;
+		StatusCallback = statusCallback;
 		ProgressCallback = progressCallback;
 
-		if (!Downloaded)
+		if (!Extracted)
 		{
-			/* if failed */
 			if (!DownloadFile())
 			{
 				return L"";
 			}
-			
-			Downloaded = true;
-		}
 
-		return GetDownloadPath();
-	}
-
-	std::wstring GetExtractFile()
-	{
-		if (!Extracted)
-		{
 			/* if failed */
 			if (!ExtractFile())
 			{

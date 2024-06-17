@@ -26,8 +26,11 @@ Usage:
  6. Let the installer do all the work (installation can take up 2 hours or longer depending on your internet speed)
 
 Planned Features:
- - Estimated time display
- - Option to install stalker anomaly
+ - [x] Add File Reuse System
+ - [ ] Estimated time display
+ - [ ] Option to install stalker anomaly
+ - [ ] Make Linux Native too
+ - [ ] Add Both Single Mod and Mod Pack Updates
 
 ![Github All Releases](https://img.shields.io/github/downloads/Noscka/Norzkas-Custom-Gamma-Installer/total.svg)  
 here is the [lastest release](https://github.com/Noscka/Norzkas-Gamma-Installer/releases/latest)

@@ -1,7 +1,9 @@
 #include "../Headers/File.hpp"
 #include "../Headers/HTMLParsing.hpp"
+#include "../Headers/ModInfo.hpp"
 
 #include <NosLib/HttpClient.hpp>
+
 
 #include <fstream>
 #include <filesystem>
@@ -108,7 +110,7 @@ bool File::GetAndSaveFile(httplib::Client* client, const std::wstring& urlFilePa
 			statusText += L" - Won't Show Progress Due to \"chunked\" Transfer-Encoding";
 		}
 
-		InitialCallback(statusText);
+		(CallerPointer->*StatusCallback)(statusText);
 
 		/* before start download, get "Content-Type" header tag to see the extensions, then open with the name+extension */
 		downloadFile.open(pathOffsets + FileName.GetFullFileName(), std::ios::binary | std::ios::trunc);
@@ -120,7 +122,10 @@ bool File::GetAndSaveFile(httplib::Client* client, const std::wstring& urlFilePa
 		downloadFile.write(data, data_length);
 		return true;
 	},
-									  ProgressCallback);
+									  [&](uint64_t len, uint64_t total)
+	{
+		return (CallerPointer->*ProgressCallback)(len, total);
+	});
 
 	if (!res)
 	{
@@ -148,12 +153,12 @@ bool File::ExtractFile()
 
 	extractor.setProgressCallback([&](uint64_t processed_size)
 	{
-		return ProgressCallback(processed_size, totalSize);
+		return (CallerPointer->*ProgressCallback)(processed_size, totalSize);
 	});
 
 	try
 	{
-		InitialCallback(std::format(L"Extracting \"{}\"", FileName.GetFullFileName()));
+		(CallerPointer->*StatusCallback)(std::format(L"Extracting \"{}\"", FileName.GetFullFileName()));
 		extractor.extract(GetDownloadPath(), GetExtractPath());
 	}
 	catch (const bit7z::BitException& ex)
