@@ -18,7 +18,7 @@ QString GetStyleSheet()
 
 int main(int argc, char* argv[])
 {
-	NosLib::Logging::SetVerboseLevel(NosLib::Logging::Verbose::Debug);
+	NosLib::Logging::SetVerboseLevel(NosLib::Logging::Verbose::Error);
 	NosLib::SetUserAgent("NCGI");
 
 	QApplication app(argc, argv);

@@ -58,10 +58,10 @@ BASE "Assets/"
 )
 
 # Make console invisible
-#set_target_properties(${PROJECT_NAME} PROPERTIES
-#    WIN32_EXECUTABLE ON
-#    MACOSX_BUNDLE ON
-#)
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    WIN32_EXECUTABLE ON
+    MACOSX_BUNDLE ON
+)
 
 # Link Libraries
 target_link_libraries(${PROJECT_NAME}
@@ -93,15 +93,15 @@ add_custom_command(
    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> ${OUTDIR}
 )
 
-#if (CMAKE_IMPORT_LIBRARY_SUFFIX)
-#  add_custom_command(
-#    TARGET ${PROJECT_NAME} POST_BUILD
-#    COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTDIR} "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}>"
-#  COMMAND_EXPAND_LISTS
-#  )
-#
-#  add_custom_command(
-#    TARGET ${PROJECT_NAME} POST_BUILD
-#    COMMAND "windeployqt" "${OUTDIR}/NCGI.exe"
-#  )
-#endif ()
+if (CMAKE_IMPORT_LIBRARY_SUFFIX)
+  add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTDIR} "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}>"
+  COMMAND_EXPAND_LISTS
+  )
+
+  add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND "windeployqt" "${OUTDIR}/NCGI.exe"
+  )
+endif ()

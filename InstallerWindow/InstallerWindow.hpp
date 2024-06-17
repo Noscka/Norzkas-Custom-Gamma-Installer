@@ -24,11 +24,11 @@ public:
 		ui.setupUi(this);
 
 		ui.AnomalyPathInput->SetLabelText("Stalker Anomaly Path");
-		ui.AnomalyPathInput->SetInputText("D:/Games/Anomaly");
+		ui.AnomalyPathInput->SetInputText("C:/Games/Anomaly");
 		ui.AnomalyPathInput->SetDirectoryValidateFunction(&Validation::ValidateStalkerAnomalyPath);
 
 		ui.GammaPathInput->SetLabelText("Gamma Install Path");
-		ui.GammaPathInput->SetInputText("D:/Games/Gamma");
+		ui.GammaPathInput->SetInputText("C:/Games/Gamma");
 
 		StartupChecks();
 
