@@ -5,6 +5,10 @@
 #include <NosLib/String.hpp>
 #include <NosLib/Logging.hpp>
 
+#include <bit7z\bit7z.hpp>
+#include <bit7z\bit7zlibrary.hpp>
+#include <bit7z\bitfileextractor.hpp>
+
 #include <string>
 #include <functional>
 #include <filesystem>
@@ -43,9 +47,13 @@ protected:
 		Unknown,
 	};
 
+	static inline bit7z::Bit7zLibrary lib = bit7z::Bit7zLibrary(L"7z.dll"); /* Load 7z.dll into a class */
+	static inline bit7z::BitFileExtractor extractor = bit7z::BitFileExtractor(lib); /* create extractor object */
+
 	static NosLib::HashTable<std::wstring, File*> fileHastTable;
 
 	inline static std::wstring DownloadDirectory;
+	inline static std::wstring ExtractDirectory;
 
 	NosLib::HostPath Link;
 	FileStore FileName;
@@ -58,27 +66,27 @@ protected:
 	Progress ProgressCallback;
 
 
-	File(const NosLib::HostPath& link, const std::wstring& fileName, const Initial& initialCallback, const Progress& progressCallback, const std::wstring& fileExtensionOverwrite = L"")
+	File(const NosLib::HostPath& link, const std::wstring& fileName, const std::wstring& fileExtensionOverwrite = L"")
 	{
 		Link = link;
 		FileName.FileName = fileName;
 		FileName.FileExtension = fileExtensionOverwrite;
 		UsageCount = 0;
-
-		InitialCallback = initialCallback;
-		ProgressCallback = progressCallback;
-
 	}
+
 public:
 	File(){}
 
-	inline static void SetDownloadDirectory(const std::wstring& downloadDirectory)
+	inline static void SetDirectories(const std::wstring& downloadDirectory, const std::wstring& extractDirectory)
 	{
 		DownloadDirectory = downloadDirectory;
-		NosLib::Logging::CreateLog<wchar_t>(std::format(L"Set download path to: \"{}\"", DownloadDirectory), NosLib::Logging::Severity::Info);
+		ExtractDirectory = extractDirectory;
+		NosLib::Logging::CreateLog<wchar_t>(std::format(L"Set download directory to: \"{}\"", DownloadDirectory), NosLib::Logging::Severity::Info);
+		NosLib::Logging::CreateLog<wchar_t>(std::format(L"Set extract directory to: \"{}\"", ExtractDirectory), NosLib::Logging::Severity::Info);
 	}
 
-	inline static File* RegisterFile(const NosLib::HostPath& link, const std::wstring& fileName, const Initial& initialCallback, const Progress& progressCallback, const std::wstring& fileExtensionOverwrite = L"")
+
+	inline static File* RegisterFile(const NosLib::HostPath& link, const std::wstring& fileName, const std::wstring& fileExtensionOverwrite = L"")
 	{
 		File** searchedFile = fileHastTable.Find(link.Full());
 		File* returnFile;
@@ -88,7 +96,7 @@ public:
 		/* Same Link file not found */
 		if (searchedFile == nullptr)
 		{
-			returnFile = new File(link, fileName, initialCallback, progressCallback, fileExtensionOverwrite);
+			returnFile = new File(link, fileName, fileExtensionOverwrite);
 			fileHastTable.Insert(returnFile);
 			logMessage = std::format(L"File \"{}\" For \"{}\" Not Found, Creating new", returnFile->FileName.GetFullFileName(), returnFile->Link.Full());
 		}
@@ -105,8 +113,12 @@ public:
 	}
 
 	/* Returns File Path */
-	std::wstring GetFile()
+	std::wstring GetFile(const Initial& initialCallback, const Progress& progressCallback)
 	{
+		/* Update Callbacks */
+		InitialCallback = initialCallback;
+		ProgressCallback = progressCallback;
+
 		if (!Downloaded)
 		{
 			/* if failed */
@@ -118,7 +130,23 @@ public:
 			Downloaded = true;
 		}
 
-		return DownloadDirectory + FileName.GetFullFileName();
+		return GetDownloadPath();
+	}
+
+	std::wstring GetExtractFile()
+	{
+		if (!Extracted)
+		{
+			/* if failed */
+			if (!ExtractFile())
+			{
+				return L"";
+			}
+
+			Extracted = true;
+		}
+
+		return GetExtractPath();
 	}
 
 	/* Finished using file */
@@ -133,9 +161,13 @@ public:
 		}
 
 		std::error_code ec;
-		if (-1 == std::filesystem::remove_all((DownloadDirectory + FileName.GetFullFileName()), ec))
+		if (-1 == std::filesystem::remove_all(GetDownloadPath(), ec))
 		{
 			NosLib::Logging::CreateLog<wchar_t>(std::format(L"error: \"{}\" When trying to remove download File", NosLib::String::ToWstring(ec.message())), NosLib::Logging::Severity::Error);
+		}
+		if (-1 == std::filesystem::remove_all(GetExtractPath(), ec))
+		{
+			NosLib::Logging::CreateLog<wchar_t>(std::format(L"error: \"{}\" When trying to remove extract directory", NosLib::String::ToWstring(ec.message())), NosLib::Logging::Severity::Error);
 		}
 
 		fileHastTable.Remove(GetKey());
@@ -147,6 +179,15 @@ public:
 		return Link.Full();
 	}
 protected:
+	std::wstring GetDownloadPath()
+	{
+		return DownloadDirectory + FileName.GetFullFileName();
+	}
+
+	std::wstring GetExtractPath()
+	{
+		return ExtractDirectory + FileName.GetFileName();
+	}
 
 	std::wstring GetFileExtensionFromHeader(const std::string& type);
 	HostType DetermineHostType(const std::wstring& hostName);
@@ -154,4 +195,6 @@ protected:
 	bool ModDBDownload(httplib::Client* downloadClient, const std::wstring& pathOffsets);
 	bool GithubDownload(httplib::Client* downloadClient, const std::wstring& pathOffsets);
 	bool GetAndSaveFile(httplib::Client* client, const std::wstring& urlFilePath, const std::wstring& pathOffsets);
+
+	bool ExtractFile();
 };

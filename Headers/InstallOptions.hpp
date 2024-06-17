@@ -5,7 +5,7 @@
 namespace InstallInfo
 {
 	inline std::wstring ModDirectory = L"mods\\";
-	inline std::wstring ExtractedDirectory = L"extracted\\";
+	inline std::wstring ExtractDirectory = L"extracted\\";
 	inline std::wstring DownloadDirectory = L"downloads\\";
 }
 

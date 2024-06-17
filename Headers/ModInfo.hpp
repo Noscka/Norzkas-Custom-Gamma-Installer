@@ -6,10 +6,6 @@
 #include <NosLib\HttpClient.hpp>
 #include <NosLib\FileManagement.hpp>
 
-#include <bit7z\bit7z.hpp>
-#include <bit7z\bit7zlibrary.hpp>
-#include <bit7z\bitfileextractor.hpp>
-
 #include <format>
 #include <source_location>
 
@@ -49,9 +45,6 @@ private:
 
 	static inline int ModPrefixIndexCounter = 1;			/* a global trackers for the prefix number, GAMMA adds the mods index into the front of the file, only gets used on separators and standard mods */
 	static inline int ModCounter = 0;						/* a global mod counter, counts EVERY mod, this is for the loading screen so it knows how many there are */
-
-	static inline bit7z::Bit7zLibrary lib = bit7z::Bit7zLibrary(L"7z.dll"); /* Load 7z.dll into a class */
-	static inline bit7z::BitFileExtractor extractor = bit7z::BitFileExtractor(lib); /* create extractor object */
 
 	Type ModType;									/* the mod type */
 	int ModPrefixIndex;								/* the mod index, that will be used in the folder name */
@@ -116,15 +109,7 @@ public:
 		OriginalLink = originalLink;
 		ModType = Type::Standard;
 
-		FileObject = File::RegisterFile(link, outName, 
-										[&](const std::wstring& status)
-		{
-			return InitialResponseCallback(status);
-		},
-										[&](uint64_t len, uint64_t total)
-		{
-			return ProgressCallback(len, total);
-		});
+		FileObject = File::RegisterFile(link, outName);
 
 
 		InitializeModInfo();
@@ -146,15 +131,7 @@ public:
 		OutPath = outPath;
 		ModType = Type::Custom;
 
-		FileObject = File::RegisterFile(link, outName,
-										[&](const std::wstring& status)
-		{
-			return InitialResponseCallback(status);
-		},
-										[&](uint64_t len, uint64_t total)
-		{
-			return ProgressCallback(len, total);
-		}, customExtension);
+		FileObject = File::RegisterFile(link, outName, customExtension);
 
 		UseInstallPath = useInstallPath;
 
@@ -177,15 +154,7 @@ public:
 		OutPath = outPath;
 		ModType = Type::Custom;
 
-		FileObject = File::RegisterFile(link, outName,
-										[&](const std::wstring& status)
-		{
-			return InitialResponseCallback(status);
-		},
-										[&](uint64_t len, uint64_t total)
-		{
-			return ProgressCallback(len, total);
-		}, customExtension);
+		FileObject = File::RegisterFile(link, outName, customExtension);
 
 		UseInstallPath = useInstallPath;
 
@@ -350,48 +319,6 @@ private:
 
 #pragma region Mod Processing
 
-	inline void ExtractMod(const std::wstring& filePath, const std::wstring& extractDirectory)
-	{
-		/* create directories in order to prevent any errors */
-		std::filesystem::create_directories(extractDirectory);
-
-		/* extract into said directory */
-		UpdateLoadingScreen(std::format(L"extracting \"{}\"", filePath));
-		NosLib::Logging::CreateLog<wchar_t>(std::format(L"Extracting \"{}\" To \"{}\"", filePath, extractDirectory), NosLib::Logging::Severity::Info);
-
-		uint64_t totalSize = 0;
-
-		extractor.setTotalCallback([&](uint64_t total_size)
-		{
-			totalSize = total_size;
-		});
-
-		extractor.setProgressCallback([&](uint64_t processed_size)
-		{
-			UpdateLoadingScreen((static_cast<double>(processed_size) * 100.0) / static_cast<double>(totalSize));
-			return true;
-		});
-
-		try
-		{
-			extractor.extract(filePath, extractDirectory);
-		}
-		catch (const bit7z::BitException& ex)
-		{
-			std::wstring errorMessage;
-			for (std::pair<std::wstring, std::error_code> entry : ex.failedFiles())
-			{
-				errorMessage += std::format(L"{} : {}\n", entry.first, NosLib::String::ToWstring(entry.second.message()));
-			}
-
-			errorMessage += NosLib::String::ToWstring(std::format("{}\n", ex.what()));
-			NosLib::Logging::CreateLog<wchar_t>(errorMessage, NosLib::Logging::Severity::Error);
-			return;
-		}
-		NosLib::Logging::CreateLog<wchar_t>(std::format(L"Extracted \"{}\" To \"{}\"", filePath, extractDirectory), NosLib::Logging::Severity::Info);
-		UpdateLoadingScreen(std::format(L"extracted \"{}\"", filePath));
-	}
-
 	inline void LogError(const std::wstring& errorMessage, const std::source_location& errorLocation)
 	{
 		std::wstring logMessage = std::format(L"{} :: {} :: {} | mod: \"{}\" -> {}\n",
@@ -406,20 +333,28 @@ private:
 
 	inline void StandardModProcess()
 	{
-		UpdateLoadingScreen(L"Getting File...");
-		std::wstring filePath = FileObject->GetFile();
-		UpdateLoadingScreen(L"Got File");
+		UpdateLoadingScreen(L"Downloading File...");
+		std::wstring filePath = FileObject->GetFile(
+													[&](const std::wstring& status)
+		{
+			return InitialResponseCallback(status);
+		},
+													[&](uint64_t len, uint64_t total)
+		{
+			return ProgressCallback(len, total);
+		});
+		UpdateLoadingScreen(L"Downloaded File");
 
-		/* create path to extract into */
-		std::wstring extractedOutDirectory = InstallOptions::GammaInstallPath + InstallInfo::ExtractedDirectory + GetFolderName();
-		ExtractMod(filePath, extractedOutDirectory);
+		UpdateLoadingScreen(L"Extracting File...");
+		std::wstring extractPath = FileObject->GetExtractFile();
+		UpdateLoadingScreen(L"Extracted File...");
 
 		UpdateLoadingScreen(L"Copying files...");
 		/* for every "inner" path, go through and find the needed files */
 		for (std::wstring path : InsidePaths)
 		{
 			/* root inner path, everything revolves around this */
-			std::wstring rootFrom = (extractedOutDirectory + path);
+			std::wstring rootFrom = (extractPath + path);
 			std::wstring rootTo = (InstallOptions::GammaInstallPath + InstallInfo::ModDirectory + GetFolderName() + L"\\");
 
 
@@ -449,32 +384,32 @@ private:
 			}
 		}
 		UpdateLoadingScreen(L"Finished Copying");
-
-		UpdateLoadingScreen(L"Cleaning up files...");
-		std::error_code ec;
-		if (-1 == std::filesystem::remove_all(extractedOutDirectory, ec))
-		{
-			NosLib::Logging::CreateLog<wchar_t>(std::format(L"error: \"{}\" When trying to remove extract directory", NosLib::String::ToWstring(ec.message())), NosLib::Logging::Severity::Error);
-		}
-		UpdateLoadingScreen(L"Finished Clean up");
 	}
 
 	inline void CustomModProcess()
 	{
-		UpdateLoadingScreen(L"Getting File...");
-		std::wstring filePath = FileObject->GetFile();
-		UpdateLoadingScreen(L"Got File");
+		UpdateLoadingScreen(L"Downloading File...");
+		std::wstring filePath = FileObject->GetFile(
+													[&](const std::wstring& status)
+		{
+			return InitialResponseCallback(status);
+		},
+													[&](uint64_t len, uint64_t total)
+		{
+			return ProgressCallback(len, total);
+		});
+		UpdateLoadingScreen(L"Downloaded File");
 
-		/* create path to extract into */
-		std::wstring extractedOutDirectory = InstallOptions::GammaInstallPath + InstallInfo::ExtractedDirectory + GetFolderName();
-		ExtractMod(filePath, extractedOutDirectory);
+		UpdateLoadingScreen(L"Extracting File...");
+		std::wstring extractPath = FileObject->GetExtractFile();
+		UpdateLoadingScreen(L"Extracted File...");
 
 		UpdateLoadingScreen(L"Copying files...");
 		/* for every "inner" path, go through and find the needed files */
 		for (std::wstring path : InsidePaths)
 		{
 			/* root inner path, everything revolves around this */
-			std::wstring rootFrom = (extractedOutDirectory + path);
+			std::wstring rootFrom = (extractPath + path);
 			std::wstring rootTo = (UseInstallPath ? InstallOptions::GammaInstallPath : L"") + OutPath;
 
 			NosLib::Logging::CreateLog<wchar_t>(std::format(L"Copying \"{}\" To \"{}\"", rootFrom, rootTo), NosLib::Logging::Severity::Info);
@@ -496,14 +431,6 @@ private:
 			}
 		}
 		UpdateLoadingScreen(L"Finished Copying");
-
-		UpdateLoadingScreen(L"Cleaning up files...");
-		std::error_code ec;
-		if (-1 == std::filesystem::remove_all(extractedOutDirectory, ec))
-		{
-			NosLib::Logging::CreateLog<wchar_t>(std::format(L"error: \"{}\" When trying to remove extract directory", NosLib::String::ToWstring(ec.message())), NosLib::Logging::Severity::Error);
-		}
-		UpdateLoadingScreen(L"Finished Clean up");
 	}
 
 	inline void SeparatorModProcess()

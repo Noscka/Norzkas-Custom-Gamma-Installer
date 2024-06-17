@@ -131,3 +131,44 @@ bool File::GetAndSaveFile(httplib::Client* client, const std::wstring& urlFilePa
 	downloadFile.close();
 	return true;
 }
+
+bool File::ExtractFile()
+{
+	/* create directories in order to prevent any errors */
+	std::filesystem::create_directories(GetExtractPath());
+
+	NosLib::Logging::CreateLog<wchar_t>(std::format(L"Extracting \"{}\" To \"{}\"", GetDownloadPath(), GetExtractPath()), NosLib::Logging::Severity::Info);
+
+	uint64_t totalSize = 0;
+
+	extractor.setTotalCallback([&](uint64_t total_size)
+	{
+		totalSize = total_size;
+	});
+
+	extractor.setProgressCallback([&](uint64_t processed_size)
+	{
+		return ProgressCallback(processed_size, totalSize);
+	});
+
+	try
+	{
+		InitialCallback(std::format(L"Extracting \"{}\"", FileName.GetFullFileName()));
+		extractor.extract(GetDownloadPath(), GetExtractPath());
+	}
+	catch (const bit7z::BitException& ex)
+	{
+		std::wstring errorMessage;
+		for (std::pair<std::wstring, std::error_code> entry : ex.failedFiles())
+		{
+			errorMessage += std::format(L"{} : {}\n", entry.first, NosLib::String::ToWstring(entry.second.message()));
+		}
+
+		errorMessage += NosLib::String::ToWstring(std::format("{}\n", ex.what()));
+		NosLib::Logging::CreateLog<wchar_t>(errorMessage, NosLib::Logging::Severity::Error);
+		return false;
+	}
+	NosLib::Logging::CreateLog<wchar_t>(std::format(L"Extracted \"{}\" To \"{}\"", GetDownloadPath(), GetExtractPath()), NosLib::Logging::Severity::Info);
+
+	return true;
+}
