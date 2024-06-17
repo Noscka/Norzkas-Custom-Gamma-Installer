@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="600" height="600">
+	<defs>
+		<radialGradient id="grad1" x1="0%" x2="100%" y1="0%" y2="0%">
+			<stop offset="0%" stop-color="#000"/>
+			<stop offset="100%" stop-color="#4F0002"/>
+		</radialGradient>
+	</defs>
+	<rect width="600" height="600" fill="none"/>
+	<g transform="translate(300,300)" fill="Black" stroke="white" stroke-width="3">
+		<circle r="270" fill="url(#grad1)" stroke="black"/>
+		<circle r="50"/>
+		<path d="M75,0 A 75,75 0 0,0 37.5,-64.952 L 125,-216.506 A 250,250 0 0,1 250,0 z" id="bld"/>
+		<use xlink:href="#bld" transform="rotate(120)"/>
+		<use xlink:href="#bld" transform="rotate(240)"/>
+	</g>
+</svg>
