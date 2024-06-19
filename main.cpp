@@ -8,6 +8,8 @@
 #include <fstream>
 #include <format>
 
+#include "Headers/Version.hpp"
+
 QString GetStyleSheet()
 {
 	QFile manjaroMix(":/Theme/vs15 Dark-Red.qss");
@@ -20,6 +22,8 @@ int main(int argc, char* argv[])
 {
 	NosLib::Logging::SetVerboseLevel(NosLib::Logging::Verbose::Error);
 	NosLib::SetUserAgent("NCGI");
+
+	printf("Current Version: %s\n", NCGI_VERSION);
 
 	QApplication app(argc, argv);
 	app.setStyleSheet(GetStyleSheet());

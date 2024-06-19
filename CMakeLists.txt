@@ -1,5 +1,22 @@
 ﻿cmake_minimum_required(VERSION 3.8)
-project ("NCGI" VERSION 1.0.0 LANGUAGES CXX)
+
+execute_process(COMMAND git describe --tags OUTPUT_VARIABLE GIT_VERSION)
+
+string(REPLACE "\n" "" GIT_VERSION ${GIT_VERSION})
+string(REPLACE " " "" GIT_VERSION ${GIT_VERSION})
+
+if( GIT_VERSION MATCHES "^v(0|[1-9][0-9]*)[.](0|[1-9][0-9]*)[.](0|[1-9][0-9]*)$" )
+    set( version_major "${CMAKE_MATCH_1}" )
+    set( version_minor "${CMAKE_MATCH_2}" )
+    set( version_patch "${CMAKE_MATCH_3}" )
+endif()
+
+message(STATUS "Git Tag: ${version_major}.${version_minor}.${version_patch}")
+
+project ("NCGI" VERSION ${version_major}.${version_minor}.${version_patch} LANGUAGES CXX)
+
+# Version Header
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMake/Version.hpp.in" "${CMAKE_CURRENT_SOURCE_DIR}/Headers/Version.hpp")
 
 # Set Options and Properties
 set(CMAKE_CXX_STANDARD 20)
@@ -58,10 +75,10 @@ BASE "Assets/"
 )
 
 # Make console invisible
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    WIN32_EXECUTABLE ON
-    MACOSX_BUNDLE ON
-)
+# set_target_properties(${PROJECT_NAME} PROPERTIES
+#     WIN32_EXECUTABLE ON
+#     MACOSX_BUNDLE ON
+# )
 
 # Link Libraries
 target_link_libraries(${PROJECT_NAME}
@@ -93,15 +110,15 @@ add_custom_command(
    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> ${OUTDIR}
 )
 
-if (CMAKE_IMPORT_LIBRARY_SUFFIX)
-  add_custom_command(
-    TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTDIR} "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}>"
-  COMMAND_EXPAND_LISTS
-  )
-
-  add_custom_command(
-    TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND "windeployqt" --release --compiler-runtime "${OUTDIR}/NCGI.exe"
-  )
-endif ()
+#if (CMAKE_IMPORT_LIBRARY_SUFFIX)
+#  add_custom_command(
+#    TARGET ${PROJECT_NAME} POST_BUILD
+#    COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTDIR} "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}>"
+#  COMMAND_EXPAND_LISTS
+#  )
+#
+#  add_custom_command(
+#    TARGET ${PROJECT_NAME} POST_BUILD
+#    COMMAND "windeployqt" --release --compiler-runtime "${OUTDIR}/NCGI.exe"
+#  )
+#endif ()
