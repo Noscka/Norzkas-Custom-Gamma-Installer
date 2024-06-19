@@ -1,9 +1,4 @@
 #pragma once
 
-#define NCGI_VERSION_MAJOR "3"
-#define NCGI_VERSION_MINOR "0"
-#define NCGI_VERSION_PATCH "0"
-
-#define NCGI_VERSION NCGI_VERSION_MAJOR "." NCGI_VERSION_MINOR "." NCGI_VERSION_PATCH
-
-#define NCGI_BRANCH "GitVersionSync"
+inline const char* NCGI_VERSION = "3.0.0";
+inline const char* NCGI_BRANCH = "GitVersionSync";
