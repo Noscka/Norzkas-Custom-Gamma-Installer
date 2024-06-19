@@ -1,19 +1,11 @@
 ﻿cmake_minimum_required(VERSION 3.8)
 
-execute_process(COMMAND git describe --tags OUTPUT_VARIABLE GIT_VERSION)
+include("CMake/Versioning.cmake")
 
-string(REPLACE "\n" "" GIT_VERSION ${GIT_VERSION})
-string(REPLACE " " "" GIT_VERSION ${GIT_VERSION})
+Get_Git_Version()
+Get_Git_Branch()
 
-if( GIT_VERSION MATCHES "^v(0|[1-9][0-9]*)[.](0|[1-9][0-9]*)[.](0|[1-9][0-9]*)$" )
-    set( version_major "${CMAKE_MATCH_1}" )
-    set( version_minor "${CMAKE_MATCH_2}" )
-    set( version_patch "${CMAKE_MATCH_3}" )
-endif()
-
-message(STATUS "Git Tag: ${version_major}.${version_minor}.${version_patch}")
-
-project ("NCGI" VERSION ${version_major}.${version_minor}.${version_patch} LANGUAGES CXX)
+project ("NCGI" VERSION ${GIT_VERSION} LANGUAGES CXX)
 
 # Version Header
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMake/Version.hpp.in" "${CMAKE_CURRENT_SOURCE_DIR}/Headers/Version.hpp")
