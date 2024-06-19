@@ -6,8 +6,9 @@
 
 #include <NosLib/Logging.hpp>
 
-#include "Headers/Validation.hpp"
-#include "Headers/InstallManager.hpp"
+#include "../Headers/Validation.hpp"
+#include "../Headers/InstallManager.hpp"
+#include "../Headers/Version.hpp"
 
 #include "ui_InstallerWindow.h"
 
@@ -29,6 +30,8 @@ public:
 
 		ui.GammaPathInput->SetLabelText("Gamma Install Path");
 		ui.GammaPathInput->SetInputText("C:/Games/Gamma");
+
+		setWindowTitle(QCoreApplication::translate("InstallerWindow", std::format("Norzka's Custom Gamma Installer - {}", MakeTitleString()).c_str() , nullptr));
 
 		StartupChecks();
 
@@ -80,6 +83,19 @@ public:
 	}
 
 protected:
+	inline std::string MakeTitleString()
+	{
+		std::string out = "v";
+		out += NCGI_VERSION;
+
+		if (NCGI_BRANCH != "master")
+		{
+			out += std::format(" | {}", NCGI_BRANCH);
+		}
+
+		return out;
+	}
+
 	inline void StartupChecks()
 	{
 		BottomControlButtonChecks();

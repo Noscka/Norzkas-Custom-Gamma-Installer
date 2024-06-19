@@ -391,7 +391,7 @@
            <string/>
           </property>
           <property name="pixmap">
-           <pixmap resource="../build/.rcc/Images.qrc">:/Images/Logo.png</pixmap>
+           <pixmap resource="../build/.rcc/Assets.qrc">:/Images/Logo.png</pixmap>
           </property>
           <property name="alignment">
            <set>Qt::AlignmentFlag::AlignCenter</set>
@@ -628,7 +628,8 @@
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="../build/.rcc/Images.qrc"/>
+  <include location="../build/.rcc/Assets.qrc"/>
+  <include location="../build/.rcc/Assets.qrc"/>
  </resources>
  <connections/>
 </ui>

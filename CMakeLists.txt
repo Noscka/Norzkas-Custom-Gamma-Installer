@@ -1,5 +1,14 @@
 ﻿cmake_minimum_required(VERSION 3.8)
-project ("NCGI" VERSION 1.0.0 LANGUAGES CXX)
+
+include("CMake/Versioning.cmake")
+
+Get_Git_Version()
+Get_Git_Branch()
+
+project ("NCGI" VERSION ${GIT_VERSION} LANGUAGES CXX)
+
+# Version Header
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMake/Version.hpp.in" "${CMAKE_CURRENT_SOURCE_DIR}/Headers/Version.hpp")
 
 # Set Options and Properties
 set(CMAKE_CXX_STANDARD 20)
@@ -35,7 +44,7 @@ file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "Headers/*" "Source/*" "CustomW
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     enable_language("RC")
-    set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Icon.rc")
+    set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Icon.rc" "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Version.rc")
 endif()
 
 qt_add_executable(${PROJECT_NAME} "main.cpp" ${ProjectFiles} ${app_icon_resource_windows})
