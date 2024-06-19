@@ -18,6 +18,9 @@ QString GetStyleSheet()
 
 int main(int argc, char* argv[])
 {
+	/* Stops system from going to idle sleep */
+	SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED);
+
 	NosLib::Logging::SetVerboseLevel(NosLib::Logging::Verbose::Error);
 	NosLib::SetUserAgent("NCGI");
 
@@ -28,5 +31,7 @@ int main(int argc, char* argv[])
 	InstallerWindow window;
 	window.show();
 
+	/* Allows Idle sleep again */
+	SetThreadExecutionState(ES_CONTINUOUS);
 	return app.exec();
 }
