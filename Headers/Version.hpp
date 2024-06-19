@@ -5,4 +5,4 @@
 #define NCGI_VERSION_PATCH 0
 
 #define NCGI_VERSION "3.0.0"
-#define NCGI_BRANCH "GitVersionSync"
+#define NCGI_BRANCH "master"

@@ -94,6 +94,7 @@ bool File::GetAndSaveFile(httplib::Client* client, const std::wstring& urlFilePa
 {
 	std::ofstream downloadFile;
 
+	SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
 	httplib::Result res = client->Get(NosLib::String::ToString(urlFilePath),
 									  [&](const httplib::Response& response)
 	{
