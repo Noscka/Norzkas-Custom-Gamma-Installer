@@ -44,7 +44,7 @@ file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "Headers/*" "Source/*" "CustomW
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     enable_language("RC")
-    set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Icon.rc")
+    set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Icon.rc" "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Version.rc")
 endif()
 
 qt_add_executable(${PROJECT_NAME} "main.cpp" ${ProjectFiles} ${app_icon_resource_windows})
@@ -67,10 +67,10 @@ BASE "Assets/"
 )
 
 # Make console invisible
-# set_target_properties(${PROJECT_NAME} PROPERTIES
-#     WIN32_EXECUTABLE ON
-#     MACOSX_BUNDLE ON
-# )
+set_target_properties(${PROJECT_NAME} PROPERTIES
+    WIN32_EXECUTABLE ON
+    MACOSX_BUNDLE ON
+)
 
 # Link Libraries
 target_link_libraries(${PROJECT_NAME}
@@ -102,15 +102,15 @@ add_custom_command(
    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> ${OUTDIR}
 )
 
-#if (CMAKE_IMPORT_LIBRARY_SUFFIX)
-#  add_custom_command(
-#    TARGET ${PROJECT_NAME} POST_BUILD
-#    COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTDIR} "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}>"
-#  COMMAND_EXPAND_LISTS
-#  )
-#
-#  add_custom_command(
-#    TARGET ${PROJECT_NAME} POST_BUILD
-#    COMMAND "windeployqt" --release --compiler-runtime "${OUTDIR}/NCGI.exe"
-#  )
-#endif ()
+if (CMAKE_IMPORT_LIBRARY_SUFFIX)
+  add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTDIR} "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}>"
+  COMMAND_EXPAND_LISTS
+  )
+
+  add_custom_command(
+    TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND "windeployqt" --release --compiler-runtime "${OUTDIR}/NCGI.exe"
+  )
+endif ()
