@@ -37,6 +37,11 @@ File::HostType File::DetermineHostType(const std::wstring& hostName)
 		return HostType::ModDB;
 	}
 	
+	if (hostName.find(L"objects.githubusercontent") != std::wstring::npos)
+	{
+		return HostType::GithubObjects;
+	}
+
 	if (hostName.find(L"github") != std::wstring::npos)
 	{
 		return HostType::Github;
@@ -59,6 +64,11 @@ bool File::DownloadFile()
 	case HostType::ModDB:
 		downloadClient = ModDB::GetDownloadClient();
 		downloadLink = ModDB::GetDownloadString(Link.Path);
+		break;
+
+	case HostType::GithubObjects:
+		downloadClient = Github::GetDownloadObjectsClient();
+		downloadLink = Link.Path;
 		break;
 
 	case HostType::Github:
@@ -126,7 +136,13 @@ bool File::GetAndSaveFile(httplib::Client* client, const std::wstring& urlFilePa
 
 	if (!res)
 	{
-		NosLib::Logging::CreateLog<wchar_t>(std::format(L"connection error code: {}\n", NosLib::String::ToWstring(httplib::to_string(res.error()))), NosLib::Logging::Severity::Error);
+		NosLib::Logging::CreateLog<wchar_t>(std::format(L"connection error code: {}", NosLib::String::ToWstring(httplib::to_string(res.error()))), NosLib::Logging::Severity::Error);
+		return false;
+	}
+
+	if (res->status != 200)
+	{
+		NosLib::Logging::CreateLog<char>(std::format("File not found. Status: {} | Reason: \"{}\"", res->status, res->reason), NosLib::Logging::Severity::Error);
 		return false;
 	}
 

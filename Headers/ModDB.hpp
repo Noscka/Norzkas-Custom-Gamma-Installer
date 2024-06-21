@@ -38,10 +38,15 @@ public:
 	inline static std::wstring GetDownloadString(const std::wstring& downloadLink)
 	{
 		Initialize();
-		return Instance->GetQuickestMirror(downloadLink);
+		return Instance->GetGivenMirror(downloadLink);
+		/* Quickest Mirror Currently makes ModDB block user */
+		//return Instance->GetQuickestMirror(downloadLink);
 	}
 protected:
+	std::wstring GetGivenMirror(const std::wstring& downloadLink);
+
 	std::wstring GetQuickestMirror(const std::wstring& downloadLink);
+	std::string GetPageContent(const std::string& downloadLink);
 	NosLib::DynamicArray<std::string> ExtractMirrors(const std::string& pageContent);
 	uint32_t PingMirror(const std::string& mirrorHostname);
 	std::string GetHostName(const std::string& downloadLink);

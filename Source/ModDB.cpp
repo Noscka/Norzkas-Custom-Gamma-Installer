@@ -9,13 +9,42 @@
 #include <IPExport.h>
 #include <icmpapi.h>
 #include <WinSock2.h>
+#include <Ws2tcpip.h>
 
 #pragma comment(lib, "iphlpapi.lib")
 #pragma comment(lib, "ws2_32.lib")
 
+std::wstring ModDB::GetGivenMirror(const std::wstring& downloadLink)
+{
+	std::string pageContent = GetPageContent(NosLib::String::ToString(downloadLink));
+
+	if (pageContent.empty())
+	{
+		return L"";
+	}
+
+	html::parser p;
+	html::node_ptr node = p.parse(pageContent);
+
+	std::vector<html::node*> mirrorContainers = node->select("a[href]");
+
+	if (mirrorContainers.size() < 1)
+	{
+		return L"";
+	}
+
+	return NosLib::String::ToWstring(mirrorContainers[0]->get_attr("href"));
+}
+
 std::wstring ModDB::GetQuickestMirror(const std::wstring& downloadLink)
 {
-	std::string pageContent = ModDBMirrorClient.Get(NosLib::String::ToString(downloadLink)+"/all")->body;
+	std::string pageContent = GetPageContent(NosLib::String::ToString(downloadLink) + "/all");
+	
+	if (pageContent.empty())
+	{
+		return L"";
+	}
+
 	NosLib::DynamicArray<std::string> mirrors = ExtractMirrors(pageContent);
 	std::vector<std::future<uint32_t>> futures;
 
@@ -42,6 +71,25 @@ std::wstring ModDB::GetQuickestMirror(const std::wstring& downloadLink)
 	NosLib::Logging::CreateLog<char>(std::format("Quickest Mirror was: {} | ping time: {}ms", quickestIndex, quickestTime), NosLib::Logging::Severity::Debug);
 
 	return NosLib::String::ToWstring(mirrors[quickestIndex]);
+}
+
+std::string ModDB::GetPageContent(const std::string& downloadLink)
+{
+	httplib::Result modDBResult = ModDBMirrorClient.Get(downloadLink );
+
+	if (modDBResult->status == 503)
+	{
+		NosLib::Logging::CreateLog<char>("ModDB currently Unavailable, most likely too many requests", NosLib::Logging::Severity::Error);
+		return "";
+	}
+
+	if (modDBResult->status != 200)
+	{
+		NosLib::Logging::CreateLog<char>(std::format("File not found. Status: {} | Reason: \"{}\"", modDBResult->status, modDBResult->reason), NosLib::Logging::Severity::Error);
+		return "";
+	}
+
+	return modDBResult->body;
 }
 
 NosLib::DynamicArray<std::string> ModDB::ExtractMirrors(const std::string& pageContent)
@@ -75,13 +123,16 @@ uint32_t ModDB::PingMirror(const std::string& mirrorHostname)
 		throw;
 	}
 
-	hostent* hostname = gethostbyname(hostnameString.c_str());
-	if (hostname == nullptr)
+	addrinfo* addr = nullptr;
+
+	/* Get IP Address */
+	int errorStatus = getaddrinfo(hostnameString.c_str(), NULL, NULL, &addr);
+	if (errorStatus != 0)
 	{
 		throw;
 	}
 
-	in_addr dest_ip = (**(in_addr**)hostname->h_addr_list);
+	sockaddr_in* destAddr_ipv4 = reinterpret_cast<sockaddr_in*>(addr->ai_addr);
 
 	// Payload to send.
 	constexpr WORD payload_size = 1;
@@ -92,7 +143,7 @@ uint32_t ModDB::PingMirror(const std::string& mirrorHostname)
 	unsigned char reply_buf[reply_buf_size]{};
 
 	IcmpSendEcho(icmp_handle,
-				 dest_ip.S_un.S_addr,
+				 destAddr_ipv4->sin_addr.S_un.S_addr,
 				 payload,
 				 payload_size,
 				 NULL,

@@ -337,6 +337,11 @@ private:
 		std::wstring extractPath = FileObject->GetFile(this, &ModInfo::InitialResponseCallback, &ModInfo::ProgressCallback);
 		UpdateLoadingScreen(L"Received File");
 
+		if (extractPath.empty())
+		{
+			LogError(L"Failed to Get Mod File", std::source_location::current());
+		}
+
 		UpdateLoadingScreen(L"Copying files...");
 		/* for every "inner" path, go through and find the needed files */
 		for (std::wstring path : InsidePaths)

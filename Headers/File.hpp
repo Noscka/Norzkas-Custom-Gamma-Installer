@@ -48,6 +48,7 @@ protected:
 	{
 		ModDB,
 		Github,
+		GithubObjects,
 		Unknown,
 	};
 
