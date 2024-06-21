@@ -3,6 +3,9 @@
 
 #include "../Headers/ModDB.hpp"
 
+#include <future>
+#include <vector>
+
 #include <IPExport.h>
 #include <icmpapi.h>
 #include <WinSock2.h>
@@ -14,12 +17,20 @@ std::wstring ModDB::GetQuickestMirror(const std::wstring& downloadLink)
 {
 	std::string pageContent = ModDBMirrorClient.Get(NosLib::String::ToString(downloadLink)+"/all")->body;
 	NosLib::DynamicArray<std::string> mirrors = ExtractMirrors(pageContent);
+	std::vector<std::future<uint32_t>> futures;
+
+	for (const std::string& mirror : mirrors)
+	{
+		futures.emplace_back(std::async(std::launch::async,
+								  [this](const std::string& mirrorHostname) { return PingMirror(mirrorHostname); },
+								  std::cref(mirror)));
+	}
 
 	int quickestIndex = 0;
 	uint32_t quickestTime = -1; /* underflow to max */
-	for (int i = 0; i <= mirrors.GetLastArrayIndex(); i++)
+	for (int i = 0; i < futures.size(); i++)
 	{
-		uint32_t currentTime = PingMirror(mirrors[i]);
+		uint32_t currentTime = futures[i].get();
 
 		if (currentTime < quickestTime)
 		{
