@@ -4,3 +4,6 @@
 [submodule "External/bit7z"]
 	path = External/bit7z
 	url = https://github.com/rikyoz/bit7z
+[submodule "External/HtmlParser"]
+	path = External/HtmlParser
+	url = https://github.com/mylogin/htmlparser.git

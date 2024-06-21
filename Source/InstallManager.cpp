@@ -8,7 +8,7 @@
 void InstallManager::InitializeInstaller()
 {
 	File::SetDirectories(InstallOptions::GammaInstallPath + InstallInfo::DownloadDirectory, InstallOptions::GammaInstallPath + InstallInfo::ExtractDirectory);
-
+	
 	ModInfo modOrganizer = MO::GetModOrganizerModObject();
 	modOrganizer.ProcessMod();
 
