@@ -9,6 +9,8 @@
 #include <bit7z\bit7zlibrary.hpp>
 #include <bit7z\bitfileextractor.hpp>
 
+#include "ModDB.hpp"
+
 #include <string>
 #include <functional>
 #include <filesystem>

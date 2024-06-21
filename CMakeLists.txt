@@ -67,10 +67,10 @@ BASE "Assets/"
 )
 
 # Make console invisible
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    WIN32_EXECUTABLE ON
-    MACOSX_BUNDLE ON
-)
+#set_target_properties(${PROJECT_NAME} PROPERTIES
+#    WIN32_EXECUTABLE ON
+#    MACOSX_BUNDLE ON
+#)
 
 # Link Libraries
 target_link_libraries(${PROJECT_NAME}
@@ -79,8 +79,8 @@ target_link_libraries(${PROJECT_NAME}
         Qt::Gui
         Qt::Widgets
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE -static NosLib)
-target_link_libraries(${PROJECT_NAME} PRIVATE -static bit7z)
+target_link_libraries(${PROJECT_NAME} PRIVATE -static NosLib htmlparser bit7z)
+target_include_directories(${PROJECT_NAME} PRIVATE ${htmlparser_SOURCE_DIR})
 
 # Add Compiler Definitions
 add_compile_definitions(CPPHTTPLIB_OPENSSL_SUPPORT)

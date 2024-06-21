@@ -1,9 +1,8 @@
 #include "../Headers/File.hpp"
-#include "../Headers/HTMLParsing.hpp"
 #include "../Headers/ModInfo.hpp"
+#include "../Headers/Github.hpp"
 
 #include <NosLib/HttpClient.hpp>
-
 
 #include <fstream>
 #include <filesystem>
@@ -48,46 +47,43 @@ File::HostType File::DetermineHostType(const std::wstring& hostName)
 
 bool File::DownloadFile()
 {
-	/* create client for the host */
-	httplib::Client downloadClient = NosLib::MakeClient(NosLib::String::ToString(Link.Host), true);
-	downloadClient.set_follow_location(true);
-
 	/* create directories in order to prevent any errors */
 	std::filesystem::create_directories(DownloadDirectory);
+
+	httplib::Client* downloadClient = nullptr;
+	std::wstring downloadLink;
 
 	/* Decide the host type, there are different download steps for different websites */
 	switch (DetermineHostType(Link.Host))
 	{
 	case HostType::ModDB:
-		return ModDBDownload(&downloadClient, DownloadDirectory);
+		downloadClient = ModDB::GetDownloadClient();
+		downloadLink = ModDB::GetDownloadString(Link.Path);
+		break;
 
 	case HostType::Github:
-		return GithubDownload(&downloadClient, DownloadDirectory);
+		downloadClient = Github::GetDownloadClient();
+		downloadLink = Link.Path;
+		break;
 
 	default:
 		NosLib::Logging::CreateLog<wchar_t>(std::format(L"Mod uses unknown provider: \"{}\"", Link.Full()), NosLib::Logging::Severity::Error);
 		return false;
 	}
 
-	return false;
-}
-
-bool File::ModDBDownload(httplib::Client* downloadClient, const std::wstring& pathOffsets)
-{
-	std::wstring linkOutput = ModDBParsing::ParseHtmlForLink(downloadClient->Get(NosLib::String::ToString(Link.Path))->body);
-
-	if (linkOutput.empty())
+	if (downloadClient == nullptr)
 	{
-		NosLib::Logging::CreateLog<wchar_t>(std::format(L"Couldn't find link for \"{}\" using link \"{}\"", FileName.GetFullFileName(), Link.Full()), NosLib::Logging::Severity::Error);
+		NosLib::Logging::CreateLog<wchar_t>(std::format(L"Unable to get Download Client for Mod: \"{}\"", Link.Full()), NosLib::Logging::Severity::Error);
 		return false;
 	}
 
-	return GetAndSaveFile(downloadClient, linkOutput, pathOffsets);
-}
+	if (downloadLink.empty())
+	{
+		NosLib::Logging::CreateLog<wchar_t>(std::format(L"Unable to get Download Link for Mod: \"{}\"", Link.Full()), NosLib::Logging::Severity::Error);
+		return false;
+	}
 
-bool File::GithubDownload(httplib::Client* downloadClient, const std::wstring& pathOffsets)
-{
-	return GetAndSaveFile(downloadClient, Link.Path, pathOffsets);
+	return GetAndSaveFile(downloadClient, downloadLink, DownloadDirectory);
 }
 
 bool File::GetAndSaveFile(httplib::Client* client, const std::wstring& urlFilePath, const std::wstring& pathOffsets)

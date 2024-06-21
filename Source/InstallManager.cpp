@@ -9,6 +9,7 @@ void InstallManager::InitializeInstaller()
 {
 	File::SetDirectories(InstallOptions::GammaInstallPath + InstallInfo::DownloadDirectory, InstallOptions::GammaInstallPath + InstallInfo::ExtractDirectory);
 
+#if 0
 	ModInfo modOrganizer = MO::GetModOrganizerModObject();
 	modOrganizer.ProcessMod();
 
@@ -32,6 +33,7 @@ void InstallManager::InitializeInstaller()
 
 	ModInfo::modInfoList.Append(new ModInfo(L"https://github.com/Grokitach/gamma_large_files_v2/archive/refs/heads/main.zip",
 																		NosLib::DynamicArray<std::wstring>({ L"\\gamma_large_files_v2-main" }), InstallInfo::ModDirectory, L"Gamma Large Files"));
+#endif
 
 																	/* parse modpack maker file, put it into global static array */
 	ModInfo::ModpackMakerFile_Parse(InstallOptions::GammaInstallPath + InstallInfo::ExtractDirectory + L"modpack_maker_list.txt");

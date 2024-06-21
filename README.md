@@ -6,12 +6,14 @@ The official installer for GAMMA felt badly put together, so I created my own: a
 
 Improvements over the official Installer:
  - Saves 50GBs
+ - Not forced to join a discord server
  - Does everything for you, from installing the Mod Organizer with GAMMA mods to patching the stalker anomaly binaries, so you can just leave the program to run in the background and do its job
  - Install anywhere you want (Might only be possible on Windows 10 and later)
  - Light weight and extremely easy to use
  - Don't have to run as Admin
  - No Confusing GUI
  - No Random Console and extract pop up windows
+ - Mirror Picking
 
 Requirements:
  - Have unmodded anomaly v1.5.2 already installed and ran at least once
