@@ -66,7 +66,7 @@ namespace MO
 
 	ModInfo GetModOrganizerModObject()
 	{
-		httplib::Client client = NosLib::MakeClient("https://github.com");
+		httplib::Client client = NosLib::HttpUtilities::MakeClient("https://github.com");
 		client.set_keep_alive(true);
 
 		std::wstring moVersion = GetLatestMOVersion(&client);

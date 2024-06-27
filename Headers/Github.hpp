@@ -1,6 +1,6 @@
 #pragma once
 
-#include <NosLib/HttpClient.hpp>
+#include <NosLib/HttpUtilities.hpp>
 
 class Github
 {

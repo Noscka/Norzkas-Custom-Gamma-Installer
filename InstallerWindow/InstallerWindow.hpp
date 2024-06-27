@@ -90,7 +90,7 @@ protected:
 
 		if (NCGI_BRANCH != "master")
 		{
-			out += std::format(" | {}", NCGI_BRANCH);
+			out += std::format(" | Branch: {}", NCGI_BRANCH);
 		}
 
 		return out;

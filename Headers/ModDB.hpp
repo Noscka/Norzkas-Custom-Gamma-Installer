@@ -1,6 +1,6 @@
 #pragma once
 
-#include <NosLib/HttpClient.hpp>
+#include <NosLib/HttpUtilities.hpp>
 
 #include <string>
 #include <fstream>
