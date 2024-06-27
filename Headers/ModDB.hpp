@@ -1,6 +1,6 @@
 #pragma once
 
-#include <NosLib/HttpUtilities.hpp>
+#include <NosLib/HttpClient.hpp>
 
 #include <string>
 #include <fstream>
@@ -10,8 +10,8 @@ class ModDB
 protected:
 	inline static ModDB* Instance = nullptr;
 
-	httplib::Client ModDBDownloadClient;
-	httplib::Client ModDBMirrorClient;
+	NosLib::HttpClient ModDBDownloadClient;
+	NosLib::HttpClient ModDBMirrorClient;
 
 	ModDB() : 
 		ModDBDownloadClient("https://www.moddb.com"),

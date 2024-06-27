@@ -2,7 +2,7 @@
 #include "../Headers/ModInfo.hpp"
 #include "../Headers/Github.hpp"
 
-#include <NosLib/HttpUtilities.hpp>
+#include <NosLib/HttpClient.hpp>
 
 #include <fstream>
 #include <filesystem>

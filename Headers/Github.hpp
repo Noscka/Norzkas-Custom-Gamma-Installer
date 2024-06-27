@@ -1,14 +1,14 @@
 #pragma once
 
-#include <NosLib/HttpUtilities.hpp>
+#include <NosLib/HttpClient.hpp>
 
 class Github
 {
 protected:
 	inline static Github* Instance = nullptr;
 
-	httplib::Client GithubClient;
-	httplib::Client GithubObjectsClient;
+	NosLib::HttpClient GithubClient;
+	NosLib::HttpClient GithubObjectsClient;
 
 	Github() : 
 		GithubClient("https://github.com"),

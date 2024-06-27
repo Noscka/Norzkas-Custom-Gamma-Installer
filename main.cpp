@@ -3,7 +3,7 @@
 #include "InstallerWindow/InstallerWindow.hpp"
 
 #include <NosLib/Logging.hpp>
-#include <NosLib/HttpUtilities.hpp>
+#include <NosLib/HttpClient.hpp>
 
 #include <conio.h>
 #include <fstream>
@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
 	SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED);
 
 	NosLib::Logging::SetVerboseLevel(NosLib::Logging::Verbose::Error);
-	NosLib::HttpUtilities::SetUserAgent("NCGI");
+	NosLib::HttpClient::SetUserAgent("NCGI");
 
 	QApplication app(argc, argv);
 	app.setStyleSheet(GetStyleSheet());

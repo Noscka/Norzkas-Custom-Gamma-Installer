@@ -3,7 +3,7 @@
 #include <NosLib\DynamicArray.hpp>
 #include <NosLib\String.hpp>
 #include <NosLib\HostPath.hpp>
-#include <NosLib\HttpUtilities.hpp>
+#include <NosLib\HttpClient.hpp>
 #include <NosLib\FileManagement.hpp>
 
 #include <format>
@@ -126,9 +126,7 @@ private:
 	void LogError(const std::wstring& errorMessage, const std::source_location& errorLocation);
 
 	void StandardModProcess();
-
 	void CustomModProcess();
-
 	void SeparatorModProcess();
 #pragma endregion
 
