@@ -8,6 +8,8 @@
 
 #include <format>
 #include <source_location>
+#include <mutex>
+#include <atomic>
 
 #include "Validation.hpp"
 #include "File.hpp"
@@ -18,6 +20,14 @@ inline NosLib::DynamicArray<std::wstring> ModSubDirectories = NosLib::DynamicArr
 
 class ModInfo
 {
+public:
+	enum class WorkState : uint16_t
+	{
+		NotStarted,
+		InProgress,
+		Completed
+	};
+
 private:
 	/// <summary>
 	/// describes what type of "mod" it is
@@ -30,8 +40,8 @@ private:
 	};
 
 	static inline int ModPrefixIndexCounter = 1;			/* a global trackers for the prefix number, GAMMA adds the mods index into the front of the file, only gets used on separators and standard mods */
-	static inline int ModCounter = 0;						/* a global mod counter, counts EVERY mod, this is for the loading screen so it knows how many there are */
 
+	/* Mod Params */
 	Type ModType;									/* the mod type */
 	int ModPrefixIndex;								/* the mod index, that will be used in the folder name */
 	NosLib::DynamicArray<std::wstring> InsidePaths;	/* an array of the inner paths (incase there is many) */
@@ -39,23 +49,22 @@ private:
 	std::wstring OutName;							/* the main folder name (use in folder name) */
 	std::wstring OriginalLink;						/* original mod link (I don't know why its there but I'll parse it anyway) */
 
-	File* FileObject = nullptr;
-
+	/* Extra Mod Params */
 	std::wstring OutPath;							/* This is Custom modtype only, it defines were to copy the files to */
 	bool UseInstallPath = true;						/* If mod should include mod path when installing (ONLY FOR CUSTOM) */
 
-	/* LOADING SCREEN VARIABLES */
-	int ModIndex;						/* mods index, used for loading screen */
-	static inline bool Parsed = false;	/* if the installer has parsed the modpack file yet */
+	/* MultiThreading */
+	std::mutex WorkStateMutex;
+	std::atomic<WorkState> CurrentWorkState = WorkState::NotStarted;
+	File* FileObject = nullptr;
 
 	/// <summary>
 	/// Needs to be run by all the constructors, initializes for loading screen
 	/// </summary>
 	void InitializeModInfo();
 public:
-	inline static NosLib::DynamicArray<ModInfo*> modInfoList;		/* A list of all mods */
+	inline static NosLib::DynamicArray<ModInfo*> modInfoList; /* A list of all mods */
 
-#pragma region constructors
 	/// <summary>
 	/// Seperator constructor, only has a name and index
 	/// </summary>
@@ -94,13 +103,13 @@ public:
 	/// <param name="useInstallPath">(default = true) - if it should add installPath string to the front of its paths</param>
 	/// <param name="customExtension">(default = L"") - custom extension</param>
 	ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>&& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& useInstallPath = true, const std::wstring& customExtension = L"");
-#pragma endregion
 
 	std::wstring GetFolderName();
 
+	WorkState GetModWorkState();
+
 	void ProcessMod();
 
-#pragma region Parsing
 	/// <summary>
 	/// takes in a filename for a modpackMaker and parses it fully
 	/// </summary>
@@ -115,20 +124,16 @@ private:
 	/// <param name="line">- input line</param>
 	/// <returns>pointer of ModInfo, containing parsed mod info</returns>
 	static ModInfo* ParseLine(std::wstring& line);
-#pragma endregion
 
 	void UpdateLoadingScreen(std::wstring status);
 	void UpdateLoadingScreen(const int& percentageOnCurrentMod);
 	void UpdateLoadingScreen(const int& percentageOnCurrentMod, const std::wstring& status);
-
-#pragma region Mod Processing
 
 	void LogError(const std::wstring& errorMessage, const std::source_location& errorLocation);
 
 	void StandardModProcess();
 	void CustomModProcess();
 	void SeparatorModProcess();
-#pragma endregion
 
 	void InitialResponseCallback(const std::wstring& statusString);
 	bool ProgressCallback(uint64_t len, uint64_t total);

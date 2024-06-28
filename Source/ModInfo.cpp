@@ -15,16 +15,6 @@ void copyIfExists(const std::wstring& from, const std::wstring& to)
 	std::filesystem::create_directories(to);
 	std::filesystem::copy(from, to, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
 }
-
-	/// <summary>
-	/// Needs to be run by all the constructors, initializes for loading screen
-	/// </summary>
-void ModInfo::InitializeModInfo()
-{
-	ModCounter++;
-	ModIndex = ModCounter;
-}
-
 #pragma region constructors
 /// <summary>
 /// Seperator constructor, only has a name and index
@@ -37,8 +27,6 @@ void ModInfo::InitializeModInfo()
 
 	OutName = outName;
 	ModType = Type::Seperator;
-
-	InitializeModInfo();
 }
 
 /// <summary>
@@ -62,9 +50,6 @@ ModInfo::ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>& i
 	ModType = Type::Standard;
 
 	FileObject = File::RegisterFile(link, outName);
-
-
-	InitializeModInfo();
 }
 
 /// <summary>
@@ -86,8 +71,6 @@ ModInfo::ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>& i
 	FileObject = File::RegisterFile(link, outName, customExtension);
 
 	UseInstallPath = useInstallPath;
-
-	InitializeModInfo();
 }
 
 /// <summary>
@@ -109,8 +92,6 @@ ModInfo::ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>&& 
 	FileObject = File::RegisterFile(link, outName, customExtension);
 
 	UseInstallPath = useInstallPath;
-
-	InitializeModInfo();
 }
 #pragma endregion
 
@@ -132,8 +113,29 @@ std::wstring ModInfo::GetFolderName()
 	}
 }
 
+ModInfo::WorkState ModInfo::GetModWorkState()
+{
+	std::lock_guard<std::mutex> lk(WorkStateMutex);
+
+	/* Seperator won't have a file to download */
+	if (ModType == Type::Seperator)
+	{
+		return CurrentWorkState.load();
+	}
+
+	/* If Started, return as inProgress too */
+	if (FileObject->CheckIfStarted())
+	{
+		WorkState::InProgress;
+	}
+
+	return CurrentWorkState.load();
+}
+
 void ModInfo::ProcessMod()
 {
+	CurrentWorkState = WorkState::InProgress;
+
 	/* do different things depending on the mod type */
 	switch (ModType)
 	{
@@ -158,6 +160,8 @@ void ModInfo::ProcessMod()
 	{
 		FileObject->Finished();
 	}
+
+	CurrentWorkState = WorkState::Completed;
 }
 
 #pragma region Parsing
@@ -179,7 +183,7 @@ void ModInfo::ModpackMakerFile_Parse(const std::wstring& modpackMakerFileName)
 		modInfoList.Append(ParseLine(line));
 	}
 
-	Parsed = true;
+	//Parsed = true;
 }
 
 /// <summary>
@@ -244,27 +248,33 @@ ModInfo* ModInfo::ParseLine(std::wstring& line)
 
 void ModInfo::UpdateLoadingScreen(std::wstring status)
 {
+	#if 0
 	InstallManager* instance = InstallManager::GetInstallManager();
 	status.insert(0, (Parsed ?
 						std::format(L"Mod {} out of {}\n", ModIndex, ModCounter) :
 						L"Initial Setup\n"));
 	instance->UpdateStatus(status);
+	#endif // 0
 }
 
 void ModInfo::UpdateLoadingScreen(const int& percentageOnCurrentMod)
 {
+	#if 0
 	InstallManager* instance = InstallManager::GetInstallManager();
 
 	instance->UpdateTotalProgress((ModIndex * 100) / ModCounter);
 	instance->UpdateSingularProgress(percentageOnCurrentMod);
+	#endif // 0
 }
 
 void ModInfo::UpdateLoadingScreen(const int& percentageOnCurrentMod, const std::wstring& status)
 {
+	#if 0
 	InstallManager* instance = InstallManager::GetInstallManager();
 
 	UpdateLoadingScreen(percentageOnCurrentMod);
 	UpdateLoadingScreen(status);
+	#endif // 0
 }
 
 

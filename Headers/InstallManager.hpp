@@ -100,10 +100,12 @@ protected:
 	void InitializeInstaller();
 	void MainInstall();
 
+	static void ModProcessThread();
+
 	inline void FinishInstall()
 	{
 		#ifdef _WIN32
-static wchar_t path[MAX_PATH + 1];
+		static wchar_t path[MAX_PATH + 1];
 		SHGetSpecialFolderPath(HWND_DESKTOP, path, CSIDL_DESKTOP, FALSE);
 
 		std::wstring targetFile = (InstallOptions::GammaInstallPath + L"ModOrganizer.exe");
