@@ -8,6 +8,7 @@
 
 #include <fstream>
 #include <chrono>
+#include <mutex>
 
 class InstallManager : public QObject
 {
@@ -15,6 +16,11 @@ class InstallManager : public QObject
 
 private:
 	inline static InstallManager* Instance = nullptr;
+
+	inline static std::mutex InstanceMutex;
+	inline static std::mutex TotalProgressMutex;
+	inline static std::mutex SingularProgressMutex;
+	inline static std::mutex StatusMutex;
 
 signals:
 	void FinishInstallerInitializing();
@@ -30,6 +36,8 @@ public:
 
 	inline static InstallManager* GetInstallManager()
 	{
+		std::lock_guard<std::mutex> lk(InstanceMutex);
+
 		if (Instance == nullptr)
 		{
 			Instance = new InstallManager();
@@ -40,16 +48,19 @@ public:
 
 	void UpdateTotalProgress(const int& value)
 	{
+		std::lock_guard<std::mutex> lk(TotalProgressMutex);
 		emit TotalUpdateProgress(value);
 	}
 
 	void UpdateSingularProgress(const int& value)
 	{
+		std::lock_guard<std::mutex> lk(SingularProgressMutex);
 		emit SingularUpdateProgress(value);
 	}
 
 	void UpdateStatus(const std::wstring& value)
 	{
+		std::lock_guard<std::mutex> lk(StatusMutex);
 		emit UpdateStatus(QString::fromStdWString(value));
 	}
 
@@ -99,8 +110,6 @@ public slots:
 protected:
 	void InitializeInstaller();
 	void MainInstall();
-
-	static void ModProcessThread();
 
 	inline void FinishInstall()
 	{

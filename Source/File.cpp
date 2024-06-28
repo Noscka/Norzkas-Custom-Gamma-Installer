@@ -157,7 +157,7 @@ bool File::ExtractFile()
 
 	NosLib::Logging::CreateLog<wchar_t>(std::format(L"Extracting \"{}\" To \"{}\"", GetDownloadPath(), GetExtractPath()), NosLib::Logging::Severity::Info);
 
-	uint64_t totalSize = 0;
+	uint64_t totalSize = 1;
 	extractor.setTotalCallback([&](uint64_t total_size)
 	{
 		totalSize = total_size;

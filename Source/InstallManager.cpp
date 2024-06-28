@@ -4,14 +4,14 @@
 
 #include "../Headers/ModOrganizer.hpp"
 #include "../Headers/ModInfo.hpp"
-
 #include "../Headers/File.hpp"
+#include "../Headers/ModProcessorThread.hpp"
 
 void InstallManager::InitializeInstaller()
 {
 	File::SetDirectories(InstallOptions::GammaInstallPath + InstallInfo::DownloadDirectory, InstallOptions::GammaInstallPath + InstallInfo::ExtractDirectory);
 	
-	#if 0
+	#if 1
 	ModInfo modOrganizer = MO::GetModOrganizerModObject();
 	modOrganizer.ProcessMod();
 
@@ -29,7 +29,7 @@ void InstallManager::InitializeInstaller()
 	std::filesystem::rename(InstallOptions::GammaInstallPath + InstallInfo::ExtractDirectory + L"modlist.txt", InstallOptions::GammaInstallPath + L"profiles\\Default\\modlist.txt");
 	std::filesystem::rename(InstallOptions::GammaInstallPath + InstallInfo::ExtractDirectory + L"modpack_icon.ico", InstallOptions::GammaInstallPath + L"modpack_icon.ico");
 	NormalizeModList(InstallOptions::GammaInstallPath + L"profiles\\Default\\modlist.txt");
-#endif // 0
+	#endif // 0
 
 	ModInfo::modInfoList.Append(new ModInfo(L"https://github.com/Grokitach/gamma_setup/archive/refs/heads/main.zip",
 																		NosLib::DynamicArray<std::wstring>({ L"\\gamma_setup-main\\modpack_addons" }), InstallInfo::ModDirectory, L"G.A.M.M.A. setup files"));
@@ -54,21 +54,7 @@ void InstallManager::MainInstall()
 {
 	NosLib::ThreadPool modProcessThreadPool;
 
-	NosLib::FunctionStore processFunction(&InstallManager::ModProcessThread);
+	NosLib::MemberFunctionStore<ModProcessorThread, void(ModProcessorThread::*)()> processFunction(&ModProcessorThread::ProcessMod);
 
-	modProcessThreadPool.StartThreadPool(processFunction);
-}
-
-void InstallManager::ModProcessThread()
-{
-	/* go through all mods in global static array */
-	for (ModInfo* mod : ModInfo::modInfoList)
-	{
-		if (mod->GetModWorkState() != ModInfo::WorkState::NotStarted)
-		{
-			continue;
-		}
-
-		mod->ProcessMod();
-	}
+	modProcessThreadPool.StartThreadPool(processFunction, false);
 }
