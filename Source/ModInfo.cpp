@@ -248,28 +248,28 @@ ModInfo* ModInfo::ParseLine(std::wstring& line)
 
 void ModInfo::UpdateLoadingScreen(std::wstring status)
 {
-	#if 0
+	#if 1
 	InstallManager* instance = InstallManager::GetInstallManager();
-	status.insert(0, (Parsed ?
-						std::format(L"Mod {} out of {}\n", ModIndex, ModCounter) :
-						L"Initial Setup\n"));
+	//status.insert(0, (Parsed ?
+	//					std::format(L"Mod {} out of {}\n", ModIndex, ModCounter) :
+	//					L"Initial Setup\n"));
 	instance->UpdateStatus(status);
 	#endif // 0
 }
 
 void ModInfo::UpdateLoadingScreen(const int& percentageOnCurrentMod)
 {
-	#if 0
+	#if 1
 	InstallManager* instance = InstallManager::GetInstallManager();
 
-	instance->UpdateTotalProgress((ModIndex * 100) / ModCounter);
+	//instance->UpdateTotalProgress((ModIndex * 100) / ModCounter);
 	instance->UpdateSingularProgress(percentageOnCurrentMod);
 	#endif // 0
 }
 
 void ModInfo::UpdateLoadingScreen(const int& percentageOnCurrentMod, const std::wstring& status)
 {
-	#if 0
+	#if 1
 	InstallManager* instance = InstallManager::GetInstallManager();
 
 	UpdateLoadingScreen(percentageOnCurrentMod);

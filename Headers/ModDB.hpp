@@ -10,15 +10,18 @@ class ModDB
 protected:
 	inline static ModDB* Instance = nullptr;
 
-	NosLib::HttpClient ModDBDownloadClient;
-	NosLib::HttpClient ModDBMirrorClient;
+	NosLib::HttpClient::ptr ModDBDownloadClient;
+	NosLib::HttpClient::ptr ModDBMirrorClient;
 
-	ModDB() : 
-		ModDBDownloadClient("https://www.moddb.com"),
-		ModDBMirrorClient("https://www.moddb.com")
+	ModDB()
 	{
-		ModDBDownloadClient.set_follow_location(true);
-		ModDBMirrorClient.set_follow_location(false);
+		ModDBDownloadClient = NosLib::HttpClient::MakeClient("https://www.moddb.com");
+		ModDBDownloadClient->set_follow_location(true);
+		ModDBDownloadClient->set_keep_alive(true);
+
+		ModDBMirrorClient = NosLib::HttpClient::MakeClient("https://www.moddb.com");
+		ModDBMirrorClient->set_follow_location(false);
+		ModDBMirrorClient->set_keep_alive(true);
 	}
 
 	inline static void Initialize()
@@ -29,10 +32,10 @@ protected:
 		}
 	}
 public:
-	inline static httplib::Client* GetDownloadClient()
+	inline static NosLib::HttpClient* GetDownloadClient()
 	{
 		Initialize();
-		return &(Instance->ModDBDownloadClient);
+		return Instance->ModDBDownloadClient.get();
 	}
 
 	inline static std::wstring GetDownloadString(const std::wstring& downloadLink)
