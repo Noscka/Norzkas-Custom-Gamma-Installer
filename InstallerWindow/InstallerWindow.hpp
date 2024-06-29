@@ -93,6 +93,10 @@ protected:
 			out += std::format(" | Branch: {}", NCGI_BRANCH);
 		}
 
+		#ifdef _DEBUG
+		out += " | DEBUG";
+		#endif // _DEBUG
+
 		return out;
 	}
 

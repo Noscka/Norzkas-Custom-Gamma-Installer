@@ -60,7 +60,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="InstallSetting">
        <layout class="QVBoxLayout" name="verticalLayout_1">
@@ -434,6 +434,11 @@
          </widget>
         </item>
         <item>
+         <widget class="MultiThreadProgress" name="widget_3" native="true">
+          <layout class="QVBoxLayout" name="verticalLayout_8"/>
+         </widget>
+        </item>
+        <item>
          <widget class="QProgressBar" name="SingularProgressBar">
           <property name="value">
            <number>0</number>
@@ -624,6 +629,12 @@
    <class>InstallPathWidget</class>
    <extends>QWidget</extends>
    <header>CustomWidgets/InstallPathWidget.hpp</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>MultiThreadProgress</class>
+   <extends>QWidget</extends>
+   <header>CustomWidgets/MultiThreadProgress.hpp</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
