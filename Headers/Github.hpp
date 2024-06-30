@@ -5,41 +5,42 @@
 class Github
 {
 protected:
-	inline static Github* Instance = nullptr;
-
-	NosLib::HttpClient::ptr GithubClient;
-	NosLib::HttpClient::ptr GithubObjectsClient;
-
 	Github()
 	{
-		GithubClient = NosLib::HttpClient::MakeClient("https://github.com");
-		GithubClient->set_follow_location(true);
-		GithubClient->set_keep_alive(true);
-
-		GithubObjectsClient = NosLib::HttpClient::MakeClient("https://objects.githubusercontent.com");
-		GithubObjectsClient->set_follow_location(true);
-		GithubObjectsClient->set_keep_alive(true);
+		
 	}
 
 	inline static void Initialize()
 	{
+		#if 0
 		if (Instance == nullptr)
 		{
 			Instance = new Github();
 		}
+		#endif // 0
 	}
 public:
-	inline static NosLib::HttpClient* GetDownloadClient()
+	inline static NosLib::HttpClient::ptr CreateDownloadClient()
 	{
 		Initialize();
 
-		return Instance->GithubClient.get();
+		NosLib::HttpClient::ptr githubClient;
+		githubClient = NosLib::HttpClient::MakeClient("https://github.com");
+		githubClient->set_follow_location(true);
+		githubClient->set_keep_alive(true);
+
+		return githubClient;
 	}
 
-	inline static NosLib::HttpClient* GetDownloadObjectsClient()
+	inline static NosLib::HttpClient::ptr CreateDownloadObjectsClient()
 	{
 		Initialize();
 
-		return Instance->GithubObjectsClient.get();
+		NosLib::HttpClient::ptr githubObjectsClient;
+		githubObjectsClient = NosLib::HttpClient::MakeClient("https://objects.githubusercontent.com");
+		githubObjectsClient->set_follow_location(true);
+		githubObjectsClient->set_keep_alive(true);
+
+		return githubObjectsClient;
 	}
 };

@@ -118,16 +118,13 @@ ModInfo::WorkState ModInfo::GetModWorkState()
 {
 	std::lock_guard<std::mutex> lk(WorkStateMutex);
 
-	/* Seperator won't have a file to download */
-	if (ModType == Type::Seperator)
-	{
-		return CurrentWorkState.load();
-	}
-
 	/* If Started, return as inProgress too */
-	if (FileObject->CheckIfStarted())
+	if (FileObject != nullptr)
 	{
-		WorkState::InProgress;
+		if (FileObject->CheckIfStarted())
+		{
+			WorkState::InProgress;
+		}
 	}
 
 	return CurrentWorkState.load();
@@ -161,9 +158,11 @@ void ModInfo::ProcessMod(ModProcessorThread* processingThread)
 	if (FileObject != nullptr)
 	{
 		FileObject->Finished();
+		FileObject = nullptr;
 	}
 
 	CurrentWorkState = WorkState::Completed;
+	processingThread = nullptr;
 }
 
 #pragma region Parsing
@@ -248,15 +247,14 @@ ModInfo* ModInfo::ParseLine(std::wstring& line)
 }
 #pragma endregion
 
-void ModInfo::UpdateLoadingScreen(std::wstring status)
+void ModInfo::UpdateLoadingScreen(const std::wstring& status)
 {
-	#if 0
-	InstallManager* instance = InstallManager::GetInstallManager();
-	//status.insert(0, (Parsed ?
-	//					std::format(L"Mod {} out of {}\n", ModIndex, ModCounter) :
-	//					L"Initial Setup\n"));
-	instance->UpdateStatus(status);
-	#endif // 0
+	if (ProcessingThread == nullptr)
+	{
+		return;
+	}
+
+	ProcessingThread->UpdateModStatus(status);
 }
 
 void ModInfo::UpdateLoadingScreen(const int& percentageOnCurrentMod)

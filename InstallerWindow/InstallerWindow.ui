@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>620</width>
-    <height>439</height>
+    <height>450</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -412,41 +412,7 @@
          </spacer>
         </item>
         <item>
-         <widget class="QLabel" name="StatusLabel">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="frameShape">
-           <enum>QFrame::Shape::NoFrame</enum>
-          </property>
-          <property name="text">
-           <string>Status</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignmentFlag::AlignCenter</set>
-          </property>
-          <property name="textInteractionFlags">
-           <set>Qt::TextInteractionFlag::NoTextInteraction</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="MultiThreadProgress" name="ProgressContainer" native="true">
-          <layout class="QVBoxLayout" name="verticalLayout_8"/>
-         </widget>
-        </item>
-        <item>
-         <widget class="QProgressBar" name="SingularProgressBar">
-          <property name="value">
-           <number>0</number>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignmentFlag::AlignCenter</set>
-          </property>
-         </widget>
+         <widget class="MultiThreadProgress" name="ProgressContainer" native="true"/>
         </item>
         <item>
          <widget class="QProgressBar" name="TotalProgressBar">

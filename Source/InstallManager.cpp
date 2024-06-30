@@ -56,5 +56,5 @@ void InstallManager::MainInstall()
 
 	NosLib::MemberFunctionStore<ModProcessorThread, void(ModProcessorThread::*)()> processFunction(&ModProcessorThread::ProcessMod);
 
-	modProcessThreadPool.StartThreadPool(processFunction, false);
+	modProcessThreadPool.StartThreadPool(processFunction, false, 0.5f);
 }

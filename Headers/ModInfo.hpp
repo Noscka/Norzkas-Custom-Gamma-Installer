@@ -127,7 +127,7 @@ private:
 	/// <returns>pointer of ModInfo, containing parsed mod info</returns>
 	static ModInfo* ParseLine(std::wstring& line);
 
-	void UpdateLoadingScreen(std::wstring status);
+	void UpdateLoadingScreen(const std::wstring& status);
 	void UpdateLoadingScreen(const int& percentageOnCurrentMod);
 	void UpdateLoadingScreen(const int& percentageOnCurrentMod, const std::wstring& status);
 

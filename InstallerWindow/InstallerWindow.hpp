@@ -165,11 +165,9 @@ protected:
 		connect(InstallClass, &InstallManager::FinishInstalling, this, &InstallerWindow::FinishInstalling);
 
 		connect(InstallClass, &InstallManager::TotalUpdateProgress, this, &InstallerWindow::TotalUpdateProgress);
-		connect(InstallClass, SIGNAL(UpdateStatus(const QString&)), this, SLOT(UpdateStatus(const QString&)));
 
 		ui.TotalProgressBar->setValue(0);
 		ui.TotalProgressBar->setMaximum(0);
-		UpdateStatus("Initializing");
 
 		connect(InstallThread, &QThread::started, InstallClass, &InstallManager::StartInstall);
 		InstallClass->moveToThread(InstallThread);
@@ -181,7 +179,6 @@ public slots:
 	{
 		ui.TotalProgressBar->setValue(0);
 		ui.TotalProgressBar->setMaximum(100);
-		UpdateStatus("Starting Mod Installs");
 	}
 
 	void FinishInstalling(const std::wstring& timeTakenString)
@@ -193,15 +190,5 @@ public slots:
 	void TotalUpdateProgress(const int& newProgress)
 	{
 		ui.TotalProgressBar->setValue(newProgress);
-	}
-
-	void SingularUpdateProgress(const int& newProgress)
-	{
-		ui.SingularProgressBar->setValue(newProgress);
-	}
-
-	void UpdateStatus(const QString& newStatus)
-	{
-		ui.StatusLabel->setText(newStatus);
 	}
 };

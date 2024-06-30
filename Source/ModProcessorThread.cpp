@@ -6,15 +6,16 @@
 ModProcessorThread::ModProcessorThread()
 {
 	InstallManager* instance = InstallManager::GetInstallManager();
-	RegisteredProgressBar = instance->ProgressContainer->RegisterProgressBar();
+	RegisteredStatusProgress = instance->ProgressContainer->RegisterProgressBar();
 
-	connect(this, &ModProcessorThread::ModUpdateProgress, RegisteredProgressBar, &QProgressBar::setValue);
+	connect(this, &ModProcessorThread::ModUpdateProgress, RegisteredStatusProgress, &ProgressStatus::UpdateProgress);
+	connect(this, &ModProcessorThread::ModUpdateStatus, RegisteredStatusProgress, &ProgressStatus::UpdateStatus);
 }
 
 ModProcessorThread::~ModProcessorThread()
 {
 	InstallManager* instance = InstallManager::GetInstallManager();
-	instance->ProgressContainer->UnregisterProgressBar(RegisteredProgressBar);
+	instance->ProgressContainer->UnregisterProgressBar(RegisteredStatusProgress);
 }
 
 void ModProcessorThread::ProcessMod()
@@ -26,17 +27,28 @@ void ModProcessorThread::ProcessMod()
 		ModCount = ModInfo::modInfoList.GetItemCount();
 	}
 
-	/* go through all mods in global static array */
-	for (ModInfo* mod : ModInfo::modInfoList)
+	bool AllCompleted = false;
+
+	/* Just to make the thread recheck all mods to make sure they are all installed */
+	while (!AllCompleted)
 	{
-		if (mod->GetModWorkState() != ModInfo::WorkState::NotStarted)
+		AllCompleted = true;
+
+		/* go through all mods in global static array */
+		for (int i = 0; i <= ModInfo::modInfoList.GetLastArrayIndex(); i++)
 		{
-			continue;
+			ModInfo* mod = ModInfo::modInfoList[i];
+
+			if (mod->GetModWorkState() != ModInfo::WorkState::NotStarted)
+			{
+				continue;
+			}
+
+			AllCompleted = false;
+			mod->ProcessMod(this);
+
+			CompleteCount++;
+			instance->UpdateTotalProgress((CompleteCount * 100) / ModCount);
 		}
-
-		mod->ProcessMod(this);
-
-		CompleteCount++;
-		instance->UpdateTotalProgress((CompleteCount * 100) / ModCount);
 	}
 }

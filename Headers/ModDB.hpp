@@ -10,15 +10,10 @@ class ModDB
 protected:
 	inline static ModDB* Instance = nullptr;
 
-	NosLib::HttpClient::ptr ModDBDownloadClient;
 	NosLib::HttpClient::ptr ModDBMirrorClient;
 
 	ModDB()
 	{
-		ModDBDownloadClient = NosLib::HttpClient::MakeClient("https://www.moddb.com");
-		ModDBDownloadClient->set_follow_location(true);
-		ModDBDownloadClient->set_keep_alive(true);
-
 		ModDBMirrorClient = NosLib::HttpClient::MakeClient("https://www.moddb.com");
 		ModDBMirrorClient->set_follow_location(false);
 		ModDBMirrorClient->set_keep_alive(true);
@@ -32,15 +27,21 @@ protected:
 		}
 	}
 public:
-	inline static NosLib::HttpClient* GetDownloadClient()
+	inline static NosLib::HttpClient::ptr CreateDownloadClient()
 	{
 		Initialize();
-		return Instance->ModDBDownloadClient.get();
+
+		NosLib::HttpClient::ptr modDBDownloadClient;
+		modDBDownloadClient = NosLib::HttpClient::MakeClient("https://www.moddb.com");
+		modDBDownloadClient->set_follow_location(true);
+		modDBDownloadClient->set_keep_alive(true);
+		return modDBDownloadClient;
 	}
 
 	inline static std::wstring GetDownloadString(const std::wstring& downloadLink)
 	{
 		Initialize();
+
 		return Instance->GetGivenMirror(downloadLink);
 		/* Quickest Mirror Currently makes ModDB block user */
 		//return Instance->GetQuickestMirror(downloadLink);

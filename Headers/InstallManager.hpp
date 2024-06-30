@@ -21,14 +21,12 @@ private:
 
 	inline static std::mutex InstanceMutex;
 	inline static std::mutex TotalProgressMutex;
-	inline static std::mutex StatusMutex;
 
 signals:
 	void FinishInstallerInitializing();
 	void FinishInstalling(const std::wstring&);
 
 	void TotalUpdateProgress(const int&);
-	void UpdateStatus(const QString&);
 
 public:
 	MultiThreadProgress* ProgressContainer = nullptr;
@@ -52,12 +50,6 @@ public:
 	{
 		std::lock_guard<std::mutex> lk(TotalProgressMutex);
 		emit TotalUpdateProgress(value);
-	}
-
-	void UpdateStatus(const std::wstring& value)
-	{
-		std::lock_guard<std::mutex> lk(StatusMutex);
-		emit UpdateStatus(QString::fromStdWString(value));
 	}
 
 public slots:

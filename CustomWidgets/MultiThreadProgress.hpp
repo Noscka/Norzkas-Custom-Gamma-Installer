@@ -10,8 +10,55 @@
 #include <QWidget>
 #include <QPropertyAnimation>
 #include <QProgressBar>
+#include <QLabel>
+
+#include "FlowLayout.hpp"
 
 #include <mutex>
+
+class ProgressStatus : public QFrame
+{
+	Q_OBJECT
+
+private:
+	QProgressBar ProgressBar;
+	QLabel StatusLabel;
+	QVBoxLayout ContainerLayout;
+
+public:
+	inline ProgressStatus(QWidget* parent = nullptr) : QFrame(parent)
+	{
+		setFrameShape(QFrame::Shape::Box);
+		setFrameShadow(QFrame::Shadow::Raised);
+
+		ContainerLayout.setSpacing(0);
+		ContainerLayout.setContentsMargins(0, 0, 0, 0);
+
+		StatusLabel.setAlignment(Qt::AlignmentFlag::AlignCenter);
+		StatusLabel.setText("Thread");
+		ContainerLayout.addWidget(&StatusLabel);
+
+		ProgressBar.setMinimum(0);
+		ProgressBar.setMaximum(100);
+		ProgressBar.setValue(0);
+		ProgressBar.setAlignment(Qt::AlignmentFlag::AlignCenter);
+		ContainerLayout.addWidget(&ProgressBar);
+
+		setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+		setLayout(&ContainerLayout);
+	}
+
+public slots:
+	void UpdateProgress(const int& value)
+	{
+		ProgressBar.setValue(value);
+	}
+
+	void UpdateStatus(const std::wstring& value)
+	{
+		StatusLabel.setText(QString::fromStdWString(value));
+	}
+};
 
 class MultiThreadProgress : public QWidget
 {
@@ -22,41 +69,37 @@ private:
 	QToolButton ToggleButton;
 	QFrame HeaderLine;
 	QParallelAnimationGroup ToggleAnimation;
-	QScrollArea ContentArea;
-	QVBoxLayout ContentLayout;
-	int animationDuration{ 300 };
+	QWidget ContentArea;
+	FlowLayout ContentLayout;
+	int AnimationDuration = 300;
 
 	inline static std::mutex registerMutex;
 
-	NosLib::DynamicArray<QProgressBar*> ThreadProgressBars;
+	NosLib::DynamicArray<ProgressStatus*> ThreadProgressBars;
 
 signals:
-	QProgressBar* RequestRegisterProgressBar();
-	void RequestUnregisterProgressBar(QProgressBar*);
+	ProgressStatus* RequestRegisterProgressBar();
+	void RequestUnregisterProgressBar(ProgressStatus*);
 
 private slots:
-	QProgressBar* RequestRegister()
+	ProgressStatus* RequestRegister()
 	{
-		ThreadProgressBars.Append(new QProgressBar);
-		QProgressBar* newProgressBar = ThreadProgressBars[ThreadProgressBars.GetLastArrayIndex()];
+		ThreadProgressBars.Append(new ProgressStatus);
+		ProgressStatus* newProgressBar = ThreadProgressBars[ThreadProgressBars.GetLastArrayIndex()];
 
-		newProgressBar->setMinimum(0);
-		newProgressBar->setMaximum(100);
-		newProgressBar->setValue(0);
-		newProgressBar->setAlignment(Qt::AlignmentFlag::AlignCenter);
 		AddWidget(newProgressBar);
 
 		return newProgressBar;
 	}
 
-	void RequestUnregister(QProgressBar* progressBar)
+	void RequestUnregister(ProgressStatus* progressBar)
 	{
 		RemoveWidget(progressBar);
 
 		ThreadProgressBars.ObjectRemove(progressBar);
 	}
 public:
-	inline MultiThreadProgress(QWidget* parent = nullptr, const QString& title = "ABC", const int animationDuration = 300) : QWidget(parent)
+	inline MultiThreadProgress(QWidget* parent = nullptr, const QString& title = "MultiThreaded Progress") : QWidget(parent)
 	{
 		ToggleButton.setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 		ToggleButton.setArrowType(Qt::ArrowType::RightArrow);
@@ -68,7 +111,7 @@ public:
 		HeaderLine.setFrameShadow(QFrame::Sunken);
 		HeaderLine.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
-		ContentArea.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		ContentArea.setSizePolicy(QSizePolicy::Expanding, QSizePolicy::MinimumExpanding);
 
 		// start out collapsed
 		ContentArea.setMaximumHeight(0);
@@ -89,6 +132,7 @@ public:
 		setLayout(&MainLayout);
 		QObject::connect(&ToggleButton, &QToolButton::clicked, [this](const bool checked)
 		{
+			UpdateAnimation();
 			ToggleButton.setArrowType(checked ? Qt::ArrowType::DownArrow : Qt::ArrowType::RightArrow);
 			ToggleAnimation.setDirection(checked ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
 			ToggleAnimation.start();
@@ -102,49 +146,45 @@ public:
 		Q_ASSERT(connect(this, &MultiThreadProgress::RequestUnregisterProgressBar, this, &MultiThreadProgress::RequestUnregister, Qt::BlockingQueuedConnection));
 	}
 
-	inline QProgressBar* RegisterProgressBar()
+	inline ProgressStatus* RegisterProgressBar()
 	{
 		return emit RequestRegisterProgressBar();
 	}
 
-	inline void UnregisterProgressBar(QProgressBar* progressBar)
+	inline void UnregisterProgressBar(ProgressStatus* progressBar)
 	{
 		emit RequestUnregisterProgressBar(progressBar);
 	}
 
 protected:
-	inline void RemoveWidget(QWidget* newWidget)
-	{
-		QLayout* contentLayout = ContentArea.layout();
-		contentLayout->removeWidget(newWidget);
-		int contentHeight = contentLayout->sizeHint().height();
-
-		UpdateAnimation(contentHeight);
-	}
-
 	inline void AddWidget(QWidget* newWidget)
 	{
 		QLayout* contentLayout = ContentArea.layout();
 		contentLayout->addWidget(newWidget);
-		int contentHeight = contentLayout->sizeHint().height();
-
-		UpdateAnimation(contentHeight);
 	}
 
-	inline void UpdateAnimation(const int& contentHeight)
+	inline void RemoveWidget(QWidget* newWidget)
 	{
+		QLayout* contentLayout = ContentArea.layout();
+		contentLayout->addWidget(newWidget);
+	}
+
+	inline void UpdateAnimation()
+	{
+		QLayout* contentLayout = ContentArea.layout();
+		int contentHeight = contentLayout->sizeHint().height();
 		const auto collapsedHeight = sizeHint().height() - ContentArea.maximumHeight();
 
 		for (int i = 0; i < ToggleAnimation.animationCount() - 1; ++i)
 		{
 			QPropertyAnimation* spoilerAnimation = static_cast<QPropertyAnimation*>(ToggleAnimation.animationAt(i));
-			spoilerAnimation->setDuration(animationDuration);
+			spoilerAnimation->setDuration(AnimationDuration);
 			spoilerAnimation->setStartValue(collapsedHeight);
 			spoilerAnimation->setEndValue(collapsedHeight + contentHeight);
 		}
 
 		QPropertyAnimation* contentAnimation = static_cast<QPropertyAnimation*>(ToggleAnimation.animationAt(ToggleAnimation.animationCount() - 1));
-		contentAnimation->setDuration(animationDuration);
+		contentAnimation->setDuration(AnimationDuration);
 		contentAnimation->setStartValue(0);
 		contentAnimation->setEndValue(contentHeight);
 	}
