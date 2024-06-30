@@ -22,13 +22,27 @@ private:
 	inline static std::mutex InstanceMutex;
 	inline static std::mutex TotalProgressMutex;
 
+	ProgressStatus* RegisteredStatusProgress;
+
 signals:
 	void FinishInstallerInitializing();
 	void FinishInstalling(const std::wstring&);
 
 	void TotalUpdateProgress(const int&);
+	void ModUpdateProgress(const int&);
+	void ModUpdateStatus(const std::wstring&);
 
 public:
+	void UpdateModProgress(const int& value)
+	{
+		emit ModUpdateProgress(value);
+	}
+
+	void UpdateModStatus(const std::wstring& value)
+	{
+		emit ModUpdateStatus(value);
+	}
+
 	MultiThreadProgress* ProgressContainer = nullptr;
 
 	inline InstallManager(QObject* parent = nullptr) : QObject(parent)

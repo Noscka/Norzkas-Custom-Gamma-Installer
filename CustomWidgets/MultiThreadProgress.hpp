@@ -1,6 +1,7 @@
 #pragma once
 
 #include <NosLib/DynamicArray.hpp>
+#include <NosLib/Logging.hpp>
 
 #include <QFrame>
 #include <QGridLayout>
@@ -77,27 +78,10 @@ private:
 
 	NosLib::DynamicArray<ProgressStatus*> ThreadProgressBars;
 
-signals:
-	ProgressStatus* RequestRegisterProgressBar();
-	void RequestUnregisterProgressBar(ProgressStatus*);
-
 private slots:
-	ProgressStatus* RequestRegister()
-	{
-		ThreadProgressBars.Append(new ProgressStatus);
-		ProgressStatus* newProgressBar = ThreadProgressBars[ThreadProgressBars.GetLastArrayIndex()];
+	ProgressStatus* RequestRegister();
+	void RequestUnregister(ProgressStatus* progressBar);
 
-		AddWidget(newProgressBar);
-
-		return newProgressBar;
-	}
-
-	void RequestUnregister(ProgressStatus* progressBar)
-	{
-		RemoveWidget(progressBar);
-
-		ThreadProgressBars.ObjectRemove(progressBar);
-	}
 public:
 	inline MultiThreadProgress(QWidget* parent = nullptr, const QString& title = "MultiThreaded Progress") : QWidget(parent)
 	{
@@ -141,20 +125,10 @@ public:
 		ContentLayout.setSpacing(5);
 		ContentLayout.setContentsMargins(5, 5, 5, 5);
 		ContentArea.setLayout(&ContentLayout);
-
-		Q_ASSERT(connect(this, &MultiThreadProgress::RequestRegisterProgressBar, this, &MultiThreadProgress::RequestRegister, Qt::BlockingQueuedConnection));
-		Q_ASSERT(connect(this, &MultiThreadProgress::RequestUnregisterProgressBar, this, &MultiThreadProgress::RequestUnregister, Qt::BlockingQueuedConnection));
 	}
 
-	inline ProgressStatus* RegisterProgressBar()
-	{
-		return emit RequestRegisterProgressBar();
-	}
-
-	inline void UnregisterProgressBar(ProgressStatus* progressBar)
-	{
-		emit RequestUnregisterProgressBar(progressBar);
-	}
+	ProgressStatus* RegisterProgressBar();
+	void UnregisterProgressBar(ProgressStatus* progressBar);
 
 protected:
 	inline void AddWidget(QWidget* newWidget)
@@ -189,3 +163,4 @@ protected:
 		contentAnimation->setEndValue(contentHeight);
 	}
 };
+

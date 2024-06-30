@@ -10,8 +10,13 @@
 void InstallManager::InitializeInstaller()
 {
 	File::SetDirectories(InstallOptions::GammaInstallPath + InstallInfo::DownloadDirectory, InstallOptions::GammaInstallPath + InstallInfo::ExtractDirectory);
-	
-	#if 0
+	RegisteredStatusProgress = ProgressContainer->RegisterProgressBar();
+
+	/* Set to 0 to disable the Initial set up and only download mods */
+	#if 1	
+	connect(this, &InstallManager::ModUpdateProgress, RegisteredStatusProgress, &ProgressStatus::UpdateProgress);
+	connect(this, &InstallManager::ModUpdateStatus, RegisteredStatusProgress, &ProgressStatus::UpdateStatus);
+
 	ModInfo modOrganizer = MO::GetModOrganizerModObject();
 	modOrganizer.ProcessMod(nullptr);
 
@@ -48,6 +53,8 @@ void InstallManager::InitializeInstaller()
 		ModInfo::modInfoList.Append(new ModInfo(L"https://github.com/Noscka/Norzkas-GAMMA-Overwrite/archive/refs/heads/main.zip",
 																			NosLib::DynamicArray<std::wstring>({ L"\\Norzkas-GAMMA-Overwrite-main\\" }), L"", L"Norzkas G.A.M.M.A. files"));
 	}
+
+	ProgressContainer->UnregisterProgressBar(RegisteredStatusProgress);
 }
 
 void InstallManager::MainInstall()
@@ -56,5 +63,5 @@ void InstallManager::MainInstall()
 
 	NosLib::MemberFunctionStore<ModProcessorThread, void(ModProcessorThread::*)()> processFunction(&ModProcessorThread::ProcessMod);
 
-	modProcessThreadPool.StartThreadPool(processFunction, false, 0.5f);
+	modProcessThreadPool.StartThreadPool(processFunction, false, 1.0f);
 }

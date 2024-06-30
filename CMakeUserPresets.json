@@ -4,7 +4,7 @@
     {
       "name": "Debug-x64",
       "displayName": "Debug (x64)",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build/Debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       },
@@ -13,9 +13,20 @@
       ]
     },
     {
+      "name": "Release-DebugInfo-x64",
+      "displayName": "Release (Debug Info) (x64)",
+      "binaryDir": "${sourceDir}/build/Release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      },
+      "inherits": [
+        "Qt-Default"
+      ]
+    },
+    {
       "name": "Release-x64",
       "displayName": "Release (x64)",
-      "binaryDir": "${sourceDir}/build",
+      "binaryDir": "${sourceDir}/build/Release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       },
@@ -54,7 +65,7 @@
   ],
   "vendor": {
     "qt-project.org/Presets": {
-      "checksum": "VzsI7G195hcUXlAX7WorCrzizns="
+      "checksum": "9ezeINrbJv6tWjUTHdA8uHgesO4="
     }
   }
 }

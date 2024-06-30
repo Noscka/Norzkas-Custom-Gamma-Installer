@@ -249,22 +249,26 @@ ModInfo* ModInfo::ParseLine(std::wstring& line)
 
 void ModInfo::UpdateLoadingScreen(const std::wstring& status)
 {
-	if (ProcessingThread == nullptr)
+	if (ProcessingThread != nullptr)
 	{
+		ProcessingThread->UpdateModStatus(status);
 		return;
 	}
 
-	ProcessingThread->UpdateModStatus(status);
+	InstallManager* instance = InstallManager::GetInstallManager();
+	instance->UpdateModStatus(status);
 }
 
 void ModInfo::UpdateLoadingScreen(const int& percentageOnCurrentMod)
 {
-	if (ProcessingThread == nullptr)
+	if (ProcessingThread != nullptr)
 	{
+		ProcessingThread->UpdateModProgress(percentageOnCurrentMod);
 		return;
 	}
 
-	ProcessingThread->UpdateModProgress(percentageOnCurrentMod);
+	InstallManager* instance = InstallManager::GetInstallManager();
+	instance->UpdateModProgress(percentageOnCurrentMod);
 }
 
 void ModInfo::UpdateLoadingScreen(const int& percentageOnCurrentMod, const std::wstring& status)
