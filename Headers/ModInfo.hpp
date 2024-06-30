@@ -14,6 +14,7 @@
 #include "Validation.hpp"
 #include "File.hpp"
 
+class ModProcessorThread;
 
 /* Sub directories that are inside each mod folder */
 inline NosLib::DynamicArray<std::wstring> ModSubDirectories = NosLib::DynamicArray<std::wstring>({ L"fomod\\" }) + Validation::StalkerSubDirectories.ObjectExclude(L"bin\\");
@@ -54,6 +55,7 @@ private:
 	bool UseInstallPath = true;						/* If mod should include mod path when installing (ONLY FOR CUSTOM) */
 
 	/* MultiThreading */
+	ModProcessorThread* ProcessingThread;
 	std::mutex WorkStateMutex;
 	std::atomic<WorkState> CurrentWorkState = WorkState::NotStarted;
 	File* FileObject = nullptr;
@@ -108,7 +110,7 @@ public:
 
 	WorkState GetModWorkState();
 
-	void ProcessMod();
+	void ProcessMod(ModProcessorThread* processingThread);
 
 	/// <summary>
 	/// takes in a filename for a modpackMaker and parses it fully

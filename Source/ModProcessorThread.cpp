@@ -3,6 +3,19 @@
 #include "../Headers/InstallManager.hpp"
 #include "../Headers/ModInfo.hpp"
 
+ModProcessorThread::ModProcessorThread()
+{
+	InstallManager* instance = InstallManager::GetInstallManager();
+	RegisteredProgressBar = instance->ProgressContainer->RegisterProgressBar();
+
+	connect(this, &ModProcessorThread::ModUpdateProgress, RegisteredProgressBar, &QProgressBar::setValue);
+}
+
+ModProcessorThread::~ModProcessorThread()
+{
+	InstallManager* instance = InstallManager::GetInstallManager();
+	instance->ProgressContainer->UnregisterProgressBar(RegisteredProgressBar);
+}
 
 void ModProcessorThread::ProcessMod()
 {
@@ -21,7 +34,7 @@ void ModProcessorThread::ProcessMod()
 			continue;
 		}
 
-		mod->ProcessMod();
+		mod->ProcessMod(this);
 
 		CompleteCount++;
 		instance->UpdateTotalProgress((CompleteCount * 100) / ModCount);

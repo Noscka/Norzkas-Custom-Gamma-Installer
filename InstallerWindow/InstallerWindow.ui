@@ -60,7 +60,7 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="InstallSetting">
        <layout class="QVBoxLayout" name="verticalLayout_1">
@@ -434,7 +434,7 @@
          </widget>
         </item>
         <item>
-         <widget class="MultiThreadProgress" name="widget_3" native="true">
+         <widget class="MultiThreadProgress" name="ProgressContainer" native="true">
           <layout class="QVBoxLayout" name="verticalLayout_8"/>
          </widget>
         </item>

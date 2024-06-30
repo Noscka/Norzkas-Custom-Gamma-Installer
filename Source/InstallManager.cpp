@@ -11,9 +11,9 @@ void InstallManager::InitializeInstaller()
 {
 	File::SetDirectories(InstallOptions::GammaInstallPath + InstallInfo::DownloadDirectory, InstallOptions::GammaInstallPath + InstallInfo::ExtractDirectory);
 	
-	#if 1
+	#if 0
 	ModInfo modOrganizer = MO::GetModOrganizerModObject();
-	modOrganizer.ProcessMod();
+	modOrganizer.ProcessMod(nullptr);
 
 	MO::WriteConfigFile(InstallOptions::GammaInstallPath, InstallOptions::StalkerAnomalyPath);
 
@@ -23,7 +23,7 @@ void InstallManager::InitializeInstaller()
 	ModInfo initializeMod(L"https://github.com/Grokitach/Stalker_GAMMA/archive/refs/heads/main.zip",
 										NosLib::DynamicArray<std::wstring>({ L"\\Stalker_GAMMA-main\\G.A.M.M.A\\modpack_data\\", L"\\Stalker_GAMMA-main\\G.A.M.M.A_definition_version.txt" }),
 										InstallOptions::GammaInstallPath + InstallInfo::ExtractDirectory, L"G.A.M.M.A. modpack definition", false);
-	initializeMod.ProcessMod();
+	initializeMod.ProcessMod(nullptr);
 
 	std::filesystem::create_directories(InstallOptions::GammaInstallPath + L"profiles\\Default\\");
 	std::filesystem::rename(InstallOptions::GammaInstallPath + InstallInfo::ExtractDirectory + L"modlist.txt", InstallOptions::GammaInstallPath + L"profiles\\Default\\modlist.txt");

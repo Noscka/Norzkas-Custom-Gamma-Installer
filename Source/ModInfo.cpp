@@ -2,6 +2,7 @@
 
 #include "../Headers/InstallOptions.hpp"
 #include "../Headers/InstallManager.hpp"
+#include "../Headers/ModProcessorThread.hpp"
 
 void copyIfExists(const std::wstring& from, const std::wstring& to)
 {
@@ -132,9 +133,10 @@ ModInfo::WorkState ModInfo::GetModWorkState()
 	return CurrentWorkState.load();
 }
 
-void ModInfo::ProcessMod()
+void ModInfo::ProcessMod(ModProcessorThread* processingThread)
 {
 	CurrentWorkState = WorkState::InProgress;
+	ProcessingThread = processingThread;
 
 	/* do different things depending on the mod type */
 	switch (ModType)
@@ -259,22 +261,18 @@ void ModInfo::UpdateLoadingScreen(std::wstring status)
 
 void ModInfo::UpdateLoadingScreen(const int& percentageOnCurrentMod)
 {
-	#if 0
-	InstallManager* instance = InstallManager::GetInstallManager();
+	if (ProcessingThread == nullptr)
+	{
+		return;
+	}
 
-	//instance->UpdateTotalProgress((ModIndex * 100) / ModCounter);
-	instance->UpdateSingularProgress(percentageOnCurrentMod);
-	#endif // 0
+	ProcessingThread->UpdateModProgress(percentageOnCurrentMod);
 }
 
 void ModInfo::UpdateLoadingScreen(const int& percentageOnCurrentMod, const std::wstring& status)
 {
-	#if 0
-	InstallManager* instance = InstallManager::GetInstallManager();
-
 	UpdateLoadingScreen(percentageOnCurrentMod);
 	UpdateLoadingScreen(status);
-	#endif // 0
 }
 
 

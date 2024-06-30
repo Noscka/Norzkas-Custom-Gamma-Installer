@@ -11,9 +11,12 @@
 #include <QPropertyAnimation>
 #include <QProgressBar>
 
+#include <mutex>
+
 class MultiThreadProgress : public QWidget
 {
 	Q_OBJECT
+
 private:
 	QGridLayout MainLayout;
 	QToolButton ToggleButton;
@@ -23,7 +26,35 @@ private:
 	QVBoxLayout ContentLayout;
 	int animationDuration{ 300 };
 
+	inline static std::mutex registerMutex;
+
 	NosLib::DynamicArray<QProgressBar*> ThreadProgressBars;
+
+signals:
+	QProgressBar* RequestRegisterProgressBar();
+	void RequestUnregisterProgressBar(QProgressBar*);
+
+private slots:
+	QProgressBar* RequestRegister()
+	{
+		ThreadProgressBars.Append(new QProgressBar);
+		QProgressBar* newProgressBar = ThreadProgressBars[ThreadProgressBars.GetLastArrayIndex()];
+
+		newProgressBar->setMinimum(0);
+		newProgressBar->setMaximum(100);
+		newProgressBar->setValue(0);
+		newProgressBar->setAlignment(Qt::AlignmentFlag::AlignCenter);
+		AddWidget(newProgressBar);
+
+		return newProgressBar;
+	}
+
+	void RequestUnregister(QProgressBar* progressBar)
+	{
+		RemoveWidget(progressBar);
+
+		ThreadProgressBars.ObjectRemove(progressBar);
+	}
 public:
 	inline MultiThreadProgress(QWidget* parent = nullptr, const QString& title = "ABC", const int animationDuration = 300) : QWidget(parent)
 	{
@@ -66,26 +97,19 @@ public:
 		ContentLayout.setSpacing(5);
 		ContentLayout.setContentsMargins(5, 5, 5, 5);
 		ContentArea.setLayout(&ContentLayout);
+
+		Q_ASSERT(connect(this, &MultiThreadProgress::RequestRegisterProgressBar, this, &MultiThreadProgress::RequestRegister, Qt::BlockingQueuedConnection));
+		Q_ASSERT(connect(this, &MultiThreadProgress::RequestUnregisterProgressBar, this, &MultiThreadProgress::RequestUnregister, Qt::BlockingQueuedConnection));
 	}
 
 	inline QProgressBar* RegisterProgressBar()
 	{
-		ThreadProgressBars.Append(new QProgressBar);
-		QProgressBar* newProgressBar = ThreadProgressBars[ThreadProgressBars.GetLastArrayIndex()];
-		newProgressBar->setMinimum(0);
-		newProgressBar->setMaximum(100);
-		newProgressBar->setValue(0);
-		newProgressBar->setAlignment(Qt::AlignmentFlag::AlignCenter);
-		AddWidget(newProgressBar);
-
-		return newProgressBar;
+		return emit RequestRegisterProgressBar();
 	}
 
 	inline void UnregisterProgressBar(QProgressBar* progressBar)
 	{
-		RemoveWidget(progressBar);
-
-		ThreadProgressBars.ObjectRemove(progressBar);
+		emit RequestUnregisterProgressBar(progressBar);
 	}
 
 protected:

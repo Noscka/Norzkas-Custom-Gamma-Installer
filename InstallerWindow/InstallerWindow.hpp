@@ -159,11 +159,12 @@ protected:
 		InstallThread = new QThread;
 		InstallManager* InstallClass = InstallManager::GetInstallManager();
 
+		InstallClass->ProgressContainer = ui.ProgressContainer;
+
 		connect(InstallClass, &InstallManager::FinishInstallerInitializing, this, &InstallerWindow::FinishInstallerInitializing);
 		connect(InstallClass, &InstallManager::FinishInstalling, this, &InstallerWindow::FinishInstalling);
 
 		connect(InstallClass, &InstallManager::TotalUpdateProgress, this, &InstallerWindow::TotalUpdateProgress);
-		connect(InstallClass, &InstallManager::SingularUpdateProgress, this, &InstallerWindow::SingularUpdateProgress);
 		connect(InstallClass, SIGNAL(UpdateStatus(const QString&)), this, SLOT(UpdateStatus(const QString&)));
 
 		ui.TotalProgressBar->setValue(0);

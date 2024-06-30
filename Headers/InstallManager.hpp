@@ -6,6 +6,8 @@
 #include <NosLib/FileManagement.hpp>
 #include "InstallOptions.hpp"
 
+#include "../CustomWidgets/MultiThreadProgress.hpp"
+
 #include <fstream>
 #include <chrono>
 #include <mutex>
@@ -19,7 +21,6 @@ private:
 
 	inline static std::mutex InstanceMutex;
 	inline static std::mutex TotalProgressMutex;
-	inline static std::mutex SingularProgressMutex;
 	inline static std::mutex StatusMutex;
 
 signals:
@@ -27,10 +28,11 @@ signals:
 	void FinishInstalling(const std::wstring&);
 
 	void TotalUpdateProgress(const int&);
-	void SingularUpdateProgress(const int&);
 	void UpdateStatus(const QString&);
 
 public:
+	MultiThreadProgress* ProgressContainer = nullptr;
+
 	inline InstallManager(QObject* parent = nullptr) : QObject(parent)
 	{}
 
@@ -50,12 +52,6 @@ public:
 	{
 		std::lock_guard<std::mutex> lk(TotalProgressMutex);
 		emit TotalUpdateProgress(value);
-	}
-
-	void UpdateSingularProgress(const int& value)
-	{
-		std::lock_guard<std::mutex> lk(SingularProgressMutex);
-		emit SingularUpdateProgress(value);
 	}
 
 	void UpdateStatus(const std::wstring& value)
@@ -107,6 +103,7 @@ public slots:
 		modListFileWrite.write(out.c_str(), out.size());
 		modListFileWrite.close();
 	}
+
 protected:
 	void InitializeInstaller();
 	void MainInstall();
