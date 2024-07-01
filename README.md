@@ -25,7 +25,7 @@ Usage:
  3. Input a path to a valid Stalker Anomaly installation
  4. Input a path to a directory in which you want GAMMA to be installed in
  5. click or press enter on `Start Installation`
- 6. Let the installer do all the work (installation can take up 2 hours or longer depending on your internet speed)
+ 6. Let the installer do all the work (installation usually takes 30 minutes or longer depending on your internet speed)
 
 Planned Features:
  - [x] Add File Reuse System
