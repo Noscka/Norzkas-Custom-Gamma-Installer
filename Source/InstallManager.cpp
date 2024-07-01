@@ -13,7 +13,7 @@ void InstallManager::InitializeInstaller()
 	RegisteredStatusProgress = ProgressContainer->RegisterProgressBar();
 
 	/* Set to 0 to disable the Initial set up and only download mods */
-	#if 0
+	#if 1
 	connect(this, &InstallManager::ModUpdateProgress, RegisteredStatusProgress, &ProgressStatus::UpdateProgress);
 	connect(this, &InstallManager::ModUpdateStatus, RegisteredStatusProgress, &ProgressStatus::UpdateStatus);
 
