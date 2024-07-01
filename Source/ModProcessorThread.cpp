@@ -24,7 +24,7 @@ void ModProcessorThread::ProcessMod()
 
 	if (ModCount == 0)
 	{
-		ModCount = ModInfo::modInfoList.GetItemCount();
+		ModCount = ModInfo::ModInfoList.GetItemCount();
 	}
 
 	bool AllCompleted = false;
@@ -35,9 +35,11 @@ void ModProcessorThread::ProcessMod()
 		AllCompleted = true;
 
 		/* go through all mods in global static array */
-		for (int i = 0; i <= ModInfo::modInfoList.GetLastArrayIndex(); i++)
+		for (int i = 0; i <= ModInfo::ModInfoList.GetLastArrayIndex(); i++)
 		{
-			ModInfo* mod = ModInfo::modInfoList[i];
+			ModInfo* mod = ModInfo::ModInfoList[i];
+
+			mod->WaitPriority(this);
 
 			if (mod->GetModWorkState() != ModInfo::WorkState::NotStarted)
 			{

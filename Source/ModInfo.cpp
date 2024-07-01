@@ -114,6 +114,28 @@ std::wstring ModInfo::GetFolderName()
 	}
 }
 
+ModInfo* ModInfo::AddMod(const std::wstring& link, NosLib::DynamicArray<std::wstring>& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& priorityInstall, const bool& useInstallPath, const std::wstring& customExtension)
+{
+	ModInfo* newMod = new ModInfo(link, insidePaths, outPath, outName, useInstallPath, customExtension);
+	ModInfo::ModInfoList.Append(newMod);
+	if (priorityInstall)
+	{
+		ModInfo::PriorityModList.Append(newMod);
+	}
+	return newMod;
+}
+
+ModInfo* ModInfo::AddMod(const std::wstring& link, NosLib::DynamicArray<std::wstring>&& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& priorityInstall, const bool& useInstallPath, const std::wstring& customExtension)
+{
+	ModInfo* newMod = new ModInfo(link, insidePaths, outPath, outName, useInstallPath, customExtension);
+	ModInfo::ModInfoList.Append(newMod);
+	if (priorityInstall)
+	{
+		ModInfo::PriorityModList.Append(newMod);
+	}
+	return newMod;
+}
+
 ModInfo::WorkState ModInfo::GetModWorkState()
 {
 	std::lock_guard<std::mutex> lk(WorkStateMutex);
@@ -128,6 +150,28 @@ ModInfo::WorkState ModInfo::GetModWorkState()
 	}
 
 	return CurrentWorkState.load();
+}
+
+void ModInfo::WaitPriority(ModProcessorThread* processingThread)
+{
+	if(PriorityModList.GetItemCount() == 0)
+	{ 
+		return;
+	}
+
+	if (PriorityModList[0] == this)
+	{
+		return;
+	}
+
+	ProcessingThread = processingThread;
+	UpdateLoadingScreen(L"Waiting for Priority");
+
+	std::unique_lock<std::mutex> lockGuard(PriorityMutex);
+	PriorityCV.wait(lockGuard, [this]()
+	{
+		return PriorityModList.GetItemCount() == 0 || PriorityModList[0] == this;
+	});
 }
 
 void ModInfo::ProcessMod(ModProcessorThread* processingThread)
@@ -163,6 +207,13 @@ void ModInfo::ProcessMod(ModProcessorThread* processingThread)
 
 	CurrentWorkState = WorkState::Completed;
 	processingThread = nullptr;
+
+	if (!PriorityModList.GetItemCount() == 0 && PriorityModList[0] == this)
+	{
+		PriorityModList.Remove(0);
+	}
+
+	PriorityCV.notify_all();
 }
 
 #pragma region Parsing
@@ -181,10 +232,8 @@ void ModInfo::ModpackMakerFile_Parse(const std::wstring& modpackMakerFileName)
 	while (std::getline(modMakerFile, line))
 	{
 		/* append to array */
-		modInfoList.Append(ParseLine(line));
+		ModInfoList.Append(ParseLine(line));
 	}
-
-	//Parsed = true;
 }
 
 /// <summary>

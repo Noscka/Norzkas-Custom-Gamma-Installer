@@ -10,6 +10,7 @@
 #include <source_location>
 #include <mutex>
 #include <atomic>
+#include <condition_variable>
 
 #include "Validation.hpp"
 #include "File.hpp"
@@ -29,7 +30,7 @@ public:
 		Completed
 	};
 
-private:
+protected:
 	/// <summary>
 	/// describes what type of "mod" it is
 	/// </summary>
@@ -55,6 +56,8 @@ private:
 	bool UseInstallPath = true;						/* If mod should include mod path when installing (ONLY FOR CUSTOM) */
 
 	/* MultiThreading */
+	inline static std::mutex PriorityMutex;
+	inline static std::condition_variable PriorityCV;
 	ModProcessorThread* ProcessingThread;
 	std::mutex WorkStateMutex;
 	std::atomic<WorkState> CurrentWorkState = WorkState::NotStarted;
@@ -64,9 +67,12 @@ private:
 	/// Needs to be run by all the constructors, initializes for loading screen
 	/// </summary>
 	void InitializeModInfo();
-public:
-	inline static NosLib::DynamicArray<ModInfo*> modInfoList; /* A list of all mods */
 
+public:
+	inline static NosLib::DynamicArray<ModInfo*> ModInfoList; /* A list of all mods */
+	inline static NosLib::DynamicArray<ModInfo*> PriorityModList;
+
+protected:
 	/// <summary>
 	/// Seperator constructor, only has a name and index
 	/// </summary>
@@ -84,6 +90,7 @@ public:
 	/// <param name="leftOver">- Any left over data</param>
 	ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>& insidePaths, const std::wstring& creatorName, const std::wstring& outName, const std::wstring& originalLink);
 
+public:
 	/// <summary>
 	/// Custom Mod Constructor, can output anywhere
 	/// </summary>
@@ -108,7 +115,11 @@ public:
 
 	std::wstring GetFolderName();
 
+	static ModInfo* AddMod(const std::wstring& link, NosLib::DynamicArray<std::wstring>& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& priorityInstall = false, const bool& useInstallPath = true, const std::wstring& customExtension = L"");
+	static ModInfo* AddMod(const std::wstring& link, NosLib::DynamicArray<std::wstring>&& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& priorityInstall = false, const bool& useInstallPath = true, const std::wstring& customExtension = L"");
+
 	WorkState GetModWorkState();
+	void WaitPriority(ModProcessorThread* processingThread);
 
 	void ProcessMod(ModProcessorThread* processingThread);
 
@@ -119,7 +130,7 @@ public:
 	/// <returns>a DynamicArray of ModInfo pointers (ModInfo*)</returns>
 	static void ModpackMakerFile_Parse(const std::wstring& modpackMakerFileName);
 
-private:
+protected:
 	/// <summary>
 	/// Takes in a string and actually parses it, and puts it into an object
 	/// </summary>
