@@ -29,6 +29,7 @@ Usage:
 
 Planned Features:
  - [x] Add File Reuse System
+ - [x] Add MultiThreading
  - [ ] Estimated time display
  - [ ] Option to install stalker anomaly
  - [ ] Make Linux Native too

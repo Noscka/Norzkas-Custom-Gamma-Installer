@@ -6,8 +6,11 @@
 #include <NosLib/FileManagement.hpp>
 #include "InstallOptions.hpp"
 
+#include "../CustomWidgets/MultiThreadProgress.hpp"
+
 #include <fstream>
 #include <chrono>
+#include <mutex>
 
 class InstallManager : public QObject
 {
@@ -16,20 +19,39 @@ class InstallManager : public QObject
 private:
 	inline static InstallManager* Instance = nullptr;
 
+	inline static std::mutex InstanceMutex;
+	inline static std::mutex TotalProgressMutex;
+
+	ProgressStatus* RegisteredStatusProgress;
+
 signals:
 	void FinishInstallerInitializing();
 	void FinishInstalling(const std::wstring&);
 
 	void TotalUpdateProgress(const int&);
-	void SingularUpdateProgress(const int&);
-	void UpdateStatus(const QString&);
+	void ModUpdateProgress(const int&);
+	void ModUpdateStatus(const std::wstring&);
 
 public:
+	void UpdateModProgress(const int& value)
+	{
+		emit ModUpdateProgress(value);
+	}
+
+	void UpdateModStatus(const std::wstring& value)
+	{
+		emit ModUpdateStatus(value);
+	}
+
+	MultiThreadProgress* ProgressContainer = nullptr;
+
 	inline InstallManager(QObject* parent = nullptr) : QObject(parent)
 	{}
 
 	inline static InstallManager* GetInstallManager()
 	{
+		std::lock_guard<std::mutex> lk(InstanceMutex);
+
 		if (Instance == nullptr)
 		{
 			Instance = new InstallManager();
@@ -40,17 +62,8 @@ public:
 
 	void UpdateTotalProgress(const int& value)
 	{
+		std::lock_guard<std::mutex> lk(TotalProgressMutex);
 		emit TotalUpdateProgress(value);
-	}
-
-	void UpdateSingularProgress(const int& value)
-	{
-		emit SingularUpdateProgress(value);
-	}
-
-	void UpdateStatus(const std::wstring& value)
-	{
-		emit UpdateStatus(QString::fromStdWString(value));
 	}
 
 public slots:
@@ -96,6 +109,7 @@ public slots:
 		modListFileWrite.write(out.c_str(), out.size());
 		modListFileWrite.close();
 	}
+
 protected:
 	void InitializeInstaller();
 	void MainInstall();
@@ -103,7 +117,7 @@ protected:
 	inline void FinishInstall()
 	{
 		#ifdef _WIN32
-static wchar_t path[MAX_PATH + 1];
+		static wchar_t path[MAX_PATH + 1];
 		SHGetSpecialFolderPath(HWND_DESKTOP, path, CSIDL_DESKTOP, FALSE);
 
 		std::wstring targetFile = (InstallOptions::GammaInstallPath + L"ModOrganizer.exe");

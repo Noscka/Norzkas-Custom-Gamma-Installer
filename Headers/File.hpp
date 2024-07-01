@@ -14,6 +14,7 @@
 #include <string>
 #include <functional>
 #include <filesystem>
+#include <atomic>
 
 class ModInfo;
 
@@ -52,8 +53,8 @@ protected:
 		Unknown,
 	};
 
-	static inline bit7z::Bit7zLibrary lib = bit7z::Bit7zLibrary(L"7z.dll"); /* Load 7z.dll into a class */
-	static inline bit7z::BitFileExtractor extractor = bit7z::BitFileExtractor(lib); /* create extractor object */
+	inline static bit7z::Bit7zLibrary lib = bit7z::Bit7zLibrary(L"7z.dll"); /* Load 7z.dll into a class */
+	bit7z::BitFileExtractor extractor = bit7z::BitFileExtractor(lib); /* create extractor object */
 
 	static NosLib::HashTable<std::wstring, File*> fileHastTable;
 
@@ -63,8 +64,9 @@ protected:
 	NosLib::HostPath Link;
 	FileStore FileName;
 
-	bool Extracted = false;
-	int UsageCount;
+	std::atomic<bool> Processing = false;
+	std::atomic<bool> Extracted = false;
+	std::atomic<int> UsageCount;
 
 	ModInfo* CallerPointer = nullptr;
 	Status StatusCallback;
@@ -117,22 +119,28 @@ public:
 		return returnFile;
 	}
 
+	bool CheckIfStarted()
+	{
+		return Processing.load();
+	}
+
 	/* Returns File Path */
 	std::wstring GetFile(ModInfo* callerPointer, const Status& statusCallback, const Progress& progressCallback)
 	{
+		Processing = true;
+
 		/* Update Callbacks */
 		CallerPointer = callerPointer;
 		StatusCallback = statusCallback;
 		ProgressCallback = progressCallback;
 
-		if (!Extracted)
+		if (!(Extracted.load()))
 		{
 			if (!DownloadFile())
 			{
 				return L"";
 			}
 
-			/* if failed */
 			if (!ExtractFile())
 			{
 				return L"";
@@ -140,6 +148,8 @@ public:
 
 			Extracted = true;
 		}
+
+		Processing = false;
 
 		return GetExtractPath();
 	}

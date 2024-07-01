@@ -9,7 +9,7 @@ namespace MO
 {
 	namespace /* Private */
 	{
-		std::wstring GetLatestMOVersion(httplib::Client* client)
+		std::wstring GetLatestMOVersion(const NosLib::HttpClient::ptr& client)
 		{
 			NosLib::HostPath hostPath("https://github.com/ModOrganizer2/modorganizer/releases/latest");
 			
@@ -38,7 +38,7 @@ namespace MO
 			return NosLib::String::ToWstring(latestVersion);
 		}
 
-		std::wstring GetLatestDownloadLink(httplib::Client* client, const std::wstring& version)
+		std::wstring GetLatestDownloadLink(const NosLib::HttpClient::ptr& client, const std::wstring& version)
 		{
 			std::string nVersion = NosLib::String::ToString(version);
 
@@ -66,11 +66,11 @@ namespace MO
 
 	ModInfo GetModOrganizerModObject()
 	{
-		httplib::Client client = NosLib::MakeClient("https://github.com");
-		client.set_keep_alive(true);
+		auto client = NosLib::HttpClient::MakeClient("https://github.com");
+		client->set_keep_alive(true);
 
-		std::wstring moVersion = GetLatestMOVersion(&client);
-		std::wstring moDownloadLink = GetLatestDownloadLink(&client, moVersion);
+		std::wstring moVersion = GetLatestMOVersion(client);
+		std::wstring moDownloadLink = GetLatestDownloadLink(client, moVersion);
 
 		std::wstring fileName = std::format(L"Mod.Organizer-{}", moVersion);
 

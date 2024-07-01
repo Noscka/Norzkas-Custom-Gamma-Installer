@@ -55,24 +55,24 @@ bool File::DownloadFile()
 	/* create directories in order to prevent any errors */
 	std::filesystem::create_directories(DownloadDirectory);
 
-	httplib::Client* downloadClient = nullptr;
+	NosLib::HttpClient::ptr downloadClient = nullptr;
 	std::wstring downloadLink;
 
 	/* Decide the host type, there are different download steps for different websites */
 	switch (DetermineHostType(Link.Host))
 	{
 	case HostType::ModDB:
-		downloadClient = ModDB::GetDownloadClient();
+		downloadClient = ModDB::CreateDownloadClient();
 		downloadLink = ModDB::GetDownloadString(Link.Path);
 		break;
 
 	case HostType::GithubObjects:
-		downloadClient = Github::GetDownloadObjectsClient();
+		downloadClient = Github::CreateDownloadObjectsClient();
 		downloadLink = Link.Path;
 		break;
 
 	case HostType::Github:
-		downloadClient = Github::GetDownloadClient();
+		downloadClient = Github::CreateDownloadClient();
 		downloadLink = Link.Path;
 		break;
 
@@ -93,7 +93,7 @@ bool File::DownloadFile()
 		return false;
 	}
 
-	return GetAndSaveFile(downloadClient, downloadLink, DownloadDirectory);
+	return GetAndSaveFile(downloadClient.get(), downloadLink, DownloadDirectory);
 }
 
 bool File::GetAndSaveFile(httplib::Client* client, const std::wstring& urlFilePath, const std::wstring& pathOffsets)
@@ -157,8 +157,7 @@ bool File::ExtractFile()
 
 	NosLib::Logging::CreateLog<wchar_t>(std::format(L"Extracting \"{}\" To \"{}\"", GetDownloadPath(), GetExtractPath()), NosLib::Logging::Severity::Info);
 
-	uint64_t totalSize = 0;
-
+	uint64_t totalSize = 1;
 	extractor.setTotalCallback([&](uint64_t total_size)
 	{
 		totalSize = total_size;

@@ -75,7 +75,7 @@ std::wstring ModDB::GetQuickestMirror(const std::wstring& downloadLink)
 
 std::string ModDB::GetPageContent(const std::string& downloadLink)
 {
-	httplib::Result modDBResult = ModDBMirrorClient.Get(downloadLink );
+	httplib::Result modDBResult = ModDBMirrorClient->Get(downloadLink );
 
 	if (modDBResult->status == 503)
 	{
@@ -111,7 +111,7 @@ NosLib::DynamicArray<std::string> ModDB::ExtractMirrors(const std::string& pageC
 
 uint32_t ModDB::PingMirror(const std::string& mirrorHostname)
 {
-	httplib::Result res = ModDBMirrorClient.Get(mirrorHostname);
+	httplib::Result res = ModDBMirrorClient->Get(mirrorHostname);
 
 	httplib::Headers::const_iterator itr = res->headers.find("location");
 	std::string hostnameString = GetHostName(itr->second);

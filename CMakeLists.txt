@@ -67,10 +67,12 @@ BASE "Assets/"
 )
 
 # Make console invisible
-set_target_properties(${PROJECT_NAME} PROPERTIES
-    WIN32_EXECUTABLE ON
-    MACOSX_BUNDLE ON
-)
+if(${GIT_BRANCH} STREQUAL "master")
+    set_target_properties(${PROJECT_NAME} PROPERTIES
+        WIN32_EXECUTABLE ON
+        MACOSX_BUNDLE ON
+    )
+endif()
 
 # Link Libraries
 target_link_libraries(${PROJECT_NAME}
@@ -102,7 +104,7 @@ add_custom_command(
    COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${PROJECT_NAME}> ${OUTDIR}
 )
 
-if (CMAKE_IMPORT_LIBRARY_SUFFIX)
+if (CMAKE_IMPORT_LIBRARY_SUFFIX AND ${GIT_BRANCH} STREQUAL "master")
   add_custom_command(
     TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy -t ${OUTDIR} "$<TARGET_RUNTIME_DLLS:${PROJECT_NAME}>"
