@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.8)
+﻿cmake_minimum_required(VERSION 3.12)
 
 include("CMake/Versioning.cmake")
 
@@ -40,14 +40,15 @@ find_package(Qt${QT_VERSION_MAJOR}
 qt_standard_project_setup()
 
 # Get All Project Files
-file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "Headers/*" "Source/*" "CustomWidgets/*" "InstallerWindow/*")
+file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "src/*" "CustomWidgets/*")
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     enable_language("RC")
     set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Icon.rc" "${CMAKE_CURRENT_SOURCE_DIR}/Resource/Version.rc")
 endif()
 
-qt_add_executable(${PROJECT_NAME} "main.cpp" ${ProjectFiles} ${app_icon_resource_windows})
+qt_add_executable(${PROJECT_NAME} ${ProjectFiles} ${app_icon_resource_windows})
+target_include_directories(${PROJECT_NAME} PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>)
 
 qt_add_resources(${PROJECT_NAME} "Icon"
     FILES
@@ -81,17 +82,8 @@ target_link_libraries(${PROJECT_NAME}
         Qt::Gui
         Qt::Widgets
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE -static NosLib htmlparser bit7z)
-target_include_directories(${PROJECT_NAME} PRIVATE ${htmlparser_SOURCE_DIR})
-
-# Add Compiler Definitions
-add_compile_definitions(CPPHTTPLIB_OPENSSL_SUPPORT)
-add_compile_definitions(WIN32_LEAN_AND_MEAN)
-
-# Use Unicode
-if (MSVC)
-     target_compile_definitions(${PROJECT_NAME} PUBLIC UNICODE _UNICODE)
-endif()
+target_link_libraries(${PROJECT_NAME} PRIVATE htmlparser bit7z NosLib)
+#target_include_directories(${PROJECT_NAME} PRIVATE ${htmlparser_SOURCE_DIR})
 
 # Out Build Path
 set(OUTDIR ${PROJECT_SOURCE_DIR}/Out/)
