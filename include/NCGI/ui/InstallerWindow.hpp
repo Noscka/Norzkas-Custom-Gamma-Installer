@@ -14,13 +14,13 @@
 
 class InstallerWindow : public QMainWindow
 {
-    Q_OBJECT
+	Q_OBJECT
 
 private:
-    Ui_InstallerWindow ui;
+	Ui_InstallerWindow ui;
 
 public:
-	InstallerWindow(QWidget* parent = nullptr) : QMainWindow(parent);
+	InstallerWindow(QWidget* parent = nullptr);
 
 protected:
 	void setup_defaults();
@@ -60,19 +60,13 @@ protected:
 
 		InstallOptions::GammaInstallPath = ui.GammaPathInput->GetPath();
 
-		NosLib::Logging::CreateLog<wchar_t>(std::format(L"Stalker Anomaly Path: \"{}\" | Gamma Install Path: \"{}\"",
-														InstallOptions::StalkerAnomalyPath,
-														InstallOptions::GammaInstallPath),
-											NosLib::Logging::Severity::Info);
+		NosLib::Logging::CreateLog(NosLib::Logging::Severity::Info, "Stalker Anomaly Path: \"{}\" | Gamma Install Path: \"{}\"", InstallOptions::StalkerAnomalyPath.string(), InstallOptions::GammaInstallPath.string());
 
 
-		/* Invalid Paths */
+/* Invalid Paths */
 		if (!(stalkerAnomalyPathValidity && stalkerGammaValidity))
 		{
-			NosLib::Logging::CreateLog<wchar_t>(std::format(L"Invalid Stalker Anomaly: \"{}\" or Gamma Install Path: \"{}\"",
-														 InstallOptions::StalkerAnomalyPath,
-														 InstallOptions::GammaInstallPath),
-											 NosLib::Logging::Severity::Error);
+			NosLib::Logging::CreateLog(NosLib::Logging::Severity::Error, "Invalid Stalker Anomaly: \"{}\" or Gamma Install Path: \"{}\"", InstallOptions::StalkerAnomalyPath.string(), InstallOptions::GammaInstallPath.string());
 			return;
 		}
 
@@ -88,8 +82,6 @@ protected:
 		InstallThread = new QThread;
 		InstallManager* InstallClass = InstallManager::GetInstallManager();
 
-		InstallClass->ProgressContainer = ui.ProgressContainer;
-
 		connect(InstallClass, &InstallManager::FinishInstallerInitializing, this, &InstallerWindow::FinishInstallerInitializing);
 		connect(InstallClass, &InstallManager::FinishInstalling, this, &InstallerWindow::FinishInstalling);
 
@@ -98,7 +90,7 @@ protected:
 		ui.TotalProgressBar->setValue(0);
 		ui.TotalProgressBar->setMaximum(0);
 
-		connect(InstallThread, &QThread::started, InstallClass, &InstallManager::StartInstall);
+		connect(InstallThread, &QThread::started, InstallClass, &InstallManager::start_install);
 		InstallClass->moveToThread(InstallThread);
 		InstallThread->start();
 	}
@@ -110,10 +102,10 @@ public slots:
 		ui.TotalProgressBar->setMaximum(100);
 	}
 
-	void FinishInstalling(const std::wstring& timeTakenString)
+	void FinishInstalling(const QString& timeTakenString)
 	{
 		ui.stackedWidget->setCurrentIndex(2);
-		ui.TimeTakenLabel->setText(QString::fromStdWString(timeTakenString));
+		ui.TimeTakenLabel->setText(timeTakenString);
 	}
 
 	void TotalUpdateProgress(const int& newProgress)

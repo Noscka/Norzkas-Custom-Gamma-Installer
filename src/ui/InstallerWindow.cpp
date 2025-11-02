@@ -4,7 +4,7 @@ InstallerWindow::InstallerWindow(QWidget* parent) : QMainWindow(parent)
 {
 	ui.setupUi(this);
 	setup_defaults();
-	setWindowTitle(generate_title());
+	setWindowTitle(QString::fromStdString(generate_title()));
 	setup_connections();
 }
 

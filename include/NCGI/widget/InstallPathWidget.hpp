@@ -158,30 +158,30 @@ public:
 		MainVerticalLayout->addItem(BottomVerticalSpacer);
 	}
 
-	void SetLabelText(const QString& newText)
+	inline void SetLabelText(const QString& newText)
 	{
 		InnerInstallPathWidget->PathLabel->setText(newText);
 	}
 
-	void SetInputText(const QString& newText)
+	inline void SetInputText(const QString& newText)
 	{
 		InnerInstallPathWidget->PathInput->setText(newText);
 		InnerInstallPathWidget->SelfValidatePath();
 	}
 
-	void SetDirectoryValidateFunction(const std::function<bool(const QString&)> directoryValidateFunction)
+	inline void SetDirectoryValidateFunction(const std::function<bool(const QString&)> directoryValidateFunction)
 	{
 		InnerInstallPathWidget->DirectoryValidateFunction = directoryValidateFunction;
 		InnerInstallPathWidget->SelfValidatePath();
 	}
 
-	bool IsPathValid()
+	inline bool IsPathValid()
 	{
 		InnerInstallPathWidget->SelfValidatePath();
 		return InnerInstallPathWidget->ValidPath;
 	}
 
-	std::string GetPath()
+	inline std::string GetPath()
 	{
 		return MakeSystemPaths(InnerInstallPathWidget->PathInput->text().toStdString());
 	}
@@ -191,13 +191,13 @@ private:
 	inline std::string MakeSystemPaths(std::string inPath)
 	{
 #ifdef _WIN32
-		std::wstring prefix = R"(\\?\)";
-		wchar_t usedSeperator = '\\';
-		wchar_t wrongSeperator = '/';
+		std::string prefix = R"(\\?\)";
+		char usedSeperator = '\\';
+		char wrongSeperator = '/';
 #elif unix
-		std::wstring prefix = "";
-		wchar_t usedSeperator = '/';
-		wchar_t wrongSeperator = '\\';
+		std::string prefix = "";
+		char usedSeperator = '/';
+		char wrongSeperator = '\\';
 #endif
 
 		inPath.insert(0, prefix);
@@ -207,7 +207,7 @@ private:
 			inPath.push_back(usedSeperator);
 		}
 
-		for (wchar_t& pathLetter : inPath)
+		for (char& pathLetter : inPath)
 		{
 			/* if wrong seperator is used, use the right one */
 			if (pathLetter == wrongSeperator)

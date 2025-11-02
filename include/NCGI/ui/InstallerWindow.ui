@@ -607,7 +607,7 @@
   <customwidget>
    <class>InstallPathWidget</class>
    <extends>QWidget</extends>
-   <header>include/NCGI/widget/InstallPathWidget.hpp</header>
+   <header>NCGI/widget/InstallPathWidget.hpp</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -25,7 +25,7 @@ void InstallManager::start_install()
 	emit FinishInstalling(QString::fromStdString(timeTaken));
 }
 
-void normalize_mod_list(const std::filesystem::path& mod_list_path)
+void InstallManager::normalize_mod_list(const std::filesystem::path& mod_list_path)
 {
 	std::ifstream list_read_stream(mod_list_path, std::ios::binary);
 

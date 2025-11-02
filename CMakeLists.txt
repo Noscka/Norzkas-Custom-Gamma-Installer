@@ -39,7 +39,7 @@ add_subdirectory(External)
 qt_standard_project_setup()
 
 # Get All Project Files
-file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "src/*")
+file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "src/*" "include/*")
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     enable_language("RC")
