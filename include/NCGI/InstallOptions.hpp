@@ -1,18 +1,19 @@
 #pragma once
 
 #include <string>
+#include <filesystem>
 
 namespace InstallInfo
 {
-	inline std::wstring ModDirectory = L"mods\\";
-	inline std::wstring ExtractDirectory = L"extracted\\";
-	inline std::wstring DownloadDirectory = L"downloads\\";
+	inline std::filesystem::path ModDirectory = "mods\\";
+	inline std::filesystem::path ExtractDirectory = "extracted\\";
+	inline std::filesystem::path DownloadDirectory = "downloads\\";
 }
 
 namespace InstallOptions
 {
-	inline std::wstring StalkerAnomalyPath;
-	inline std::wstring GammaInstallPath;
+	inline std::filesystem::path StalkerAnomalyPath;
+	inline std::filesystem::path GammaInstallPath;
 
 	inline bool AddOverwriteFiles = true;
 }

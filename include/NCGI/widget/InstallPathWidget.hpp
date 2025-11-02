@@ -181,23 +181,23 @@ public:
 		return InnerInstallPathWidget->ValidPath;
 	}
 
-	std::wstring GetPath()
+	std::string GetPath()
 	{
-		return MakeSystemPaths(InnerInstallPathWidget->PathInput->text().toStdWString());
+		return MakeSystemPaths(InnerInstallPathWidget->PathInput->text().toStdString());
 	}
 
 private:
 	/* Make Global */
-	inline std::wstring MakeSystemPaths(std::wstring inPath)
+	inline std::string MakeSystemPaths(std::string inPath)
 	{
 #ifdef _WIN32
-		std::wstring prefix = LR"(\\?\)";
-		wchar_t usedSeperator = L'\\';
-		wchar_t wrongSeperator = L'/';
+		std::wstring prefix = R"(\\?\)";
+		wchar_t usedSeperator = '\\';
+		wchar_t wrongSeperator = '/';
 #elif unix
 		std::wstring prefix = "";
-		wchar_t usedSeperator = L'/';
-		wchar_t wrongSeperator = L'\\';
+		wchar_t usedSeperator = '/';
+		wchar_t wrongSeperator = '\\';
 #endif
 
 		inPath.insert(0, prefix);

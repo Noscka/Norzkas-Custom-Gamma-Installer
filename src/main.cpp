@@ -1,11 +1,10 @@
 ﻿#include <QtWidgets/QApplication>
 #include <QFile>
-#include "InstallerWindow/InstallerWindow.hpp"
+#include <NCGI/ui/InstallerWindow.hpp>
 
 #include <NosLib/Logging.hpp>
-#include <NosLib/HttpClient.hpp>
+#include <NosLib/Http/HttpClient.hpp>
 
-#include <conio.h>
 #include <fstream>
 #include <format>
 
@@ -22,8 +21,7 @@ int main(int argc, char* argv[])
 	/* Stops system from going to idle sleep */
 	SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED | ES_AWAYMODE_REQUIRED);
 
-	NosLib::Logging::SetVerboseLevel(NosLib::Logging::Verbose::Error);
-	NosLib::HttpClient::SetUserAgent("NCGI");
+	NosLib::Logging::SetVerboseLevel(NosLib::Logging::Verbose::Debug);
 
 	QApplication app(argc, argv);
 	app.setStyleSheet(GetStyleSheet());

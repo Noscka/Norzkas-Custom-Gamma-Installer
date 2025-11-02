@@ -6,9 +6,9 @@
 
 #include <NosLib/Logging.hpp>
 
-#include "../Headers/Validation.hpp"
-#include "../Headers/InstallManager.hpp"
-#include "../Headers/Version.hpp"
+#include <NCGI/Validation.hpp>
+#include <NCGI/InstallManager.hpp>
+#include <NCGI/Version.hpp>
 
 #include "ui_InstallerWindow.h"
 
@@ -20,85 +20,14 @@ private:
     Ui_InstallerWindow ui;
 
 public:
-	inline InstallerWindow(QWidget* parent = nullptr) : QMainWindow(parent)
-	{
-		ui.setupUi(this);
-
-		ui.AnomalyPathInput->SetLabelText("Stalker Anomaly Path");
-		ui.AnomalyPathInput->SetInputText("C:/Games/Anomaly");
-		ui.AnomalyPathInput->SetDirectoryValidateFunction(&Validation::ValidateStalkerAnomalyPath);
-
-		ui.GammaPathInput->SetLabelText("Gamma Install Path");
-		ui.GammaPathInput->SetInputText("C:/Games/Gamma");
-
-		setWindowTitle(QCoreApplication::translate("InstallerWindow", std::format("Norzka's Custom Gamma Installer - {}", MakeTitleString()).c_str() , nullptr));
-
-		StartupChecks();
-
-		/* Bottom Buttons */
-		connect(ui.BackButton, &QPushButton::released, this, [&]()
-		{
-			int currentIndex = ui.tabWidget->currentIndex();
-			currentIndex--;
-			ui.tabWidget->setCurrentIndex(currentIndex);
-		});
-
-		connect(ui.NextButton, &QPushButton::released, this, [&]()
-		{
-			int currentIndex = ui.tabWidget->currentIndex();
-			currentIndex++;
-			ui.tabWidget->setCurrentIndex(currentIndex);
-		});
-
-		connect(ui.CancelButton, &QPushButton::released, this, [&]()
-		{
-			QCoreApplication::exit(0);
-		});
-
-		/* Tab Widget */
-		connect(ui.tabWidget, &QTabWidget::currentChanged, this, [&](int index)
-		{
-			BottomControlButtonChecks();
-			InstallButtonCheck();
-		});
-
-		/* Options */
-		connect(ui.OptionAddOverwriteFiles, &QCheckBox::checkStateChanged, this, [&](Qt::CheckState state)
-		{
-			InstallOptions::AddOverwriteFiles = (state == Qt::Checked);
-		});
-
-		/* Install Start */
-		connect(ui.StartInstallButton, &QPushButton::released, this, &InstallerWindow::PreStartInstall);
-
-		/* Finish Install */
-		connect(ui.FinishInstallButton, &QPushButton::released, this, [&]()
-		{
-			QCoreApplication::exit(0);
-		});
-	}
-
-	inline ~InstallerWindow()
-	{
-	}
+	InstallerWindow(QWidget* parent = nullptr) : QMainWindow(parent);
 
 protected:
-	inline std::string MakeTitleString()
-	{
-		std::string out = "v";
-		out += NCGI_VERSION;
+	void setup_defaults();
+	void setup_connections();
 
-		if (NCGI_BRANCH != "master")
-		{
-			out += std::format(" | Branch: {}", NCGI_BRANCH);
-		}
-
-		#ifdef _DEBUG
-		out += " | DEBUG";
-		#endif // _DEBUG
-
-		return out;
-	}
+	std::string generate_title();
+	std::string generate_title_branch();
 
 	inline void StartupChecks()
 	{

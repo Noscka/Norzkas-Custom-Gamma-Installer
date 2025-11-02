@@ -8,7 +8,7 @@ Get_Git_Branch()
 project ("NCGI" VERSION ${GIT_VERSION} LANGUAGES CXX)
 
 # Version Header
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMake/Version.hpp.in" "${CMAKE_CURRENT_SOURCE_DIR}/Headers/Version.hpp")
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/CMake/Version.hpp.in" "${CMAKE_CURRENT_SOURCE_DIR}/include/NCGI/Version.hpp")
 
 # Set Options and Properties
 set(CMAKE_CXX_STANDARD 20)
@@ -16,7 +16,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON) 
 
 set(BIT7Z_AUTO_FORMAT ON CACHE BOOL "")
@@ -26,21 +25,21 @@ set(BIT7Z_STATIC_RUNTIME ON CACHE BOOL "")
 set(BIT7Z_USE_NATIVE_STRING ON CACHE BOOL "")
 set(BIT7Z_AUTO_PREFIX_LONG_PATHS  ON CACHE BOOL "")
 
-# Run Library CMakes
-add_subdirectory(External)
-
 # Find QT Lib
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+find_package(QT NAMES Qt6 REQUIRED COMPONENTS Core)
 find_package(Qt${QT_VERSION_MAJOR}
     COMPONENTS
         Core
         Gui
         Widgets
 )
+
+# Run Library CMakes
+add_subdirectory(External)
 qt_standard_project_setup()
 
 # Get All Project Files
-file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "src/*" "CustomWidgets/*")
+file(GLOB_RECURSE ProjectFiles CONFIGURE_DEPENDS "src/*")
 
 if (${CMAKE_SYSTEM_NAME} MATCHES "Windows")
     enable_language("RC")
@@ -82,8 +81,9 @@ target_link_libraries(${PROJECT_NAME}
         Qt::Gui
         Qt::Widgets
 )
-target_link_libraries(${PROJECT_NAME} PRIVATE htmlparser bit7z NosLib)
-#target_include_directories(${PROJECT_NAME} PRIVATE ${htmlparser_SOURCE_DIR})
+target_link_libraries(${PROJECT_NAME} PRIVATE -static bit7z)
+target_link_libraries(${PROJECT_NAME} PRIVATE htmlparser NosLib)
+target_include_directories(${PROJECT_NAME} PRIVATE ${htmlparser_SOURCE_DIR})
 
 # Out Build Path
 set(OUTDIR ${PROJECT_SOURCE_DIR}/Out/)

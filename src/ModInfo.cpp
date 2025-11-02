@@ -1,436 +1,291 @@
-#include "../Headers/ModInfo.hpp"
+#include <NCGI/ModInfo.hpp>
 
-#include "../Headers/InstallOptions.hpp"
-#include "../Headers/InstallManager.hpp"
-#include "../Headers/ModProcessorThread.hpp"
+#include <NCGI/InstallOptions.hpp>
+#include <NCGI/InstallManager.hpp>
+#include <NCGI/Validation.hpp>
+#include <NCGI/ErrorCodes.hpp>
 
-void copyIfExists(const std::wstring& from, const std::wstring& to)
+ModInfo::ModInfo(const std::string& main_name) :
+	mod_prefix_index_(current_mod_prefix_index_++),
+	main_name_(main_name),
+	mod_type_(Type::Seperator)
+{}
+
+ModInfo::ModInfo(const std::string& link, const std::vector<std::filesystem::path>& from_paths, const std::string& creator_name, const std::string& main_name, const std::string& original_link) :
+	mod_prefix_index_(current_mod_prefix_index_++),
+	from_paths_(from_paths_),
+	creator_name_(creator_name),
+	main_name_(main_name),
+	original_link_(original_link),
+	mod_file_handler_(ModFile::register_file(link, main_name)),
+	mod_type_(Type::Standard)
 {
-	/* if DOESN'T exist, go to next path (this is to remove 1 layer of nesting) */
-	if (!std::filesystem::exists(from))
-	{
-		return;
-	}
-
-	/* if it does exist, copy the directory with all the subdirectories and folders */
-	std::filesystem::create_directories(to);
-	std::filesystem::copy(from, to, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing);
-}
-#pragma region constructors
-/// <summary>
-/// Seperator constructor, only has a name and index
-/// </summary>
-/// <param name="outName">- seperator name</param>
-	ModInfo::ModInfo(const std::wstring& outName)
-{
-	ModPrefixIndex = ModPrefixIndexCounter;
-	ModPrefixIndexCounter++;
-
-	OutName = outName;
-	ModType = Type::Seperator;
 }
 
-/// <summary>
-/// Standard Mod Constructor, has all the data
-/// </summary>
-/// <param name="link"> -the download link, will be used to download</param>
-/// <param name="insidePaths">- an array of the inner paths (incase there is many)</param>
-/// <param name="creatorName">- the creator name (used in folder name)</param>
-/// <param name="outName">- the main folder name (use in folder name)</param>
-/// <param name="originalLink">- original mod link (I don't know why its there but I'll parse it anyway)</param>
-/// <param name="leftOver">- Any left over data</param>
-ModInfo::ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>& insidePaths, const std::wstring& creatorName, const std::wstring& outName, const std::wstring& originalLink)
+ModInfo::ModInfo(const std::string& link, const std::vector<std::filesystem::path>& from_paths, const std::string& to_path, const std::string& main_name, const bool& use_install_path, const std::string& custom_extension) :
+	from_paths_(from_paths),
+	to_path_(to_path_),
+	main_name_(main_name),
+	use_install_path_(use_install_path),
+	mod_file_handler_(ModFile::register_file(link, main_name, custom_extension)),
+	mod_type_(Type::Custom)
 {
-	ModPrefixIndex = ModPrefixIndexCounter;
-	ModPrefixIndexCounter++;
-
-	InsidePaths << insidePaths;
-	CreatorName = creatorName;
-	OutName = outName;
-	OriginalLink = originalLink;
-	ModType = Type::Standard;
-
-	FileObject = File::RegisterFile(link, outName);
 }
 
-/// <summary>
-/// Custom Mod Constructor, can output anywhere
-/// </summary>
-/// <param name="link"> - the download link, will be used to download</param>
-/// <param name="insidePaths">- an array of the inner paths (incase there is many) I-Value</param>
-/// <param name="OutPath">- where to copy the extracted data to</param>
-/// <param name="outName">- what to name the file</param>
-/// <param name="useInstallPath">(default = true) - if it should add installPath string to the front of its paths</param>
-/// <param name="customExtension">(default = L"") - custom extension</param>
-ModInfo::ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& useInstallPath, const std::wstring& customExtension)
+std::string ModInfo::generate_mod_name()
 {
-	InsidePaths << insidePaths;
-	OutName = outName;
-	OutPath = outPath;
-	ModType = Type::Custom;
-
-	FileObject = File::RegisterFile(link, outName, customExtension);
-
-	UseInstallPath = useInstallPath;
-}
-
-/// <summary>
-/// Custom Mod Constructor, can output anywhere
-/// </summary>
-/// <param name="link"> - the download link, will be used to download</param>
-/// <param name="insidePaths">- an array of the inner paths (incase there is many) R-Value</param>
-/// <param name="OutPath">- where to copy the extracted data to</param>
-/// <param name="outName">- what to name the file</param>
-/// <param name="useInstallPath">(default = true) - if it should add installPath string to the front of its paths</param>
-/// <param name="customExtension">(default = L"") - custom extension</param>
-ModInfo::ModInfo(const std::wstring& link, NosLib::DynamicArray<std::wstring>&& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& useInstallPath, const std::wstring& customExtension)
-{
-	InsidePaths << insidePaths;
-	OutName = outName;
-	OutPath = outPath;
-	ModType = Type::Custom;
-
-	FileObject = File::RegisterFile(link, outName, customExtension);
-
-	UseInstallPath = useInstallPath;
-}
-#pragma endregion
-
-std::wstring ModInfo::GetFolderName()
-{
-	switch (ModType)
+	switch (mod_type_)
 	{
 	case Type::Seperator:
-		return std::format(L"{}- {}_separator", ModPrefixIndex, OutName);
+		return std::format("{}- {}_separator", mod_prefix_index_, main_name_);
 
 	case Type::Standard:
-		return std::format(L"{}- {} {}", ModPrefixIndex, OutName, CreatorName);
+		return std::format("{}- {} {}", mod_prefix_index_, main_name_, creator_name_);
 
 	case Type::Custom:
-		return std::format(L"{}", OutName);
+		return std::format("{}", main_name_);
+	}
 
-	default:
-		return L"Unknown Mod Type";
+	return "Unknown Mod Type";
+}
+
+ModInfo* ModInfo::add_mod(const std::string& link, const std::vector<std::filesystem::path>& from_paths, const std::string& to_path, const std::string& main_name, const bool& use_install_path, const std::string& custom_extension)
+{
+	ModInfo* mod = new ModInfo(link, from_paths, to_path, main_name, use_install_path, custom_extension);
+	ModInfoList.push_back(mod);
+	return mod;
+}
+
+NosLib::Result<void> ModInfo::parse_modpack_file(const std::filesystem::path& file_path)
+{
+	/* Add existance validation */
+
+	std::ifstream file_stream(file_path, std::ios::binary);
+
+	std::string line;
+	while (std::getline(file_stream, line))
+	{
+		ModInfoList.push_back(parse_line(line));
 	}
 }
 
-ModInfo* ModInfo::AddMod(const std::wstring& link, NosLib::DynamicArray<std::wstring>& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& priorityInstall, const bool& useInstallPath, const std::wstring& customExtension)
+ModInfo* ModInfo::parse_line(std::string& line)
 {
-	ModInfo* newMod = new ModInfo(link, insidePaths, outPath, outName, useInstallPath, customExtension);
-	ModInfo::ModInfoList.Append(newMod);
-	if (priorityInstall)
-	{
-		ModInfo::PriorityModList.Append(newMod);
-	}
-	return newMod;
-}
+	std::vector<std::string> mod_info;
 
-ModInfo* ModInfo::AddMod(const std::wstring& link, NosLib::DynamicArray<std::wstring>&& insidePaths, const std::wstring& outPath, const std::wstring& outName, const bool& priorityInstall, const bool& useInstallPath, const std::wstring& customExtension)
-{
-	ModInfo* newMod = new ModInfo(link, insidePaths, outPath, outName, useInstallPath, customExtension);
-	ModInfo::ModInfoList.Append(newMod);
-	if (priorityInstall)
-	{
-		ModInfo::PriorityModList.Append(newMod);
-	}
-	return newMod;
-}
+	NosLib::String::Split(&mod_info, line, '\t');
 
-ModInfo::WorkState ModInfo::GetModWorkState()
-{
-	std::lock_guard<std::mutex> lk(WorkStateMutex);
-
-	/* If Started, return as inProgress too */
-	if (FileObject != nullptr)
+	for (int i = 0; i < mod_info.size(); i++)
 	{
-		if (FileObject->CheckIfStarted())
-		{
-			WorkState::InProgress;
-		}
+		std::string& entry = mod_info[i];
+		entry = NosLib::String::Reduce(entry);
 	}
 
-	return CurrentWorkState.load();
-}
-
-void ModInfo::WaitPriority(ModProcessorThread* processingThread)
-{
-	if(PriorityModList.GetItemCount() == 0)
-	{ 
-		return;
+	if (mod_info.size() == 1)
+	{
+		return new ModInfo(mod_info[0]);
 	}
 
-	if (PriorityModList[0] == this)
-	{
-		return;
-	}
-
-	ProcessingThread = processingThread;
-	UpdateLoadingScreen(L"Waiting for Priority");
-
-	std::unique_lock<std::mutex> lockGuard(PriorityMutex);
-	PriorityCV.wait(lockGuard, [this]()
-	{
-		return PriorityModList.GetItemCount() == 0 || PriorityModList[0] == this;
-	});
-}
-
-void ModInfo::ProcessMod(ModProcessorThread* processingThread)
-{
-	CurrentWorkState = WorkState::InProgress;
-	ProcessingThread = processingThread;
-
-	/* do different things depending on the mod type */
-	switch (ModType)
-	{
-	case Type::Seperator:
-		SeparatorModProcess(); /* if separator, just create folder with special name */
-		break;
-
-	case Type::Standard:
-		StandardModProcess(); /* if mod, then download, extract and the construct (copy all the inner paths to end file) the mod */
-		break;
-
-	case Type::Custom:
-		CustomModProcess(); /* if custom, then download, extract and copy the files to the specified directory */
-		break;
-
-	default: /* default meaning it is some other type which hasn't been defined yet */
-		LogError(L"Undefined Mod Type tried to be processed", std::source_location::current());
-		return;
-	}
-
-	if (FileObject != nullptr)
-	{
-		FileObject->Finished();
-		FileObject = nullptr;
-	}
-
-	CurrentWorkState = WorkState::Completed;
-	processingThread = nullptr;
-
-	if (!PriorityModList.GetItemCount() == 0 && PriorityModList[0] == this)
-	{
-		PriorityModList.Remove(0);
-	}
-
-	PriorityCV.notify_all();
-}
-
-#pragma region Parsing
-/// <summary>
-/// takes in a filename for a modpackMaker and parses it fully
-/// </summary>
-/// <param name="modpackMakerFileName">(default = "modpack_maker_list.txt") - path/name of modpack Maker</param>
-/// <returns>a DynamicArray of ModInfo pointers (ModInfo*)</returns>
-void ModInfo::ModpackMakerFile_Parse(const std::wstring& modpackMakerFileName)
-{
-	/* open binary file stream of modpack maker list */
-	std::wifstream modMakerFile(modpackMakerFileName, std::ios::binary);
-
-	/* got through all lines in the file. each line is a new mod */
-	std::wstring line;
-	while (std::getline(modMakerFile, line))
-	{
-		/* append to array */
-		ModInfoList.Append(ParseLine(line));
-	}
-}
-
-/// <summary>
-/// Takes in a string and actually parses it, and puts it into an object
-/// </summary>
-/// <param name="line">- input line</param>
-/// <returns>pointer of ModInfo, containing parsed mod info</returns>
-ModInfo* ModInfo::ParseLine(std::wstring& line)
-{
-	/* create array, the file uses \t to separate info */
-	NosLib::DynamicArray<std::wstring> wordArray(6, 2);
-
-	/* split the line into the previous array */
-	NosLib::String::Split<wchar_t>(&wordArray, line, '\t');
-
-	/* go through all strings in the array and "reduce" them (take out spaces in front, behind and any duplicate spaces inbetween) */
-	for (int i = 0; i <= wordArray.GetLastArrayIndex(); i++)
-	{
-		wordArray[i] = NosLib::String::Reduce(wordArray[i]);
-	}
-
-	/* if there is only 1 object (so last index is 0), that means its a separator, use a different constructor */
-	if (wordArray.GetLastArrayIndex() == 0)
-	{
-		return new ModInfo(wordArray[0]);
-	}
-
-	/* some mods have multiple inner paths that get combined, separate them into an array for easier processing */
-	NosLib::DynamicArray<std::wstring> pathArray(5, 5);
-	NosLib::String::Split<wchar_t>(&pathArray, wordArray[1], ':');
+	std::vector<std::string> from_string_paths;
+	NosLib::String::Split(&from_string_paths, mod_info[1], ':');
 
 	bool hasRoot = false;
 
-	/* go through all path strings in the array, and if any are equal to 0, that means it is root */
-	for (int i = 0; i <= pathArray.GetLastArrayIndex(); i++)
+	for (std::string& entry : from_string_paths)
 	{
-		if (pathArray[i] == L"0" || pathArray[i] == L"\\")
+		if (entry == "0" || entry == "\\")
 		{
-			pathArray[i] = L"\\";
+			entry = "\\";
 			hasRoot = true;
 		}
-		else if (pathArray[i][0] != L'\\')
+		else if (entry[0] != L'\\')
 		{
-			pathArray[i].insert(0, L"\\");
+			entry.insert(0, "\\");
 		}
 
-		if (pathArray[i].back() != L'\\')
+		if (entry.back() != L'\\')
 		{
-			pathArray[i].append(L"\\");
+			entry.append("\\");
 		}
 	}
 
 	if (!hasRoot)
 	{
-		pathArray.Insert(L"\\", 0);
+		from_string_paths.insert(from_string_paths.begin(), "\\");
+	}
+
+	std::vector<std::filesystem::path> from_paths;
+	for (std::string& entry : from_string_paths)
+	{
+		from_paths.push_back(entry);
 	}
 
 	/* finally, if it has gotten here, it means the current line is a normal mod, pass in all the info to the constructor */
-	return new ModInfo(wordArray[0], pathArray, wordArray[2], wordArray[3], wordArray[4]);
+	return new ModInfo(mod_info[0], from_paths, mod_info[2], mod_info[3], mod_info[4]);
 }
-#pragma endregion
 
-void ModInfo::UpdateLoadingScreen(const std::wstring& status)
+void ModInfo::process_mod()
 {
-	if (ProcessingThread != nullptr)
+	switch (mod_type_)
 	{
-		ProcessingThread->UpdateModStatus(status);
+	case Type::Standard:
+		standard_mod_process();
+		break;
+
+	case Type::Custom:
+		custom_mod_process();
+		break;
+
+	case Type::Seperator:
+		separator_mod_process();
+		break;
+
+	default: /* TODO: CHANGE TO RESULT */
+		//LogError("Undefined Mod Type tried to be processed", std::source_location::current());
 		return;
 	}
 
-	InstallManager* instance = InstallManager::GetInstallManager();
-	instance->UpdateModStatus(status);
+	if (mod_file_handler_ != nullptr)
+	{
+		mod_file_handler_->release();
+		mod_file_handler_ = nullptr;
+	}
 }
 
-void ModInfo::UpdateLoadingScreen(const int& percentageOnCurrentMod)
+void ModInfo::update_loading_screen(const std::string& status)
 {
-	if (ProcessingThread != nullptr)
+	//if (ProcessingThread != nullptr)
+	//{
+	//	ProcessingThread->UpdateModStatus(status);
+	//	return;
+	//}
+
+	InstallManager* instance = InstallManager::GetInstallManager();
+	//instance->UpdateModStatus(status);
+}
+
+void ModInfo::update_loading_screen(const int& precentage)
+{
+	InstallManager* instance = InstallManager::GetInstallManager();
+	//instance->UpdateModProgress(precentage);
+}
+
+void ModInfo::update_loading_screen(const int& precentage, const std::string& status)
+{
+	update_loading_screen(precentage);
+	update_loading_screen(status);
+}
+
+static NosLib::Result<void> copy_if_exists(const std::filesystem::path& from, const std::filesystem::path& to)
+{
+	if (!std::filesystem::exists(from))
 	{
-		ProcessingThread->UpdateModProgress(percentageOnCurrentMod);
-		return;
+		return {NosLib::GenericErrors::InvalidArgument, std::format("{} doesn't exist", from.string())};
 	}
 
-	InstallManager* instance = InstallManager::GetInstallManager();
-	instance->UpdateModProgress(percentageOnCurrentMod);
-}
-
-void ModInfo::UpdateLoadingScreen(const int& percentageOnCurrentMod, const std::wstring& status)
-{
-	UpdateLoadingScreen(percentageOnCurrentMod);
-	UpdateLoadingScreen(status);
-}
-
-
-#pragma region Mod Processing
-
-void ModInfo::LogError(const std::wstring& errorMessage, const std::source_location& errorLocation)
-{
-	std::wstring logMessage = std::format(L"{} :: {} :: {} | mod: \"{}\" -> {}\n",
-											NosLib::String::ToWstring(errorLocation.file_name()),
-											NosLib::String::ToWstring(errorLocation.function_name()),
-											errorLocation.line(),
-											OutName,
-											errorMessage);
-
-	NosLib::Logging::CreateLog<wchar_t>(logMessage, NosLib::Logging::Severity::Error);
-}
-
-void ModInfo::StandardModProcess()
-{
-	UpdateLoadingScreen(L"Requesting File...");
-	std::wstring extractPath = FileObject->GetFile(this, &ModInfo::InitialResponseCallback, &ModInfo::ProgressCallback);
-	UpdateLoadingScreen(L"Received File");
-
-	if (extractPath.empty())
+	std::error_code ec;
+	std::filesystem::create_directories(to, ec);
+	if (ec)
 	{
-		LogError(L"Failed to Get Mod File", std::source_location::current());
+		return ec;
 	}
 
-	UpdateLoadingScreen(L"Copying files...");
-	/* for every "inner" path, go through and find the needed files */
-	for (std::wstring path : InsidePaths)
+	std::filesystem::copy(from, to, std::filesystem::copy_options::recursive | std::filesystem::copy_options::overwrite_existing, ec);
+	if (ec)
 	{
-		/* root inner path, everything revolves around this */
-		std::wstring rootFrom = (extractPath + path);
-		std::wstring rootTo = (InstallOptions::GammaInstallPath + InstallInfo::ModDirectory + GetFolderName() + L"\\");
+		return ec;
+	}
 
+	return{};
+}
 
-		/* create directories to prevent errors */
-		std::filesystem::create_directories(rootTo);
+NosLib::Result<void> ModInfo::standard_mod_process()
+{
+	update_loading_screen("Requesting File..."); /* TODO: ADD ACTUAL ERROR CHECKING */
+	std::filesystem::path mod_file_path = mod_file_handler_->get_file(this, &ModInfo::InitialResponseCallback, &ModInfo::ProgressCallback).GetReturn();
+	update_loading_screen("Received File");
 
-		try
+	if (!std::filesystem::exists(mod_file_path))
+	{
+		return { NCGIError::ExtractionFailure, "Extracted mod file doesn't exist" };
+	}
+
+	update_loading_screen("Copying files...");
+
+	for (std::filesystem::path& path : from_paths_)
+	{
+		std::filesystem::path from = (mod_file_path / path);
+		std::filesystem::path to = (InstallOptions::GammaInstallPath / InstallInfo::ModDirectory / generate_mod_name());
+
+		std::filesystem::create_directories(to);
+
+		std::error_code ec;
+		std::filesystem::copy(from, to, std::filesystem::copy_options::overwrite_existing, ec);
+		if (ec)
 		{
-			/* copy all files from root (any readme/extra info files) */
-			std::filesystem::copy(rootFrom, rootTo, std::filesystem::copy_options::overwrite_existing);
+			NosLib::Logging::CreateLog(NosLib::Logging::Severity::Error, "Error while copying: {}", ec.message());
+			continue;
+		}
 
-			for (std::wstring subdirectory : ModSubDirectories)
+		for (std::filesystem::path& sub_dir : mod_sub_directories)
+		{
+			std::filesystem::path sub_from = from / sub_dir;
+			std::filesystem::path sub_to = to / sub_dir;
+
+			NosLib::Logging::CreateLog(NosLib::Logging::Severity::Debug, "Copying \"{}\" to \"{}\"", sub_from.string(), sub_to.string());
+			if (NosLib::Result<void> res = copy_if_exists(sub_from, sub_to); !res)
 			{
-				std::wstring subRootFrom = rootFrom + subdirectory;
-				std::wstring subRootTo = rootTo + subdirectory;
-
-				NosLib::Logging::CreateLog<wchar_t>(std::format(L"Copying \"{}\" To \"{}\"", subRootFrom, subRootTo), NosLib::Logging::Severity::Info);
-
-				copyIfExists(subRootFrom, subRootTo);
-
-				NosLib::Logging::CreateLog<wchar_t>(std::format(L"Copied \"{}\" To \"{}\"", subRootFrom, subRootTo), NosLib::Logging::Severity::Info);
+				NosLib::Logging::CreateLog(NosLib::Logging::Severity::Error, res.GetAdditionalErrorMessage());
 			}
-		}
-		catch (const std::exception& ex)
-		{
-			LogError(NosLib::String::ToWstring(ex.what()), std::source_location::current());
+			NosLib::Logging::CreateLog(NosLib::Logging::Severity::Debug, "Copied \"{}\" to \"{}\"", sub_from.string(), sub_to.string());
 		}
 	}
-	UpdateLoadingScreen(L"Finished Copying");
+	update_loading_screen("Finished Copying");
 }
 
-void ModInfo::CustomModProcess()
+NosLib::Result<void> ModInfo::custom_mod_process()
 {
-	UpdateLoadingScreen(L"Requesting File...");
-	std::wstring extractPath = FileObject->GetFile(this, &ModInfo::InitialResponseCallback, &ModInfo::ProgressCallback);
-	UpdateLoadingScreen(L"Received File");
+	update_loading_screen("Requesting File..."); /* TODO: ADD ACTUAL ERROR CHECKING */
+	std::filesystem::path mod_file_path = mod_file_handler_->get_file(this, &ModInfo::InitialResponseCallback, &ModInfo::ProgressCallback).GetReturn();
+	update_loading_screen("Received File");
 
-	if (extractPath.empty())
+	if (!std::filesystem::exists(mod_file_path))
 	{
-		LogError(L"Failed to Get Mod File", std::source_location::current());
+		return { NCGIError::ExtractionFailure, "Extracted mod file doesn't exist" };
 	}
 
-	UpdateLoadingScreen(L"Copying files...");
-	/* for every "inner" path, go through and find the needed files */
-	for (std::wstring path : InsidePaths)
+	update_loading_screen("Copying files...");
+	for (std::filesystem::path& path : from_paths_)
 	{
-		/* root inner path, everything revolves around this */
-		std::wstring rootFrom = (extractPath + path);
-		std::wstring rootTo = (UseInstallPath ? InstallOptions::GammaInstallPath : L"") + OutPath;
+		std::filesystem::path from = (mod_file_path / path);
+		std::filesystem::path to = (use_install_path_ ? InstallOptions::GammaInstallPath / main_name_ : main_name_);
 
-		NosLib::Logging::CreateLog<wchar_t>(std::format(L"Copying \"{}\" To \"{}\"", rootFrom, rootTo), NosLib::Logging::Severity::Info);
-
-		/* create directories to prevent errors */
-		std::filesystem::create_directories(rootTo);
-
-		try
+		std::filesystem::create_directories(to);
+		NosLib::Logging::CreateLog(NosLib::Logging::Severity::Debug, "Copying \"{}\" to \"{}\"", from.string(), to.string());
+		if (NosLib::Result<void> res = copy_if_exists(from, to); !res)
 		{
-			/* copy all files from root (any readme/extra info files) */
-			std::filesystem::copy(rootFrom, rootTo, std::filesystem::copy_options::overwrite_existing);
-
-			copyIfExists(rootFrom, rootTo);
-			NosLib::Logging::CreateLog<wchar_t>(std::format(L"Copied \"{}\" To \"{}\"", rootFrom, rootTo), NosLib::Logging::Severity::Info);
+			NosLib::Logging::CreateLog(NosLib::Logging::Severity::Error, res.GetAdditionalErrorMessage());
 		}
-		catch (const std::exception& ex)
-		{
-			LogError(NosLib::String::ToWstring(ex.what()), std::source_location::current());
-		}
+		NosLib::Logging::CreateLog(NosLib::Logging::Severity::Debug, "Copied \"{}\" to \"{}\"", from.string(), to.string());
 	}
-	UpdateLoadingScreen(L"Finished Copying");
+	update_loading_screen("Finished Copying");
 }
 
-void ModInfo::SeparatorModProcess()
+NosLib::Result<void> ModInfo::separator_mod_process()
 {
-	std::filesystem::create_directories(InstallOptions::GammaInstallPath + InstallInfo::ModDirectory + GetFolderName());
+	std::error_code ec;
+	std::filesystem::create_directories(InstallOptions::GammaInstallPath / InstallInfo::ModDirectory / generate_mod_name(), ec);
+	return ec;
 }
-#pragma endregion
+
+void ModInfo::InitialResponseCallback(const std::string& statusString)
+{
+	update_loading_screen(statusString);
+}
+
+bool ModInfo::ProgressCallback(uint64_t len, uint64_t total)
+{
+	update_loading_screen((len * 100) / total);
+
+	return true;
+}

@@ -1,7 +1,10 @@
 #pragma once
 
-#include <NosLib/HostPath.hpp>
+#include <NosLib/Http/URL.hpp>
+#include <NosLib/Http/HttpClient.hpp>
 #include <NosLib/Logging.hpp>
+#include <NosLib/ErrorHandling.hpp>
+#include <NCGI/ErrorCodes.hpp>
 
 #include "ModInfo.hpp"
 
@@ -9,24 +12,22 @@ namespace MO
 {
 	namespace /* Private */
 	{
-		std::wstring GetLatestMOVersion(const NosLib::HttpClient::ptr& client)
+		NosLib::Result<std::string> get_latest_mo_version(const NosLib::HttpClient::Ptr& client)
 		{
-			NosLib::HostPath hostPath("https://github.com/ModOrganizer2/modorganizer/releases/latest");
-			
-			httplib::Result res = client->Get(NosLib::String::ToString(hostPath.Path));
+			NosLib::URL mo_release_url("https://github.com/ModOrganizer2/modorganizer/releases/latest");
+
+			httplib::Result res = client->Get(mo_release_url.GetSubdir());
 
 			if (!res)
 			{
-				NosLib::Logging::CreateLog<wchar_t>(std::format(L"connection error code: {}\n", NosLib::String::ToWstring(httplib::to_string(res.error()))), NosLib::Logging::Severity::Error);
-				return L"";
+				return { NCGIError::HttpError, httplib::to_string(res.error()) };
 			}
 
 			httplib::Headers::const_iterator itr = res->headers.find("location");
 
 			if (itr == res->headers.end())
 			{
-				NosLib::Logging::CreateLog<wchar_t>(std::format(L"Could not find location header"), NosLib::Logging::Severity::Error);
-				return L"";
+				return { NCGIError::HttpError, "Unable to find location header" };
 			}
 
 
@@ -35,32 +36,28 @@ namespace MO
 			uint16_t offset = 2; /* Offset for "/v"  at the start of the substr */
 
 			std::string latestVersion = latestReleaseLink.substr(latestReleaseLink.find_last_of(L'/') + offset);
-			return NosLib::String::ToWstring(latestVersion);
+			return latestVersion;
 		}
 
-		std::wstring GetLatestDownloadLink(const NosLib::HttpClient::ptr& client, const std::wstring& version)
+		NosLib::Result<std::string> get_latest_download_link(const NosLib::HttpClient::Ptr& client, const std::string& version)
 		{
-			std::string nVersion = NosLib::String::ToString(version);
-
-			httplib::Result res = client->Get(std::format("/ModOrganizer2/modorganizer/releases/download/v{}/Mod.Organizer-{}.7z", nVersion, nVersion));
+			httplib::Result res = client->Get(std::format("/ModOrganizer2/modorganizer/releases/download/v{}/Mod.Organizer-{}.7z", version, version));
 
 			if (!res)
 			{
-				NosLib::Logging::CreateLog<wchar_t>(std::format(L"connection error code: {}\n", NosLib::String::ToWstring(httplib::to_string(res.error()))), NosLib::Logging::Severity::Error);
-				return L"";
+				return { NCGIError::HttpError, httplib::to_string(res.error()) };
 			}
 
 			httplib::Headers::const_iterator itr = res->headers.find("location");
 
 			if (itr == res->headers.end())
 			{
-				NosLib::Logging::CreateLog<wchar_t>(std::format(L"Could not find location header"), NosLib::Logging::Severity::Error);
-				return L"";
+				return { NCGIError::HttpError, "Unable to find location header" };
 			}
 
 			std::string downloadLink = itr->second;
 
-			return NosLib::String::ToWstring(downloadLink);
+			return downloadLink;
 		}
 	}
 
@@ -69,33 +66,24 @@ namespace MO
 		auto client = NosLib::HttpClient::MakeClient("https://github.com");
 		client->set_keep_alive(true);
 
-		std::wstring moVersion = GetLatestMOVersion(client);
-		std::wstring moDownloadLink = GetLatestDownloadLink(client, moVersion);
+		/* TODO: ADD ERROR HANDLING */
+		std::string moVersion = *get_latest_mo_version(client);
+		std::string moDownloadLink = *get_latest_download_link(client, moVersion);
 
-		std::wstring fileName = std::format(L"Mod.Organizer-{}", moVersion);
+		std::string fileName = std::format("Mod.Organizer-{}", moVersion);
 
 		return ModInfo(moDownloadLink,
-									 NosLib::DynamicArray<std::wstring>({ L"\\" }),
-									 L""/* Root */,
-									 fileName,
-									 true,
-									 L".7z");
+					   std::vector<std::filesystem::path>({ "\\" }),
+					   ""/* Root */,
+					   fileName,
+					   true,
+					   ".7z");
 	}
 
-	void WriteConfigFile(const std::wstring& modOrganizerRoot, std::wstring stalkerAnomalyPath)
+	void WriteConfigFile(const std::filesystem::path& modOrganizerRoot, std::filesystem::path& stalkerAnomalyPath)
 	{
-		/* Need to double the \ */
-		for (int i = 0; i < stalkerAnomalyPath.size(); i++)
-		{
-			if (stalkerAnomalyPath[i] == L'\\')
-			{
-				stalkerAnomalyPath.insert(i, L"\\");
-				i++;
-			}
-		}
-
-		std::wstring configContent = std::format(
-LR"([General]
+		std::string configContent = std::format(
+			R"([General]
 gameName=STALKER Anomaly
 selected_profile=@ByteArray(Default)
 gamePath=@ByteArray({})
@@ -106,9 +94,9 @@ first_start=false
 style=vs15 Dark-Red.qss
 profile_local_inis=true
 profile_local_saves=true
-profile_archive_invalidation=true)", stalkerAnomalyPath);
+profile_archive_invalidation=true)", stalkerAnomalyPath.string());
 
-		std::wofstream moConfigWrite(modOrganizerRoot+L"ModOrganizer.ini", std::ios::binary | std::ios::trunc);
+		std::ofstream moConfigWrite(modOrganizerRoot / "ModOrganizer.ini", std::ios::binary | std::ios::trunc);
 
 		moConfigWrite.write(configContent.c_str(), configContent.size());
 

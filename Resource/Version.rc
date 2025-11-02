@@ -1,5 +1,5 @@
 #include <windows.h>
-#include "../Headers/Version.hpp"
+#include <NCGI/Version.hpp>
 
 VS_VERSION_INFO VERSIONINFO
  FILEVERSION NCGI_VERSION_MAJOR, NCGI_VERSION_MINOR, NCGI_VERSION_PATCH

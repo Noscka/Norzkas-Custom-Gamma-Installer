@@ -412,7 +412,20 @@
          </spacer>
         </item>
         <item>
-         <widget class="MultiThreadProgress" name="ProgressContainer" native="true"/>
+         <widget class="QProgressBar" name="CurrentProgressBar">
+          <property name="minimum">
+           <number>0</number>
+          </property>
+          <property name="maximum">
+           <number>100</number>
+          </property>
+          <property name="value">
+           <number>0</number>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignmentFlag::AlignCenter</set>
+          </property>
+         </widget>
         </item>
         <item>
          <widget class="QProgressBar" name="TotalProgressBar">
@@ -594,13 +607,7 @@
   <customwidget>
    <class>InstallPathWidget</class>
    <extends>QWidget</extends>
-   <header>CustomWidgets/InstallPathWidget.hpp</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>MultiThreadProgress</class>
-   <extends>QWidget</extends>
-   <header>CustomWidgets/MultiThreadProgress.hpp</header>
+   <header>include/NCGI/widget/InstallPathWidget.hpp</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

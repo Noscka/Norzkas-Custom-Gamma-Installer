@@ -1,30 +1,12 @@
 #pragma once
-
-#include <NosLib/HttpClient.hpp>
+#include <NosLib/Http/HttpClient.hpp>
 
 class Github
 {
-protected:
-	Github()
-	{
-		
-	}
-
-	inline static void Initialize()
-	{
-		#if 0
-		if (Instance == nullptr)
-		{
-			Instance = new Github();
-		}
-		#endif // 0
-	}
 public:
-	inline static NosLib::HttpClient::ptr CreateDownloadClient()
+	inline static NosLib::HttpClient::Ptr CreateDownloadClient()
 	{
-		Initialize();
-
-		NosLib::HttpClient::ptr githubClient;
+		NosLib::HttpClient::Ptr githubClient;
 		githubClient = NosLib::HttpClient::MakeClient("https://github.com");
 		githubClient->set_follow_location(true);
 		githubClient->set_keep_alive(true);
@@ -32,11 +14,9 @@ public:
 		return githubClient;
 	}
 
-	inline static NosLib::HttpClient::ptr CreateDownloadObjectsClient()
+	inline static NosLib::HttpClient::Ptr CreateDownloadObjectsClient()
 	{
-		Initialize();
-
-		NosLib::HttpClient::ptr githubObjectsClient;
+		NosLib::HttpClient::Ptr githubObjectsClient;
 		githubObjectsClient = NosLib::HttpClient::MakeClient("https://objects.githubusercontent.com");
 		githubObjectsClient->set_follow_location(true);
 		githubObjectsClient->set_keep_alive(true);

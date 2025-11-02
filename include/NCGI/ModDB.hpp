@@ -1,16 +1,14 @@
 #pragma once
-
-#include <NosLib/HttpClient.hpp>
+#include <NosLib/Http/HttpClient.hpp>
+#include <NosLib/Http/URL.hpp>
+#include <NosLib/ErrorHandling.hpp>
 
 #include <string>
-#include <fstream>
 
 class ModDB
 {
 protected:
-	inline static ModDB* Instance = nullptr;
-
-	NosLib::HttpClient::ptr ModDBMirrorClient;
+	NosLib::HttpClient::Ptr ModDBMirrorClient;
 
 	ModDB()
 	{
@@ -19,39 +17,27 @@ protected:
 		ModDBMirrorClient->set_keep_alive(true);
 	}
 
-	inline static void Initialize()
+	inline static ModDB& get_instance()
 	{
-		if (Instance == nullptr)
+		static ModDB* instance{ nullptr };
+		if (instance == nullptr)
 		{
-			Instance = new ModDB();
+			instance = new ModDB();
 		}
+		return *instance;
 	}
 public:
-	inline static NosLib::HttpClient::ptr CreateDownloadClient()
+	inline static NosLib::HttpClient::Ptr CreateDownloadClient()
 	{
-		Initialize();
-
-		NosLib::HttpClient::ptr modDBDownloadClient;
+		NosLib::HttpClient::Ptr modDBDownloadClient;
 		modDBDownloadClient = NosLib::HttpClient::MakeClient("https://www.moddb.com");
 		modDBDownloadClient->set_follow_location(true);
 		modDBDownloadClient->set_keep_alive(true);
 		return modDBDownloadClient;
 	}
 
-	inline static std::wstring GetDownloadString(const std::wstring& downloadLink)
-	{
-		Initialize();
-
-		return Instance->GetGivenMirror(downloadLink);
-		/* Quickest Mirror Currently makes ModDB block user */
-		//return Instance->GetQuickestMirror(downloadLink);
-	}
+	static NosLib::Result<NosLib::URL> get_download_url(const NosLib::URL& download_page);
 protected:
-	std::wstring GetGivenMirror(const std::wstring& downloadLink);
-
-	std::wstring GetQuickestMirror(const std::wstring& downloadLink);
-	std::string GetPageContent(const std::string& downloadLink);
-	NosLib::DynamicArray<std::string> ExtractMirrors(const std::string& pageContent);
-	uint32_t PingMirror(const std::string& mirrorHostname);
-	std::string GetHostName(const std::string& downloadLink);
+	NosLib::Result<NosLib::URL> get_mirror_url(const NosLib::URL& download_page);
+	NosLib::Result<std::string> get_page_content(const NosLib::URL& download_page);
 };
